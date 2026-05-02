@@ -9,16 +9,16 @@ class Config:
     num_rounds: int = 100
 
     # local training
-    local_epochs: int = 3
+    local_epochs: int = 5
     local_lr: float = 0.01
     batch_size: int = 32
 
     # Dirichlet alpha — lower = more non-IID (e.g. 0.1 is very skewed, 100 is basically IID)
     alpha: float = 0.5
 
-    # cosine-sim thresholds for tiering (Person B fills this in properly)
-    tau_low: float = 0.70
-    tau_high: float = 0.90
+    # divergence thresholds for tiering (d = 1 − cos_sim; higher = more drifted)
+    tau_low: float = 0.01    # below this → tier 3 (converged, skip)
+    tau_high: float = 0.05   # above this → tier 1 (drifted, high-fidelity delta)
 
     # top-k ratios per tier (Person C)
     k_ratio_tier1: float = 0.20
