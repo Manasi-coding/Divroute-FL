@@ -69,7 +69,7 @@ def run(config: Config | None = None) -> None:
             r["bytes_received"] = payload["bytes_transmitted"]
 
         acc = server.evaluate(test_loader)
-        logger.log(rnd, acc, results)
+        logger.log(rnd, acc, results, delta_numel=server.global_delta.numel())
 
         # update selection weights so Tier 3 clients are deprioritized next round
         server.update_selection_weights(results)
@@ -81,6 +81,11 @@ def run(config: Config | None = None) -> None:
         print(f"  round {rnd + 1:>3}/{config.num_rounds} | acc: {acc:.4f} | bytes: {total_bytes:,} | tiers: {t1}/{t2}/{t3}")
 
     print(f"\n[done] log written to {config.log_path}")
+
+    answer = input("\nGenerate plots from this run? (y/n): ").strip().lower()
+    if answer == "y":
+        from .visualize import generate_all_plots
+        generate_all_plots(config.log_path)
 
 
 if __name__ == "__main__":

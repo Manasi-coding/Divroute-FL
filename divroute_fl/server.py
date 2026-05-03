@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 
 from .config import Config
 from .mechanism import compute_divergence, assign_tier, update_selection_weights
+from .compression import apply_tiered_compression
 
 
 class FLServer:
@@ -72,17 +73,10 @@ class FLServer:
     def update_selection_weights(self, tier_results: list) -> None:
         update_selection_weights(self.selection_weights, tier_results, self.config.gamma)
 
-    # --- stub for Person C ---
+    # --- Person C's compression (real implementation) ---
 
     def compress_delta(self, delta: torch.Tensor, tier: int) -> dict:
-        # TODO: top-k sparsification based on k_ratio_tierX
-        # for now just pass the full delta through
-        return {
-            "tier": tier,
-            "values": delta.clone(),
-            "indices": torch.arange(delta.numel()),
-            "bytes_transmitted": delta.numel() * 4,
-        }
+        return apply_tiered_compression(delta, tier, self.config)
 
     @staticmethod
     def _flatten(state_dict: OrderedDict) -> torch.Tensor:

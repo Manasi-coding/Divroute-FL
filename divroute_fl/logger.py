@@ -9,13 +9,15 @@ class FLLogger:
         self.history: List[dict] = []
         os.makedirs(os.path.dirname(log_path) or ".", exist_ok=True)
 
-    def log(self, round_idx: int, test_accuracy: float, client_results: List[dict]) -> None:
+    def log(self, round_idx: int, test_accuracy: float, client_results: List[dict],
+            delta_numel: int = 0) -> None:
         total_bytes = sum(r.get("bytes_received", 0) or 0 for r in client_results)
 
         entry = {
             "round": round_idx,
             "test_accuracy": round(test_accuracy, 4),
             "total_bytes_transmitted": total_bytes,
+            "delta_numel": delta_numel,
             "clients": [
                 {
                     "client_id": r["client_id"],
