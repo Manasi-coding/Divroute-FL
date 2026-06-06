@@ -39,12 +39,30 @@ class FLServer:
         # snapshot old params before updating so we can compute the delta
         old_flat = self._flatten(self.global_model.state_dict())
 
-        total_samples = sum(r["num_samples"] for r in client_results)
+        # --- NaN guard: drop clients whose weights exploded during local training ---
+        clean_results = []
+        for r in client_results:
+            has_bad = any(
+                torch.isnan(v).any() or torch.isinf(v).any()
+                for v in r["state_dict"].values()
+            )
+            if has_bad:
+                print(f"  [warn] client {r['client_id']} produced NaN/Inf weights — excluded from aggregation")
+            else:
+                clean_results.append(r)
+
+        # If ALL clients are bad, skip aggregation entirely to preserve the current global model
+        if not clean_results:
+            print("  [warn] all clients produced NaN/Inf — skipping aggregation this round")
+            self.global_delta = torch.zeros_like(old_flat)
+            return
+
+        total_samples = sum(r["num_samples"] for r in clean_results)
 
         new_state: OrderedDict = OrderedDict()
         for key in self.global_model.state_dict():
             new_state[key] = torch.zeros_like(self.global_model.state_dict()[key], dtype=torch.float32)
-            for r in client_results:
+            for r in clean_results:
                 w = r["num_samples"] / total_samples
                 new_state[key] += w * r["state_dict"][key].float()
 
