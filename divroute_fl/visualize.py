@@ -1,6 +1,6 @@
 """
 DivRoute-FL Lite — Visualization
-Reads logs/run.json and produces four presentation plots.
+Reads logs/run.json and produces presentation plots.
 
 Standalone — only imports json, os, numpy, matplotlib.
 No dependency on model or training code.
@@ -10,7 +10,6 @@ import os
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
 
 PLOTS_DIR = "plots"
 os.makedirs(PLOTS_DIR, exist_ok=True)
@@ -54,11 +53,11 @@ def plot_divergence_heatmap(log_path: str = "logs/run.json"):
         interpolation="nearest",
     )
     cbar = fig.colorbar(img, ax=ax)
-    cbar.set_label("Divergence Score (1 − cos sim)", fontsize=11)
+    cbar.set_label("Divergence Score (1 - cos sim, EMA-smoothed)", fontsize=11)
 
     ax.set_xlabel("Training Round", fontsize=12)
     ax.set_ylabel("Client ID", fontsize=12)
-    ax.set_title("Client Divergence Over Training — DivRoute-FL Lite", fontsize=13)
+    ax.set_title("Client Divergence Over Training — DivRoute-FL", fontsize=13)
 
     plt.tight_layout()
     path = os.path.join(PLOTS_DIR, "divergence_heatmap.png")
@@ -74,7 +73,8 @@ def plot_divergence_heatmap(log_path: str = "logs/run.json"):
 def plot_tier_distribution(log_path: str = "logs/run.json"):
     """
     Stacked bar chart showing how many clients land in each tier each round.
-    Early rounds should be Tier 1 heavy; later rounds shift toward Tier 2/3.
+    With adaptive (percentile-based) tau, tier sizes are roughly determined
+    by tau_low_pct / tau_high_pct each round, not by fixed thresholds.
     """
     log = _load_log(log_path)
     rounds = [r["round"] for r in log]
@@ -83,17 +83,17 @@ def plot_tier_distribution(log_path: str = "logs/run.json"):
     tier3 = [sum(1 for c in r["clients"] if c["tier"] == 3) for r in log]
 
     fig, ax = plt.subplots(figsize=(14, 5))
-    ax.bar(rounds, tier1, label="Tier 1 — High Fidelity (top 20%)",
+    ax.bar(rounds, tier1, label="Tier 1 - High Fidelity (most drifted)",
            color="steelblue")
     ax.bar(rounds, tier2, bottom=tier1,
-           label="Tier 2 — Low Fidelity (top 5%)", color="orange")
+           label="Tier 2 - Low Fidelity (moderately drifted)", color="orange")
     ax.bar(rounds, tier3,
            bottom=[t1 + t2 for t1, t2 in zip(tier1, tier2)],
-           label="Tier 3 — Skip", color="lightgrey")
+           label="Tier 3 - Skip (converged)", color="lightgrey")
 
     ax.set_xlabel("Training Round", fontsize=12)
     ax.set_ylabel("Number of Selected Clients", fontsize=12)
-    ax.set_title("Adaptive Tier Assignment Over Training", fontsize=13)
+    ax.set_title("Percentile-Adaptive Tier Assignment Over Training", fontsize=13)
     ax.legend(loc="upper right")
 
     plt.tight_layout()
@@ -109,10 +109,10 @@ def plot_tier_distribution(log_path: str = "logs/run.json"):
 
 def plot_comm_vs_accuracy(log_path: str = "logs/run.json"):
     """
-    Three curves: cumulative bytes (x) vs accuracy (y).
+    Three curves: cumulative download bytes (x) vs accuracy (y).
     1. Full FedAvg (no compression)
     2. Uniform Top-5% (prior work baseline)
-    3. DivRoute-FL Lite (our system)
+    3. DivRoute-FL (our system)
     """
     log = _load_log(log_path)
     accuracies = [r["test_accuracy"] for r in log]
@@ -121,17 +121,17 @@ def plot_comm_vs_accuracy(log_path: str = "logs/run.json"):
     delta_numel = log[0]["delta_numel"]
     clients_per_round = len(log[0]["clients"])
 
-    # DivRoute-FL Lite: actual bytes from log
-    divroute_bytes = [r["total_bytes_transmitted"] for r in log]
+    # DivRoute-FL: actual download bytes from log
+    divroute_bytes = [r.get("total_download_bytes", r["total_bytes_transmitted"]) for r in log]
     divroute_cumul = np.cumsum(divroute_bytes) / 1e6  # MB
 
     # Full FedAvg baseline: every client gets full delta every round
     fedavg_per_round = clients_per_round * delta_numel * 4
     fedavg_cumul = np.cumsum([fedavg_per_round] * len(log)) / 1e6
 
-    # Uniform Top-5% baseline: every client always gets tier-2 compression
+    # Uniform Top-5% baseline: every client always gets tier-2 compression (8 bytes/param)
     k_uniform = int(0.05 * delta_numel)
-    uniform_per_round = clients_per_round * 2 * k_uniform * 4
+    uniform_per_round = clients_per_round * k_uniform * 8
     uniform_cumul = np.cumsum([uniform_per_round] * len(log)) / 1e6
 
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -140,11 +140,11 @@ def plot_comm_vs_accuracy(log_path: str = "logs/run.json"):
     ax.plot(uniform_cumul, accuracies, color="goldenrod",
             linewidth=2, linestyle="--", label="Uniform Top-5% (prior work)")
     ax.plot(divroute_cumul, accuracies, color="steelblue",
-            linewidth=2.5, label="DivRoute-FL Lite (ours)")
+            linewidth=2.5, label="DivRoute-FL (ours)")
 
-    ax.set_xlabel("Cumulative Data Transmitted (MB)", fontsize=12)
+    ax.set_xlabel("Cumulative Download Transmitted (MB)", fontsize=12)
     ax.set_ylabel("Test Accuracy", fontsize=12)
-    ax.set_title("Communication Efficiency — DivRoute-FL Lite vs Baselines",
+    ax.set_title("Communication Efficiency — DivRoute-FL vs Baselines",
                  fontsize=13)
     ax.legend(fontsize=11)
     ax.grid(True, alpha=0.3)
@@ -157,35 +157,41 @@ def plot_comm_vs_accuracy(log_path: str = "logs/run.json"):
 
 
 # -------------------------------------------------------------------------
-# Plot 4 — Per-Round Bytes Saved
+# Plot 4 — Per-Round Bytes (Download + Upload)
 # -------------------------------------------------------------------------
 
 def plot_bytes_per_round(log_path: str = "logs/run.json"):
     """
-    Per-round bandwidth: DivRoute-FL Lite vs Full FedAvg.
-    Shows bandwidth dropping over time as clients converge into lower tiers.
+    Per-round bandwidth: DivRoute-FL download vs Full FedAvg download,
+    plus DivRoute-FL upload (Phase 1.3 — bidirectional accounting).
+    Shows download bandwidth dropping over time as clients converge into
+    lower tiers, while upload remains constant (uncompressed, current
+    implementation).
     """
     log = _load_log(log_path)
     rounds = [r["round"] for r in log]
-    divroute_mb = [r["total_bytes_transmitted"] / 1e6 for r in log]
+    divroute_down_mb = [r.get("total_download_bytes", r["total_bytes_transmitted"]) / 1e6 for r in log]
+    divroute_up_mb = [r.get("total_upload_bytes", 0) / 1e6 for r in log]
 
-    # Baseline: full FedAvg
+    # Baseline: full FedAvg download
     delta_numel = log[0]["delta_numel"]
     clients_per_round = len(log[0]["clients"])
     fedavg_mb = (clients_per_round * delta_numel * 4) / 1e6
 
     fig, ax = plt.subplots(figsize=(12, 5))
-    ax.plot(rounds, divroute_mb, color="steelblue",
-            linewidth=2, label="DivRoute-FL Lite")
+    ax.plot(rounds, divroute_down_mb, color="steelblue",
+            linewidth=2, label="DivRoute-FL download")
+    ax.plot(rounds, divroute_up_mb, color="seagreen",
+            linewidth=2, linestyle=":", label="DivRoute-FL upload (uncompressed)")
     ax.axhline(y=fedavg_mb, color="tomato", linewidth=2,
-               linestyle="--", label=f"Full FedAvg ({fedavg_mb:.1f} MB/round)")
+               linestyle="--", label=f"Full FedAvg download ({fedavg_mb:.1f} MB/round)")
 
-    ax.fill_between(rounds, divroute_mb, fedavg_mb,
-                    alpha=0.15, color="steelblue", label="Bandwidth saved")
+    ax.fill_between(rounds, divroute_down_mb, fedavg_mb,
+                     alpha=0.15, color="steelblue", label="Download bandwidth saved")
 
     ax.set_xlabel("Training Round", fontsize=12)
     ax.set_ylabel("Bytes Transmitted (MB)", fontsize=12)
-    ax.set_title("Per-Round Bandwidth: DivRoute-FL Lite vs Full FedAvg",
+    ax.set_title("Per-Round Bandwidth: DivRoute-FL vs Full FedAvg",
                  fontsize=13)
     ax.legend(fontsize=11)
     ax.grid(True, alpha=0.3)
@@ -202,7 +208,7 @@ def plot_bytes_per_round(log_path: str = "logs/run.json"):
 # -------------------------------------------------------------------------
 
 def generate_all_plots(log_path: str = "logs/run.json"):
-    """Generate all four presentation plots from the experiment log."""
+    """Generate all presentation plots from the experiment log."""
     print(f"\n[plots] Reading log from: {log_path}")
     plot_divergence_heatmap(log_path)
     plot_tier_distribution(log_path)

@@ -1,1 +1,1 @@
-# DivRoute-FL Lite — Federated Learning research prototype
+"""DivRoute-FL — divergence-aware tiered compression for federated learning."""

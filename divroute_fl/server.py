@@ -1,4 +1,3 @@
-import copy
 from collections import OrderedDict
 from typing import List
 
@@ -8,8 +7,9 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from .config import Config
-from .mechanism import compute_divergence, assign_tier, update_selection_weights
-from .compression import apply_tiered_compression
+from .mechanism import (assign_tier, update_selection_weights,
+                         compute_divergence_weight, compute_softmax_weights)
+from .compression import apply_tiered_compression, reconstruct_delta
 
 
 class FLServer:
@@ -17,57 +17,104 @@ class FLServer:
         self.global_model = global_model.to(device)
         self.config = config
         self.device = device
-
-        # uniform to start; Person B will adjust these based on divergence/skip history
         self.selection_weights = np.ones(config.num_clients, dtype=np.float64)
         self.global_delta: torch.Tensor | None = None
-
         self._rng = np.random.default_rng(config.seed)
+        self._momentum_buf: torch.Tensor | None = None
 
     def select_clients(self, all_ids: List[int]) -> List[int]:
         weights = self.selection_weights[all_ids].copy()
         prob = weights / weights.sum()
-        selected = self._rng.choice(
-            all_ids,
-            size=self.config.clients_per_round,
-            replace=False,
-            p=prob,
-        )
-        return selected.tolist()
+        return self._rng.choice(all_ids, size=self.config.clients_per_round,
+                                 replace=False, p=prob).tolist()
 
-    def aggregate(self, client_results: List[dict]) -> None:
-        # snapshot old params before updating so we can compute the delta
+    def aggregate(self, client_results: List[dict], error_buffers: dict) -> None:
         old_flat = self._flatten(self.global_model.state_dict())
 
-        # --- NaN guard: drop clients whose weights exploded during local training ---
-        clean_results = []
-        for r in client_results:
-            has_bad = any(
-                torch.isnan(v).any() or torch.isinf(v).any()
-                for v in r["state_dict"].values()
-            )
-            if has_bad:
-                print(f"  [warn] client {r['client_id']} produced NaN/Inf weights — excluded from aggregation")
-            else:
-                clean_results.append(r)
-
-        # If ALL clients are bad, skip aggregation entirely to preserve the current global model
-        if not clean_results:
-            print("  [warn] all clients produced NaN/Inf — skipping aggregation this round")
+        # NaN guard
+        clean = [r for r in client_results
+                 if not any(torch.isnan(v).any() or torch.isinf(v).any()
+                             for v in r["state_dict"].values())]
+        dropped = len(client_results) - len(clean)
+        if dropped > 0:
+            print(f"  [warn] dropped {dropped} client(s) with NaN/Inf updates")
+        if not clean:
+            print("  [warn] all clients NaN/Inf — skipping aggregation")
             self.global_delta = torch.zeros_like(old_flat)
             return
 
-        total_samples = sum(r["num_samples"] for r in clean_results)
+        # per-client deltas: clip -> compress -> reconstruct
+        # Tier 3 clients are excluded from client_flats — contributing zero delta
+        # would dilute aggregation weights without providing any gradient signal
+        client_flats = []
+        for r in clean:
+            cf = self._flatten(r["state_dict"])
+            raw_delta = cf - old_flat
 
-        new_state: OrderedDict = OrderedDict()
-        for key in self.global_model.state_dict():
-            new_state[key] = torch.zeros_like(self.global_model.state_dict()[key], dtype=torch.float32)
-            for r in clean_results:
-                w = r["num_samples"] / total_samples
-                new_state[key] += w * r["state_dict"][key].float()
+            norm = torch.norm(raw_delta)
+            if norm > self.config.grad_clip_norm:
+                raw_delta = raw_delta * (self.config.grad_clip_norm / norm)
 
-        self.global_model.load_state_dict(new_state)
-        self.global_delta = self._flatten(new_state) - old_flat
+            # compress client's upload delta; sets bytes and clears buffer for Tier 3
+            payload = apply_tiered_compression(
+                raw_delta, r["tier"], self.config, error_buffers, r["client_id"])
+            r["bytes_received"] = payload["bytes_transmitted"]
+            r["upload_bytes"]   = payload["bytes_transmitted"]
+
+            if payload["values"] is None:      # Tier 3 — skip aggregation
+                continue
+
+            compressed_delta = reconstruct_delta(payload).to(self.device)
+            client_flats.append((r, compressed_delta))
+
+        # all selected clients may be Tier 3 in late training
+        if not client_flats:
+            print("  [warn] all clients Tier 3 — skipping aggregation")
+            self.global_delta = torch.zeros_like(old_flat)
+            return
+
+        # compute aggregation weights over Tier 1/2 clients only
+        total_samples = sum(r["num_samples"] for r, _ in client_flats)
+
+        use_softmax = (
+            self.config.use_divergence_weighting
+            and self.config.divergence_weight_mode == "softmax"
+            and all(r.get("divergence_score") is not None for r, _ in client_flats)
+        )
+
+        if use_softmax:
+            d_scores = [r["divergence_score"] for r, _ in client_flats]
+            div_weights = compute_softmax_weights(d_scores)
+            weights = [dw * (r["num_samples"] / total_samples)
+                       for dw, (r, _) in zip(div_weights, client_flats)]
+        else:
+            weights = []
+            for r, _ in client_flats:
+                sample_w = r["num_samples"] / total_samples
+                if self.config.use_divergence_weighting and r.get("divergence_score") is not None:
+                    div_w = compute_divergence_weight(
+                        r["divergence_score"], self.config.divergence_weight_mode)
+                    weights.append(sample_w * div_w)
+                else:
+                    weights.append(sample_w)
+
+        # normalise
+        w_sum = sum(weights)
+        weights = [w / w_sum for w in weights]
+
+        agg_delta = sum(w * d for w, (_, d) in zip(weights, client_flats))
+
+        # server momentum
+        if self.config.use_server_momentum:
+            if self._momentum_buf is None:
+                self._momentum_buf = torch.zeros_like(agg_delta)
+            self._momentum_buf = (self.config.server_momentum * self._momentum_buf
+                                   + agg_delta)
+            agg_delta = self.config.server_lr * self._momentum_buf
+
+        new_flat = old_flat + agg_delta
+        self._load_flat(new_flat)
+        self.global_delta = agg_delta
 
     def evaluate(self, test_loader: DataLoader) -> float:
         self.global_model.eval()
@@ -80,22 +127,52 @@ class FLServer:
                 total += labels.size(0)
         return correct / total if total > 0 else 0.0
 
-    # --- Person B's mechanism (real implementations, not stubs) ---
-
-    def compute_divergence(self, local_model: nn.Module, global_model: nn.Module) -> float:
-        return compute_divergence(local_model, global_model)
-
     def assign_tier(self, d: float) -> int:
         return assign_tier(d, self.config.tau_low, self.config.tau_high)
 
-    def update_selection_weights(self, tier_results: list) -> None:
-        update_selection_weights(self.selection_weights, tier_results, self.config.gamma)
+    def update_selection_weights(self, results: list) -> None:
+        update_selection_weights(self.selection_weights, results, self.config.gamma)
 
-    # --- Person C's compression (real implementation) ---
+    def tier3_heartbeat_payload(self) -> dict:
+        """
+        Phase 1.2 (Tier-3 staleness fix, Option A — minimal sync heartbeat).
 
-    def compress_delta(self, delta: torch.Tensor, tier: int) -> dict:
-        return apply_tiered_compression(delta, tier, self.config)
+        Tier-3 clients normally receive 0 bytes and train on an increasingly
+        stale global model. Every `tier3_sync_interval` rounds, instead of
+        sending nothing, the server sends the current global delta compressed
+        at the Tier-2 ratio. This keeps Tier-3 clients roughly in sync with
+        the global model while preserving most of the communication savings
+        (the heartbeat costs the same as a Tier-2 update, not a full delta).
 
-    @staticmethod
-    def _flatten(state_dict: OrderedDict) -> torch.Tensor:
-        return torch.cat([v.flatten().float() for v in state_dict.values()])
+        Returns a compression payload (same shape as `apply_tiered_compression`'s
+        Tier-2 output) describing what the client receives. The caller records
+        `bytes_transmitted` against that client's `bytes_received` for this
+        round.
+
+        Note: this heartbeat compresses the *current global delta* (the update
+        the server just produced this round), not a client-specific upload
+        delta — it represents what the server pushes DOWN to a stale Tier-3
+        client to refresh its local copy of the global model. It does not use
+        or modify any client's upload error buffer.
+        """
+        if self.global_delta is None:
+            return {"indices": None, "values": None, "bytes_transmitted": 0,
+                    "total_params": 0}
+
+        payload = apply_tiered_compression(
+            self.global_delta, tier=2, config=self.config,
+            error_buffers=None, client_id=None)
+        return payload
+
+    def _flatten(self, state_dict: OrderedDict) -> torch.Tensor:
+        return torch.cat([v.flatten().float().to(self.device) for v in state_dict.values()])
+
+    def _load_flat(self, flat: torch.Tensor) -> None:
+        sd = self.global_model.state_dict()
+        offset = 0
+        new_sd = OrderedDict()
+        for k, v in sd.items():
+            numel = v.numel()
+            new_sd[k] = flat[offset:offset + numel].reshape(v.shape).to(v.dtype)
+            offset += numel
+        self.global_model.load_state_dict(new_sd)

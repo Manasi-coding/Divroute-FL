@@ -8,7 +8,7 @@ from torchvision import datasets, transforms
 
 # standard CIFAR-10 stats
 CIFAR10_MEAN = (0.4914, 0.4822, 0.4465)
-CIFAR10_STD  = (0.2023, 0.1994, 0.2010)
+CIFAR10_STD = (0.2023, 0.1994, 0.2010)
 
 _transform = transforms.Compose([
     transforms.ToTensor(),
