@@ -36,7 +36,7 @@ CSV_COLUMNS = [
 ]
 
 
-# ── Log parsing ────────────────────────────────────────────────────────────────
+
 def _parse_log(log_path: str, num_rounds: int, clients_per_round: int) -> dict:
     """Read a run log and return the metrics needed for the CSV row."""
     with open(log_path, encoding="utf-8") as f:
