@@ -113,6 +113,10 @@ def run(config: Config | None = None) -> None:
           f"(every {config.tier3_sync_interval} rounds) | "
           f"epoch-warmup: {config.use_epoch_warmup} | "
           f"fedavg-mode: {config.fedavg_baseline_mode}")
+    print(f"[train] adaptive-k: {config.use_adaptive_k} | "
+          f"k_ratio: tier1={config.k_ratio_tier1:.2f} tier2={config.k_ratio_tier2:.2f} | "
+          f"include-tier3: {config.include_tier3_in_aggregation} | "
+          f"uniform-top5: {config.uniform_top5_mode}")
 
     cumulative_divroute_download  = 0
     cumulative_baseline_download  = 0
@@ -131,33 +135,48 @@ def run(config: Config | None = None) -> None:
             result = clients[cid].train(global_sd, local_epochs)
             results.append(result)
 
-        # -- divergence: EMA-smoothed cosine distance -------------------------
-        global_flat = torch.cat([
-            v.flatten().float().cpu() for v in global_sd.values()
-        ])
-
-        raw_d_scores = []
-        for r in results:
-            client_flat = torch.cat([
-                v.flatten().float().cpu() for v in r["state_dict"].values()
+        # -- divergence, adaptive tau, and tier assignment ---------------------
+        # Skipped entirely in uniform_top5_mode: every client is treated as
+        # Tier-2 (top-5% compression) with a neutral divergence score of 0.0.
+        if config.uniform_top5_mode:
+            for r in results:
+                r["divergence_score"] = 0.0
+                r["tier"] = 2          # Tier-2 path → k_ratio_tier2=0.05
+        else:
+            # -- divergence: EMA-smoothed cosine distance -------------------------
+            global_flat = torch.cat([
+                v.flatten().float().cpu() for v in global_sd.values()
             ])
-            cos = F.cosine_similarity(
-                client_flat.unsqueeze(0), global_flat.unsqueeze(0),
-                dim=1, eps=1e-8
-            ).item()
-            d_raw = 1.0 - cos
-            d_ema = update_ema(ema_scores, r["client_id"], d_raw, config.ema_beta)
-            r["divergence_score"] = d_ema
-            raw_d_scores.append(d_ema)
 
-        # -- adaptive tau (Phase 6.1) ------------------------------------------
-        if config.use_adaptive_tau and len(raw_d_scores) >= 3:
-            config.tau_low, config.tau_high = compute_adaptive_taus(
-                raw_d_scores, config.tau_low_pct, config.tau_high_pct)
+            raw_d_scores = []
+            for r in results:
+                # Skip divergence update for clients with invalid updates.
+                # Writing NaN into ema_scores would permanently poison all future rounds.
+                if any(torch.isnan(v).any() or torch.isinf(v).any()
+                       for v in r["state_dict"].values()):
+                    r["divergence_score"] = ema_scores.get(r["client_id"], config.tau_low)
+                    continue
 
-        # -- tier assignment -----------------------------------------------------
-        for r in results:
-            r["tier"] = server.assign_tier(r["divergence_score"])
+                client_flat = torch.cat([
+                    v.flatten().float().cpu() for v in r["state_dict"].values()
+                ])
+                cos = F.cosine_similarity(
+                    client_flat.unsqueeze(0), global_flat.unsqueeze(0),
+                    dim=1, eps=1e-8
+                ).item()
+                d_raw = 1.0 - cos
+                d_ema = update_ema(ema_scores, r["client_id"], d_raw, config.ema_beta)
+                r["divergence_score"] = d_ema
+                raw_d_scores.append(d_ema)
+
+            # -- adaptive tau (Phase 6.1) ------------------------------------------
+            if config.use_adaptive_tau and len(raw_d_scores) >= 3:
+                config.tau_low, config.tau_high = compute_adaptive_taus(
+                    raw_d_scores, config.tau_low_pct, config.tau_high_pct)
+
+            # -- tier assignment ---------------------------------------------------
+            for r in results:
+                r["tier"] = server.assign_tier(r["divergence_score"])
 
         # -- adaptive k_ratio (updated before aggregate so compression uses
         #    the correct ratios for this round) --------------------------------

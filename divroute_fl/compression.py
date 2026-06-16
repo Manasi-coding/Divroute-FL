@@ -43,7 +43,7 @@ def apply_tiered_compression(delta: torch.Tensor, tier: int, config,
         residual          = corrected_delta - reconstruct(payload)
         error_buffers[client_id] = residual
     """
-    if tier == 3:
+    if tier == 3 and not getattr(config, "include_tier3_in_aggregation", False):
         # clear buffer — stale residuals from prior active rounds must not persist
         if error_buffers is not None and client_id is not None:
             error_buffers[client_id] = torch.zeros_like(delta)

@@ -31,20 +31,24 @@ class Config:
     # top-k compression ratios per tier
     k_ratio_tier1: float = 0.20
     k_ratio_tier2: float = 0.05
-    use_adaptive_k: bool = True
+    use_adaptive_k: bool = False     # validated: static ratios outperform decay schedule
+
+    # When True, Tier-3 clients participate in aggregation (compressed at k_ratio_tier2)
+    # instead of being excluded. Used for ablation experiments.
+    include_tier3_in_aggregation: bool = False
 
     # error feedback (Phase 1.1)
-    use_error_feedback: bool = True
+    use_error_feedback: bool = False   # validated: EF decreases accuracy at k_ratio_tier2=0.05
 
     # Tier-3 staleness sync (Phase 1.2, Option A — periodic heartbeat)
-    use_tier3_sync: bool = True
+    use_tier3_sync: bool = False       # validated: zero contribution at 20-round horizon
     tier3_sync_interval: int = 5     # every Nth round, Tier-3 clients get a tier-2 heartbeat
 
     # aggregation
     use_divergence_weighting: bool = True
     # weighting formula: "inverse" (1/d), "sqrt" (1/sqrt(d)), "exp" (exp(-d)), "softmax"
     divergence_weight_mode: str = "sqrt"   # sqrt is more stable than raw inverse
-    use_server_momentum: bool = True
+    use_server_momentum: bool = False  # validated: β=0.9 with η=1.0 → 10× effective step
     server_momentum: float = 0.9
     server_lr: float = 1.0
     grad_clip_norm: float = 10.0
@@ -60,6 +64,12 @@ class Config:
     # k_ratio=1.0, tau thresholds below any real score, gamma=1, no momentum/EF/sync.
     fedavg_baseline_mode: bool = False
 
+    # Uniform Top-5% baseline: every selected client receives a top-k(0.05)
+    # compressed update, with no divergence scoring, no tier assignment,
+    # and no adaptive routing. Used as a communication-matched baseline
+    # to isolate the contribution of DivRoute's routing intelligence.
+    uniform_top5_mode: bool = False
+
     # Set True to suppress the interactive "Generate plots?" prompt.
     # Required for automated / multi-run scripts.
     skip_plot_prompt: bool = False
@@ -69,3 +79,64 @@ class Config:
 
     seed: int = 42
     log_path: str = "logs/run.json"
+
+
+def get_recommended_divroute_config(**overrides) -> Config:
+    """
+    Returns a Config pre-set to the validated DivRoute operating point:
+
+        Accuracy : ~64.1%  (CIFAR-10, alpha=0.9, 20 rounds)
+        Comm saving: ~84%  bidirectional vs FedAvg
+
+    Key findings that shaped these defaults:
+        - use_server_momentum=False : β=0.9 / η=1.0 creates 10× effective step → −15.9pp
+        - use_error_feedback=False  : EF at k=0.05 accumulates stale residuals → −3.8pp
+        - use_adaptive_k=False      : late-round ratio decay harms convergence → −3.5pp
+        - use_tier3_sync=False      : heartbeat adds 0.00pp over 20 rounds
+
+    Any keyword argument in `overrides` is forwarded to Config(), allowing
+    individual flags to be overridden for ablation experiments.
+    """
+    base = dict(
+        use_server_momentum       = False,
+        use_error_feedback        = False,
+        use_tier3_sync            = False,
+        use_adaptive_k            = False,
+        include_tier3_in_aggregation = False,
+        use_divergence_weighting  = True,
+        use_adaptive_tau          = True,
+        use_epoch_warmup          = False,
+        k_ratio_tier1             = 0.20,
+        k_ratio_tier2             = 0.05,
+    )
+    base.update(overrides)
+    return Config(**base)
+
+
+def get_uniform_top5_config(**overrides) -> Config:
+    """
+    Returns a Config for the Uniform Top-5% baseline.
+
+    Every selected client transmits exactly top-5% of its gradient delta.
+    No divergence scoring, no tier assignment, no adaptive routing.
+    Communication volume matches DivRoute Tier-2 for all clients.
+
+    This baseline answers: does DivRoute's routing intelligence
+    outperform naive uniform compression at the same budget?
+
+    Any keyword argument in `overrides` is forwarded to Config().
+    """
+    base = dict(
+        uniform_top5_mode         = True,
+        use_server_momentum       = False,
+        use_error_feedback        = False,
+        use_tier3_sync            = False,
+        use_adaptive_k            = False,
+        use_divergence_weighting  = False,   # no divergence scores to weight by
+        use_adaptive_tau          = False,   # no tier assignment to threshold
+        use_epoch_warmup          = False,
+        k_ratio_tier1             = 0.05,    # unused — all clients routed as Tier-2
+        k_ratio_tier2             = 0.05,    # the single uniform compression ratio
+    )
+    base.update(overrides)
+    return Config(**base)
