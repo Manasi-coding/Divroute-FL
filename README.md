@@ -126,29 +126,29 @@ Here is the central pipeline visualized end-to-end:
 │          │                                                          │
 │          ▼                                                          │
 │  2. Each CLIENT deep-copies global model → trains locally           │
-│     (3–5 epochs of SGD on private, non-IID data shard)             │
+│     (3–5 epochs of SGD on private, non-IID data shard)              │
 │          │                                                          │
 │          ▼                                                          │
 │  3. SERVER computes DIVERGENCE per client                           │
-│     d = 1 − cosine_similarity(θ_local, θ_global)                  │
+│     d = 1 − cosine_similarity(θ_local, θ_global)                    │
 │          │                                                          │
 │          ▼                                                          │
 │  4. SERVER assigns TIER based on divergence thresholds              │
-│     d > τ_high → Tier 1 (drifted)                                  │
-│     τ_low < d ≤ τ_high → Tier 2 (moderate)                        │
-│     d ≤ τ_low → Tier 3 (converged, skip)                           │
+│     d > τ_high → Tier 1 (drifted)                                   │
+│     τ_low < d ≤ τ_high → Tier 2 (moderate)                          │
+│     d ≤ τ_low → Tier 3 (converged, skip)                            │
 │          │                                                          │
 │  5. SERVER runs FEDAVG aggregation on non-Tier-3 results            │
-│     (sample-weighted average of state_dicts → new global model)    │
+│     (sample-weighted average of state_dicts → new global model)     │
 │          │                                                          │
 │          ▼                                                          │
 │  6. SERVER computes GLOBAL DELTA = new_params − old_params          │
 │          │                                                          │
 │          ▼                                                          │
 │  7. TIERED COMPRESSION                                              │
-│     Tier 1 → send top 20% of delta (by absolute magnitude)         │
-│     Tier 2 → send top  5% of delta                                 │
-│     Tier 3 → send nothing (null packet, 0 bytes)                   │
+│     Tier 1 → send top 20% of delta (by absolute magnitude)          │
+│     Tier 2 → send top  5% of delta                                  │
+│     Tier 3 → send nothing (null packet, 0 bytes)                    │
 │          │                                                          │
 │  8. EVALUATE global model on holdout test set → log accuracy        │
 │          │                                                          │

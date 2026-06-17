@@ -169,7 +169,7 @@ def plot_accuracy(data: dict, fa_stats: dict, dr_stats: dict) -> None:
 
     ax.set_xticks(x)
     ax.set_xticklabels([f"seed={s}" for s in seeds], fontsize=9.5)
-    ax.set_ylim(max(0, min(fa_map.values() | dr_map.values()) - 5), 100)
+    ax.set_ylim(max(0, min(list(fa_map.values()) + list(dr_map.values())) - 5), 100)
     ax.legend(fontsize=10, framealpha=0.9, edgecolor="#DDDDDD")
     _apply_style(ax, "Test Accuracy (%)",
                  "Test Accuracy by Seed — FedAvg vs DivRoute")
