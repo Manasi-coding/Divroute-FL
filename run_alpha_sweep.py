@@ -42,8 +42,8 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf-8-s
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 # ── Experiment parameters ──────────────────────────────────────────────────────
-ALPHAS     = [0.1, 0.3, 0.5, 0.9]
-SEEDS      = [42, 123, 456]
+ALPHAS     = [0.1, 0.9]
+SEEDS      = [42]
 NUM_ROUNDS = 100
 METHODS    = ["FedAvg", "UniformTop5", "DivRoute"]
 
