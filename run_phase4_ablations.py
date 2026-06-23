@@ -69,22 +69,23 @@ ABLATIONS = {
         "config_kwargs": lambda v: {"use_adaptive_tau": False, "tau_high": v[0], "tau_low": v[1]},
         "name_func": lambda v: f"tau_high_{v[0]}"
     },
+    # the "tau low & high values" used in the kratios run are the best ones obtained from run of thresholds ablation
     "kratios": {
         "params": ["k_ratio_tier1", "k_ratio_tier2"],
-        "values": list(product([0.10, 0.20, 0.30], [0.02, 0.05, 0.10])),
-        "config_kwargs": lambda v: {"k_ratio_tier1": v[0], "k_ratio_tier2": v[1]},
+        "values": list(product([0.10, 0.20, 0.30], [0.02, 0.05, 0.10])), 
+        "config_kwargs": lambda v: {"k_ratio_tier1": v[0], "k_ratio_tier2": v[1], "use_adaptive_tau": False, "tau_high": 0.03, "tau_low": 0.015},
         "name_func": lambda v: f"k1_{v[0]:.2f}_k2_{v[1]:.2f}"
     },
     "gamma": {
         "params": ["gamma"],
         "values": [(g,) for g in [0.70, 0.80, 0.85, 0.90, 1.00]],
-        "config_kwargs": lambda v: {"gamma": v[0]},
+        "config_kwargs": lambda v: {"gamma": v[0], "use_adaptive_tau": False, "tau_high": 0.03, "tau_low": 0.015},
         "name_func": lambda v: f"gamma_{v[0]:.2f}"
     },
     "epochs": {
         "params": ["local_epochs"],
         "values": [(e,) for e in [1, 2, 5, 10]],
-        "config_kwargs": lambda v: {"local_epochs": v[0], "use_epoch_warmup": False},
+        "config_kwargs": lambda v: {"local_epochs": v[0], "use_epoch_warmup": False, "use_adaptive_tau": False, "tau_high": 0.03, "tau_low": 0.015},
         "name_func": lambda v: f"epochs_{v[0]}"
     }
 }
