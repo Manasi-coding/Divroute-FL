@@ -49,6 +49,14 @@ def get_model(model_name: str, num_classes: int) -> nn.Module:
     elif name == "resnet18":
         from torchvision.models import resnet18
         model = resnet18(weights=None)
+        # CIFAR adaptation (standard in FL research — FedProx, SCAFFOLD, FedNova etc.):
+        # The default ResNet-18 uses a 7×7 conv (stride=2) followed by MaxPool (stride=2),
+        # reducing a 32×32 CIFAR image to 8×8 before any residual block, then to 1×1
+        # by layer4. This spatial collapse makes learning essentially impossible on
+        # CIFAR-scale inputs. Replace with a 3×3 conv (stride=1) and remove MaxPool
+        # so the feature map stays at 32×32 through the stem, matching published baselines.
+        model.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        model.maxpool = nn.Identity()   # remove the stride-2 MaxPool
         model.fc = nn.Linear(model.fc.in_features, num_classes)
         return model
     else:

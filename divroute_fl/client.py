@@ -20,7 +20,7 @@ class FLClient:
         # persistent loader — created once, reused every round
         self._loader = DataLoader(
             dataset, batch_size=batch_size, shuffle=True,
-            drop_last=False, num_workers=0, pin_memory=(device.type == "cuda"),
+            drop_last=True, num_workers=0, pin_memory=(device.type == "cuda"),
             persistent_workers=False,
         )
 

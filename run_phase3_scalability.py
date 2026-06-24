@@ -82,7 +82,7 @@ def main() -> None:
               f"(CIFAR-100 / ResNet-18 / 100 clients / 100 rounds)")
         print(f"{'='*72}\n")
         fedavg_log = _run_fedavg(seed)
-        print(f"\n  [phase3] FedAvg log → {fedavg_log}")
+        print(f"\n  [phase3] FedAvg log -> {fedavg_log}")
 
         run_no += 1
         print(f"\n{'='*72}")
@@ -90,7 +90,7 @@ def main() -> None:
               f"(CIFAR-100 / ResNet-18 / 100 clients / 100 rounds)")
         print(f"{'='*72}\n")
         divroute_log = _run_divroute(seed)
-        print(f"\n  [phase3] DivRoute log → {divroute_log}")
+        print(f"\n  [phase3] DivRoute log -> {divroute_log}")
 
     print(f"\n\n{'='*72}")
     print("  PHASE 3 SCALABILITY EXPERIMENT COMPLETE")

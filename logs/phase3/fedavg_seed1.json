@@ -1,0 +1,162 @@
+[
+  {
+    "round": 0,
+    "test_accuracy": 0.0097,
+    "total_bytes_transmitted": 898380160,
+    "total_download_bytes": 898380160,
+    "total_upload_bytes": 898380160,
+    "delta_numel": 11229752,
+    "clients": [
+      {
+        "client_id": 51,
+        "divergence_score": 0.6421421766281128,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 95,
+        "divergence_score": 0.6214861869812012,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 14,
+        "divergence_score": 0.6567752659320831,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 94,
+        "divergence_score": 0.6192433536052704,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 31,
+        "divergence_score": 0.49497270584106445,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 42,
+        "divergence_score": 0.5951551795005798,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 82,
+        "divergence_score": 0.4981788992881775,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 40,
+        "divergence_score": 0.43017226457595825,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 54,
+        "divergence_score": 0.5253054201602936,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 2,
+        "divergence_score": 0.6018874943256378,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      }
+    ]
+  },
+  {
+    "round": 1,
+    "test_accuracy": 0.0092,
+    "total_bytes_transmitted": 898380160,
+    "total_download_bytes": 898380160,
+    "total_upload_bytes": 898380160,
+    "delta_numel": 11229752,
+    "clients": [
+      {
+        "client_id": 75,
+        "divergence_score": 0.44286978244781494,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 53,
+        "divergence_score": 0.5690277218818665,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 32,
+        "divergence_score": 0.4414275288581848,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 78,
+        "divergence_score": 0.31931042671203613,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 30,
+        "divergence_score": 0.32558673620224,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 45,
+        "divergence_score": 0.6666503250598907,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 13,
+        "divergence_score": 0.5967411696910858,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 40,
+        "divergence_score": 0.4132073760032654,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 20,
+        "divergence_score": 0.5477233231067657,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      },
+      {
+        "client_id": 26,
+        "divergence_score": 0.5104231238365173,
+        "tier": 1,
+        "bytes_received": 89838016,
+        "upload_bytes": 89838016
+      }
+    ]
+  }
+]
