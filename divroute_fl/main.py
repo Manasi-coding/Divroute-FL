@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 
 from .config import Config
 from .data import get_client_datasets, get_test_dataset
-from .model import SimpleCNN
+from .model import get_model
 from .client import FLClient
 from .server import FLServer
 from .logger import FLLogger
@@ -76,20 +76,23 @@ def run(config: Config | None = None) -> None:
         print("GPU:", torch.cuda.get_device_name(0))
     print(f"[init] using device: {device}")
 
-    print("[init] loading CIFAR-10 + building non-IID splits...")
-    client_datasets = get_client_datasets(config.num_clients, config.alpha, config.seed)
-    test_loader = DataLoader(get_test_dataset(), batch_size=256, shuffle=False, num_workers=0)
+    print(f"[init] loading {config.dataset_name.upper()} + building non-IID splits...")
+    client_datasets = get_client_datasets(
+        config.dataset_name, config.num_clients, config.alpha, config.seed)
+    test_loader = DataLoader(
+        get_test_dataset(config.dataset_name), batch_size=256, shuffle=False, num_workers=0)
 
     shard_sizes = [len(ds) for ds in client_datasets]
     print(f"[init] shard sizes — min: {min(shard_sizes)}, max: {max(shard_sizes)}, "
           f"mean: {np.mean(shard_sizes):.0f}")
 
-    global_model = SimpleCNN()
+    num_classes  = 10 if config.dataset_name.lower() == "cifar10" else 100
+    global_model = get_model(config.model_name, num_classes)
     server = FLServer(global_model, config, device)
 
     clients = [
         FLClient(i, client_datasets[i], config.local_epochs, config.local_lr,
-                 config.batch_size, device)
+                 config.batch_size, device, config.model_name, num_classes)
         for i in range(config.num_clients)
     ]
 

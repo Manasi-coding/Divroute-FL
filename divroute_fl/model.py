@@ -28,3 +28,31 @@ class SimpleCNN(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
+
+
+def get_model(model_name: str, num_classes: int) -> nn.Module:
+    """
+    Model factory.  Returns an initialised (random-weight) model.
+
+    Supported values for model_name:
+        "simplecnn"  — lightweight CNN (~200k params), suitable for CIFAR-10
+        "resnet18"   — torchvision ResNet-18 (~11M params), suitable for CIFAR-100
+
+    Parameters
+    ----------
+    model_name  : one of {"simplecnn", "resnet18"}
+    num_classes : number of output classes (10 for CIFAR-10, 100 for CIFAR-100)
+    """
+    name = model_name.lower().strip()
+    if name == "simplecnn":
+        return SimpleCNN(num_classes=num_classes)
+    elif name == "resnet18":
+        from torchvision.models import resnet18
+        model = resnet18(weights=None)
+        model.fc = nn.Linear(model.fc.in_features, num_classes)
+        return model
+    else:
+        raise ValueError(
+            f"Unknown model_name '{model_name}'. "
+            f"Supported values: 'simplecnn', 'resnet18'."
+        )

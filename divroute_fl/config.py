@@ -80,6 +80,12 @@ class Config:
     seed: int = 42
     log_path: str = "logs/run.json"
 
+    # ── Dataset / model selection (Phase 3 scalability) ──────────────────────
+    # Defaults preserve the original CIFAR-10 / SimpleCNN behaviour exactly.
+    dataset_name: str = "cifar10"    # "cifar10" | "cifar100"
+    model_name:   str = "simplecnn"  # "simplecnn" | "resnet18"
+
+
 
 def get_recommended_divroute_config(**overrides) -> Config:
     """

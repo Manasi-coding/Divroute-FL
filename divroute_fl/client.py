@@ -2,17 +2,19 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from .model import SimpleCNN
+from .model import get_model
 
 
 class FLClient:
-    def __init__(self, client_id, dataset, local_epochs, local_lr, batch_size, device):
+    def __init__(self, client_id, dataset, local_epochs, local_lr, batch_size, device, model_name, num_classes):
         self.client_id = client_id
         self.dataset = dataset
         self.local_epochs = local_epochs
         self.local_lr = local_lr
         self.batch_size = batch_size
         self.device = device
+        self.model_name = model_name
+        self.num_classes = num_classes
         self._local_model: nn.Module | None = None
 
         # persistent loader — created once, reused every round
@@ -34,7 +36,7 @@ class FLClient:
         """
         epochs = local_epochs or self.local_epochs
 
-        local_model = SimpleCNN().to(self.device)
+        local_model = get_model(self.model_name, self.num_classes).to(self.device)
         local_model.load_state_dict(global_state_dict)   # fast, no deepcopy
         local_model.train()
 
@@ -64,4 +66,4 @@ class FLClient:
         }
 
     def get_local_model(self) -> nn.Module | None:
-        return self._local_model
+        return self._local_model
