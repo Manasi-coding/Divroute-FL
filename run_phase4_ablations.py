@@ -82,10 +82,11 @@ ABLATIONS = {
         "config_kwargs": lambda v: {"gamma": v[0], "use_adaptive_tau": False, "tau_high": 0.03, "tau_low": 0.015},
         "name_func": lambda v: f"gamma_{v[0]:.2f}"
     },
+    # the "gamma" value used in the epochs run is the best one obtained from run of gamma ablation
     "epochs": {
         "params": ["local_epochs"],
         "values": [(e,) for e in [1, 2, 5, 10]],
-        "config_kwargs": lambda v: {"local_epochs": v[0], "use_epoch_warmup": False, "use_adaptive_tau": False, "tau_high": 0.03, "tau_low": 0.015},
+        "config_kwargs": lambda v: {"local_epochs": v[0], "use_epoch_warmup": False, "use_adaptive_tau": False, "tau_high": 0.03, "tau_low": 0.015, "gamma": 0.85},
         "name_func": lambda v: f"epochs_{v[0]}"
     }
 }

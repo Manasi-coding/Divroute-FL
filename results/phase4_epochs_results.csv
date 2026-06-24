@@ -1,0 +1,5 @@
+config,seed,accuracy,download_mb,upload_mb,bidir_mb
+epochs_1,42,0.4872,13.43,13.43,26.86
+epochs_2,42,0.6610,147.43,147.43,294.87
+epochs_5,42,0.6440,198.69,198.69,397.38
+epochs_10,42,0.6414,183.76,183.76,367.51
