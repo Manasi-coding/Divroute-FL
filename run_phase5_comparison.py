@@ -3,27 +3,32 @@ run_phase5_comparison.py
 =========================
 Phase 5 — Comparison Against Published Baselines
 
-Runs all five methods on ResNet-18 / CIFAR-100 / 100 clients at 10% participation
-across 3 seeds to produce the paper's main comparison table (Table 1 / Table 3).
+Runs all five methods across a chosen dataset/model configuration to produce
+the paper's main comparison table (Table 1 / Table 3).
 
 Methods:
   1. FedAvg          — uncompressed full-delta baseline (upper-bound accuracy)
   2. FedZip          — Top-1% sparsification + k-means quantisation (byte-cost
                        computed post-hoc using the FedZip formula; training uses
                        full deltas to preserve accuracy fidelity)
-  3. FedSparse-0.01  — L1 proximity regularisation, lambda=0.01
+  3. FedSparse       — L1 proximity regularisation (lambda auto-scaled to model)
   4. Uniform Top-5%  — flat top-5% compression, no routing intelligence
-  5. DivRoute-FL     — three-tier adaptive divergence-routed compression
+  5. DivRoute-FL     — three-tier compression with FIXED thresholds from Phase 4
+                       ablation (tau_high=0.03, tau_low=0.015). Fixed thresholds
+                       allow tier distribution to move naturally across rounds,
+                       unlike adaptive percentiles which lock tiers at 4/8/3.
 
 Features:
+  - --dataset flag selects the full experimental preset (model, clients, seeds,
+    lambda, Acc@MB budgets). Logs/CSVs are namespaced per dataset.
+  - --methods and --seeds allow further subsetting within the chosen preset.
   - Resumable: skips any run whose log file already exists.
-  - Produces results/phase5_comparison_results.csv and a terminal summary.
-  - Acc@XMB comparison table at budgets 500 MB, 1 GB, 2 GB, 5 GB.
 
 Usage:
-    python run_phase5_comparison.py                     # all methods, all seeds
-    python run_phase5_comparison.py --methods fedavg divroute   # subset of methods
-    python run_phase5_comparison.py --seeds 42          # single seed
+    python run_phase5_comparison.py --dataset cifar100          # full ResNet-18 run
+    python run_phase5_comparison.py --dataset cifar10           # SimpleCNN quick run
+    python run_phase5_comparison.py --dataset cifar10 --seeds 42
+    python run_phase5_comparison.py --dataset cifar100 --methods fedavg divroute
 """
 
 import argparse
@@ -45,55 +50,103 @@ from divroute_fl.main import run
 from baselines.fedzip_baseline import get_fedzip_config, fedzip_bytes_for_delta
 from baselines.fedsparse_baseline import get_fedsparse_config
 
-# ── Experiment parameters ──────────────────────────────────────────────────────
-SEEDS             = [42, 123, 456]
-NUM_ROUNDS        = 100
-NUM_CLIENTS       = 100
-CLIENTS_PER_ROUND = 10        # 10% participation — realistic FL
-DATASET           = "cifar100"
-MODEL             = "resnet18"
+# ── Dataset presets ────────────────────────────────────────────────────────────
+# Each preset is a self-contained experimental configuration.
+# Selecting a preset via --dataset updates ALL derived settings automatically.
+#
+# DivRoute uses FIXED thresholds (use_adaptive_tau=False) in BOTH presets.
+# Reason: adaptive percentile thresholds lock the tier distribution to a fixed
+# 4/8/3 split regardless of k-ratios or training dynamics, making the routing
+# behaviour indistinguishable across ablation conditions. Fixed thresholds from
+# the Phase 4 sweep (tau_high=0.03, tau_low=0.015) allow tiers to move naturally.
+
+DATASET_PRESETS = {
+    "cifar10": {
+        "dataset_name":      "cifar10",
+        "model_name":        "simplecnn",
+        "num_clients":       25,
+        "clients_per_round": 15,
+        "num_rounds":        100,
+        "seeds":             [42, 123, 456],
+        # FedSparse: 0.01 is appropriate for SimpleCNN (200K params)
+        "fedsparse_lambda":  0.01,
+        # FedZip byte-accounting params (paper defaults)
+        "fedzip_z_ratio":    0.01,
+        "fedzip_k_clusters": 3,
+        # Acc@MB budgets tuned for SimpleCNN scale
+        "acc_at_budgets_mb": [50, 100, 200, 500],
+        # DivRoute fixed thresholds from Phase 4.1 ablation sweep
+        "tau_high":          0.03,
+        "tau_low":           0.015,
+        "log_subdir":        "logs/phase5/cifar10",
+        "csv_name":          "phase5_cifar10_results.csv",
+    },
+    "cifar100": {
+        "dataset_name":      "cifar100",
+        "model_name":        "resnet18",
+        "num_clients":       100,
+        "clients_per_round": 10,    # 10% participation — realistic FL
+        "num_rounds":        100,
+        "seeds":             [42, 123, 456],
+        # FedSparse: scaled down 100x for ResNet-18 (11M params) vs SimpleCNN (200K).
+        # At 0.01, the L1 penalty overwhelms cross-entropy → accuracy ≈ random chance.
+        "fedsparse_lambda":  0.0001,
+        # FedZip byte-accounting params (paper defaults)
+        "fedzip_z_ratio":    0.01,
+        "fedzip_k_clusters": 3,
+        # Acc@MB budgets tuned for ResNet-18 / CIFAR-100 scale
+        "acc_at_budgets_mb": [500, 1000, 2000, 5000],
+        # DivRoute fixed thresholds from Phase 4.1 ablation sweep
+        "tau_high":          0.03,
+        "tau_low":           0.015,
+        "log_subdir":        "logs/phase5/cifar100",
+        "csv_name":          "phase5_cifar100_results.csv",
+    },
+}
+
+# Active preset — overridden by --dataset at runtime
+_PRESET: dict = DATASET_PRESETS["cifar100"]
 
 ALL_METHODS = ["fedavg", "fedzip", "fedsparse", "uniform", "divroute"]
 
-# FedZip byte-accounting parameters (from the FedZip paper defaults)
-FEDZIP_Z_RATIO    = 0.01
-FEDZIP_K_CLUSTERS = 3
 
-# FedSparse lambda — must be scaled to model size.
-# SimpleCNN (200K params): 0.01 works.  ResNet-18 (11M params): 0.0001.
-# At 0.01 on ResNet-18 the L1 penalty overwhelms cross-entropy → accuracy ≈ random.
-FEDSPARSE_LAMBDA  = 0.0001
-
-# Acc@MB budget checkpoints (in bytes) — tuned for ResNet-18 scale
-ACC_AT_BUDGETS_MB = [500, 1000, 2000, 5000]
-
-# ── Paths ──────────────────────────────────────────────────────────────────────
-LOGS_DIR    = Path("logs/phase5")
+# ── Paths (resolved at runtime from preset) ────────────────────────────────────
 RESULTS_DIR = Path("results")
-CSV_PATH    = RESULTS_DIR / "phase5_comparison_results.csv"
 
-CSV_COLUMNS = [
-    "method", "seed",
-    "final_acc", "download_mb", "upload_mb", "bidir_mb",
-    "bidir_saving_pct", "runtime_sec",
-] + [f"acc_at_{b}mb" for b in ACC_AT_BUDGETS_MB]
+
+def _logs_dir() -> Path:
+    return Path(_PRESET["log_subdir"])
+
+
+def _csv_path() -> Path:
+    return RESULTS_DIR / _PRESET["csv_name"]
+
+
+def _csv_columns() -> list:
+    return [
+        "method", "seed",
+        "final_acc", "download_mb", "upload_mb", "bidir_mb",
+        "bidir_saving_pct", "runtime_sec",
+    ] + [f"acc_at_{b}mb" for b in _PRESET["acc_at_budgets_mb"]]
 
 
 # ── Config factories ───────────────────────────────────────────────────────────
 def _shared(seed: int, log_path: str) -> dict:
+    p = _PRESET
     return dict(
-        num_clients       = NUM_CLIENTS,
-        clients_per_round = CLIENTS_PER_ROUND,
-        num_rounds        = NUM_ROUNDS,
+        num_clients       = p["num_clients"],
+        clients_per_round = p["clients_per_round"],
+        num_rounds        = p["num_rounds"],
         seed              = seed,
-        dataset_name      = DATASET,
-        model_name        = MODEL,
+        dataset_name      = p["dataset_name"],
+        model_name        = p["model_name"],
         skip_plot_prompt  = True,
         log_path          = log_path,
     )
 
 
 def _make_config(method: str, seed: int, log_path: str) -> Config:
+    p = _PRESET
     s = _shared(seed, log_path)
     if method == "fedavg":
         return Config(fedavg_baseline_mode=True, **s)
@@ -101,17 +154,26 @@ def _make_config(method: str, seed: int, log_path: str) -> Config:
         # FedZip runs full-delta training; bytes are recalculated post-hoc.
         return Config(fedavg_baseline_mode=True, **s)
     elif method == "fedsparse":
-        return get_fedsparse_config(fedsparse_lambda=FEDSPARSE_LAMBDA, **s)
+        # Lambda is auto-scaled to the model size via the preset.
+        return get_fedsparse_config(fedsparse_lambda=p["fedsparse_lambda"], **s)
     elif method == "uniform":
         return get_uniform_top5_config(**s)
     elif method == "divroute":
-        return get_recommended_divroute_config(**s)
+        # Fixed thresholds from Phase 4.1 ablation (tau_high=0.03, tau_low=0.015).
+        # use_adaptive_tau=False so tier distribution moves naturally with training
+        # dynamics instead of being locked at a fixed percentile split every round.
+        return get_recommended_divroute_config(
+            use_adaptive_tau = False,
+            tau_high         = p["tau_high"],
+            tau_low          = p["tau_low"],
+            **s
+        )
     else:
         raise ValueError(f"Unknown method: {method!r}")
 
 
 def _log_path(method: str, seed: int) -> Path:
-    return LOGS_DIR / f"{method}_seed{seed}.json"
+    return _logs_dir() / f"{method}_seed{seed}.json"
 
 
 # ── Log parsing ────────────────────────────────────────────────────────────────
@@ -141,20 +203,21 @@ def _parse_log(path: Path, method: str) -> dict:
     # actually transmitted during training.  We recalculate them using the
     # FedZip formula applied to the delta sizes recorded in the log.
     if method == "fedzip":
+        p = _PRESET
         fedzip_dl = 0
         for e in history:
             delta_numel = e.get("delta_numel", None)
             if delta_numel is not None:
-                # Build a dummy tensor of the right size to run the formula
                 dummy = torch.zeros(delta_numel)
                 per_client = fedzip_bytes_for_delta(
-                    dummy, z_ratio=FEDZIP_Z_RATIO, k_clusters=FEDZIP_K_CLUSTERS
+                    dummy,
+                    z_ratio=p["fedzip_z_ratio"],
+                    k_clusters=p["fedzip_k_clusters"],
                 )
-                n_clients = e.get("num_selected_clients", CLIENTS_PER_ROUND)
+                n_clients = e.get("num_selected_clients", p["clients_per_round"])
                 fedzip_dl += per_client * n_clients
             else:
-                # Fallback: apply z_ratio to raw download bytes
-                fedzip_dl += int(total_dl / num_rounds * FEDZIP_Z_RATIO)
+                fedzip_dl += int(total_dl / num_rounds * p["fedzip_z_ratio"])
         total_dl = fedzip_dl
     # ─────────────────────────────────────────────────────────────────────────
 
@@ -162,7 +225,7 @@ def _parse_log(path: Path, method: str) -> dict:
 
     # FedAvg reference (full float32 delta, both directions, every round)
     delta_numel = history[0].get("delta_numel", 0)
-    fedavg_ref  = CLIENTS_PER_ROUND * delta_numel * 4 * 2 * num_rounds
+    fedavg_ref  = _PRESET["clients_per_round"] * delta_numel * 4 * 2 * num_rounds
     saving_pct  = (
         100.0 * (1.0 - total_bidir / fedavg_ref)
         if fedavg_ref else 0.0
@@ -170,7 +233,7 @@ def _parse_log(path: Path, method: str) -> dict:
 
     # ── Acc @ fixed budget ────────────────────────────────────────────────────
     acc_at = {}
-    for budget_mb in ACC_AT_BUDGETS_MB:
+    for budget_mb in _PRESET["acc_at_budgets_mb"]:
         budget_bytes = budget_mb * 1e6
         cum_dl = 0
         acc_found = None
@@ -178,8 +241,12 @@ def _parse_log(path: Path, method: str) -> dict:
             dl = e.get("total_download_bytes", e.get("total_bytes_transmitted", 0))
             if method == "fedzip" and "delta_numel" in e:
                 dummy = torch.zeros(e["delta_numel"])
-                n = e.get("num_selected_clients", CLIENTS_PER_ROUND)
-                dl = fedzip_bytes_for_delta(dummy, FEDZIP_Z_RATIO, FEDZIP_K_CLUSTERS) * n
+                n = e.get("num_selected_clients", _PRESET["clients_per_round"])
+                dl = fedzip_bytes_for_delta(
+                    dummy,
+                    _PRESET["fedzip_z_ratio"],
+                    _PRESET["fedzip_k_clusters"],
+                ) * n
             cum_dl += dl
             if cum_dl >= budget_bytes:
                 acc_found = e["test_accuracy"]
@@ -200,22 +267,25 @@ def _parse_log(path: Path, method: str) -> dict:
 def _mean(xs): return statistics.mean(xs)  if xs else float("nan")
 def _std(xs):  return statistics.stdev(xs) if len(xs) > 1 else 0.0
 
-METHOD_LABELS = {
-    "fedavg":    "Full FedAvg",
-    "fedzip":    "FedZip (z=1%)",
-    "fedsparse": f"FedSparse (λ={FEDSPARSE_LAMBDA})",
-    "uniform":   "Uniform Top-5%",
-    "divroute":  "DivRoute-FL",
-}
+def _method_labels() -> dict:
+    """Returns display labels — reads FedSparse lambda from the active preset."""
+    return {
+        "fedavg":    "Full FedAvg",
+        "fedzip":    "FedZip (z=1%)",
+        "fedsparse": f"FedSparse (lambda={_PRESET['fedsparse_lambda']})",
+        "uniform":   "Uniform Top-5%",
+        "divroute":  "DivRoute-FL (fixed-tau)",
+    }
 
 
 def _print_summary(rows: list[dict], methods: list[str]) -> None:
     print(f"\n{'='*76}")
     print("  PHASE 5 COMPARISON SUMMARY")
     print(f"{'='*76}")
-    print(f"\n  Dataset : {DATASET.upper()}   Model : {MODEL.upper()}")
-    print(f"  Clients : {NUM_CLIENTS} total, {CLIENTS_PER_ROUND}/round  "
-          f"Rounds : {NUM_ROUNDS}   Seeds : {SEEDS}")
+    p = _PRESET
+    print(f"\n  Dataset : {p['dataset_name'].upper()}   Model : {p['model_name'].upper()}")
+    print(f"  Clients : {p['num_clients']} total, {p['clients_per_round']}/round  "
+          f"Rounds : {p['num_rounds']}   Seeds : (see header above)")
 
     # Main table
     print(f"\n  {'Method':<22} {'Acc%':>8} {'±':>4} {'Bidir MB':>10} {'Saving%':>9}")
@@ -225,24 +295,22 @@ def _print_summary(rows: list[dict], methods: list[str]) -> None:
         accs   = [r["final_acc"]        for r in subset]
         bidirs = [r["bidir_mb"]         for r in subset]
         saves  = [r["bidir_saving_pct"] for r in subset]
-        label  = METHOD_LABELS.get(m, m)
+        label  = _method_labels().get(m, m)
         print(f"  {label:<22} {_mean(accs)*100:>7.2f}% {_std(accs)*100:>3.2f}%"
               f" {_mean(bidirs):>10.1f} {_mean(saves):>8.1f}%")
 
-    # Acc@MB table
+    budgets = _PRESET["acc_at_budgets_mb"]
     print(f"\n  Acc @ fixed download budget (mean over seeds):")
-    header = f"  {'Method':<22}" + "".join(f" {b}MB:>8" for b in ACC_AT_BUDGETS_MB)
-    # Build header row
     hdr = f"  {'Method':<22}"
-    for b in ACC_AT_BUDGETS_MB:
+    for b in budgets:
         hdr += f"  {str(b)+'MB':>8}"
     print(hdr)
-    print(f"  {'-'*22}" + f"  {'-'*8}" * len(ACC_AT_BUDGETS_MB))
+    print(f"  {'-'*22}" + f"  {'-'*8}" * len(budgets))
     for m in methods:
         subset = [r for r in rows if r["method"] == m]
-        label  = METHOD_LABELS.get(m, m)
+        label  = _method_labels().get(m, m)
         row = f"  {label:<22}"
-        for b in ACC_AT_BUDGETS_MB:
+        for b in budgets:
             vals = [r["acc_at"][b] for r in subset if b in r["acc_at"]]
             row += f"  {_mean(vals)*100:>7.2f}%" if vals else f"  {'N/A':>8}"
         print(row)
@@ -252,21 +320,49 @@ def _print_summary(rows: list[dict], methods: list[str]) -> None:
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 def main() -> None:
+    global _PRESET
+
     parser = argparse.ArgumentParser(description="Run Phase 5 baseline comparisons")
+    parser.add_argument(
+        "--dataset", choices=list(DATASET_PRESETS.keys()), default="cifar100",
+        help=(
+            "Dataset/model preset to use.\n"
+            "  cifar10  → SimpleCNN, 25 clients, seeds {42,123,456}, lambda=0.01\n"
+            "  cifar100 → ResNet-18, 100 clients, seeds {42,123,456}, lambda=0.0001\n"
+            "All other settings (model, clients/round, Acc@MB budgets, FedSparse\n"
+            "lambda, FedZip params, DivRoute fixed-tau values) update automatically."
+        )
+    )
     parser.add_argument(
         "--methods", nargs="+", choices=ALL_METHODS, default=ALL_METHODS,
         help="Which methods to run (default: all five)"
     )
     parser.add_argument(
-        "--seeds", nargs="+", type=int, default=SEEDS,
-        help="Seeds to use (default: 42 123 456)"
+        "--seeds", nargs="+", type=int, default=None,
+        help="Override seeds (default: use preset's seed list)"
     )
     args = parser.parse_args()
 
+    # ── Apply preset ──────────────────────────────────────────────────────────
+    _PRESET = DATASET_PRESETS[args.dataset]
+    p       = _PRESET
     methods = args.methods
-    seeds   = args.seeds
+    seeds   = args.seeds if args.seeds is not None else p["seeds"]
 
-    LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"\n{'='*76}")
+    print(f"  PHASE 5 — {args.dataset.upper()} PRESET")
+    print(f"  Model       : {p['model_name']}")
+    print(f"  Dataset     : {p['dataset_name']}")
+    print(f"  Clients     : {p['num_clients']} total, {p['clients_per_round']}/round")
+    print(f"  Rounds      : {p['num_rounds']}")
+    print(f"  Seeds       : {seeds}")
+    print(f"  Methods     : {methods}")
+    print(f"  FedSparse λ : {p['fedsparse_lambda']}")
+    print(f"  DivRoute τ  : fixed  tau_high={p['tau_high']}  tau_low={p['tau_low']}")
+    print(f"  Logs dir    : {p['log_subdir']}")
+    print(f"{'='*76}\n")
+
+    _logs_dir().mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(exist_ok=True)
 
     total_runs = len(methods) * len(seeds)
@@ -277,7 +373,7 @@ def main() -> None:
         for seed in seeds:
             lp = _log_path(method, seed)
             if lp.exists():
-                print(f"[skip] {METHOD_LABELS.get(method, method)} seed={seed} — log exists")
+                print(f"[skip] {_method_labels().get(method, method)} seed={seed} — log exists")
                 skipped += 1
             else:
                 pending.append((method, seed))
@@ -285,22 +381,23 @@ def main() -> None:
     print(f"\nTotal runs : {total_runs}  |  "
           f"Skipped : {skipped}  |  To run : {len(pending)}")
     if pending:
-        # Rough time estimate: ResNet-18 on CIFAR-100, ~90s per round on a mid GPU
-        est_s = len(pending) * NUM_ROUNDS * 90
+        est_s = len(pending) * p["num_rounds"] * 90
         h, rem = divmod(int(est_s), 3600)
-        m = rem // 60
-        print(f"Estimated remaining time: ~{h}h {m}m  (assumes ~90s/round on mid-range GPU)\n")
+        m_min = rem // 60
+        secs_per = 90 if p["model_name"] == "resnet18" else 20
+        print(f"Estimated remaining time: ~{h}h {m_min}m  "
+              f"(assumes ~{secs_per}s/round on mid-range GPU)\n")
 
     run_num = skipped
     for method, seed in pending:
         run_num += 1
         lp  = _log_path(method, seed)
         cfg = _make_config(method, seed, str(lp))
-        label = METHOD_LABELS.get(method, method)
+        label = _method_labels().get(method, method)
 
         print(f"\n{'='*76}")
         print(f"  Run {run_num}/{total_runs}: {label} | seed={seed} | "
-              f"{NUM_ROUNDS} rounds | {DATASET.upper()} / {MODEL.upper()}")
+              f"{p['num_rounds']} rounds | {p['dataset_name'].upper()} / {p['model_name'].upper()}")
         print(f"{'='*76}\n")
 
         t0 = time.perf_counter()
@@ -324,8 +421,9 @@ def main() -> None:
             })
 
     # ── Write CSV ──────────────────────────────────────────────────────────────
-    with open(CSV_PATH, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=CSV_COLUMNS)
+    csv_path = _csv_path()
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=_csv_columns())
         writer.writeheader()
         for r in rows:
             writer.writerow({
@@ -338,10 +436,10 @@ def main() -> None:
                 "bidir_saving_pct":  f"{r['bidir_saving_pct']:.1f}",
                 "runtime_sec":       "",
                 **{f"acc_at_{b}mb": f"{r['acc_at'].get(b, float('nan')):.4f}"
-                   for b in ACC_AT_BUDGETS_MB},
+                   for b in _PRESET["acc_at_budgets_mb"]},
             })
 
-    print(f"\n[done] CSV written to {CSV_PATH}")
+    print(f"\n[done] CSV written to {csv_path}")
     _print_summary(rows, methods)
 
 

@@ -5,24 +5,44 @@ def compress_delta(delta: torch.Tensor, k_ratio: float) -> dict:
     """
     Top-k sparsification.
 
-    Byte accounting (Phase 0.2 fix): indices are stored as int32 (4 bytes each),
-    values as float32 (4 bytes each) -> bytes_transmitted = k * (4 + 4) = 8k.
+    Byte accounting:
+      k_ratio < 1.0  → sparse top-k format: int32 indices (4B) + float32 values (4B)
+                        → bytes_transmitted = k * 8
+      k_ratio = 1.0  → full model, no indices needed (plain float32)
+                        → bytes_transmitted = numel * 4
+    This avoids double-counting the FedAvg baseline (which uses k=1.0) against a
+    4-bytes/param reference in the saving% calculation.
     """
-    k = max(1, int(k_ratio * delta.numel()))
+    numel = delta.numel()
+    k = max(1, int(k_ratio * numel))
+
+    if k >= numel:
+        # Full model — send as plain float32, no index overhead
+        return {
+            "indices":           None,           # signal: full-model (no sparse indices)
+            "values":            delta.clone(),
+            "bytes_transmitted": numel * 4,      # float32 only, no indices
+            "total_params":      numel,
+        }
+
     _, indices = torch.topk(delta.abs(), k)
     indices = indices.to(torch.int32)          # int32: 4 bytes each, covers up to 2B params
     values = delta[indices.long()]             # int64 required for indexing
     return {
-        "indices": indices,
-        "values": values,
+        "indices":           indices,
+        "values":            values,
         "bytes_transmitted": k * 8,            # float32 values (4) + int32 indices (4)
-        "total_params": delta.numel(),
+        "total_params":      numel,
     }
 
 
 def reconstruct_delta(payload: dict) -> torch.Tensor:
     if payload["values"] is None:
+        # Tier 3 null packet
         return torch.zeros(payload["total_params"])
+    if payload["indices"] is None:
+        # Full-model payload (k=1.0) — values IS the full delta, no scatter needed
+        return payload["values"]
     device = payload["values"].device          # infer device from payload — no CPU/GPU mismatch
     delta = torch.zeros(payload["total_params"], device=device)
     delta[payload["indices"].long()] = payload["values"]   # int32 -> int64 for indexing
