@@ -24,7 +24,8 @@ class FLClient:
             persistent_workers=False,
         )
 
-    def train(self, global_state_dict: dict, local_epochs: int | None = None) -> dict:
+    def train(self, global_state_dict: dict, local_epochs: int | None = None,
+              fedsparse_lambda: float = 0.0) -> dict:
         """
         Accepts a state_dict (serialisable) instead of the model object —
         required for multiprocessing (model objects can't cross process boundaries).
@@ -33,12 +34,22 @@ class FLClient:
         sending this client's full local model back to the server. Uploads are
         currently uncompressed float32 — this is measured and reported, not
         yet compressed (see paper limitations section).
+
+        fedsparse_lambda > 0 activates FedSparse (Phase 5 baseline): adds an
+        L1 proximity term ||w_local - w_global||_1 to the cross-entropy loss,
+        encouraging sparser gradient updates. Default 0.0 = standard training.
         """
         epochs = local_epochs or self.local_epochs
 
         local_model = get_model(self.model_name, self.num_classes).to(self.device)
         local_model.load_state_dict(global_state_dict)   # fast, no deepcopy
         local_model.train()
+
+        # snapshot of the global weights for FedSparse proximity term
+        if fedsparse_lambda > 0.0:
+            global_params = torch.cat(
+                [p.detach().flatten() for p in local_model.parameters()]
+            )
 
         criterion = nn.CrossEntropyLoss()
         opt = torch.optim.SGD(local_model.parameters(), lr=self.local_lr)
@@ -48,12 +59,21 @@ class FLClient:
                 images, labels = images.to(self.device), labels.to(self.device)
                 opt.zero_grad()
                 loss = criterion(local_model(images), labels)
+
+                # ── FedSparse L1 regularisation ──────────────────────────────
+                if fedsparse_lambda > 0.0:
+                    local_params = torch.cat(
+                        [p.flatten() for p in local_model.parameters()]
+                    )
+                    loss = loss + fedsparse_lambda * torch.norm(
+                        local_params - global_params, p=1
+                    )
+                # ─────────────────────────────────────────────────────────────
+
                 loss.backward()
                 opt.step()
 
         self._local_model = local_model
-
-        
 
         return {
             "client_id": self.client_id,
@@ -66,4 +86,4 @@ class FLClient:
         }
 
     def get_local_model(self) -> nn.Module | None:
-        return self._local_model
+        return self._local_model

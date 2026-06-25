@@ -70,6 +70,12 @@ class Config:
     # to isolate the contribution of DivRoute's routing intelligence.
     uniform_top5_mode: bool = False
 
+    # FedSparse baseline (Phase 5): L1 proximity regularisation added to each
+    # client's loss to encourage sparse gradient updates.
+    # lambda=0.0 (default) → standard training, no regularisation.
+    # lambda>0  → FedSparse mode; recommended values: 0.01, 0.04.
+    fedsparse_lambda: float = 0.0
+
     # Set True to suppress the interactive "Generate plots?" prompt.
     # Required for automated / multi-run scripts.
     skip_plot_prompt: bool = False

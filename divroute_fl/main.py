@@ -135,7 +135,8 @@ def run(config: Config | None = None) -> None:
         global_sd = server.global_model.state_dict()
 
         for cid in selected:
-            result = clients[cid].train(global_sd, local_epochs)
+            result = clients[cid].train(global_sd, local_epochs,
+                                        fedsparse_lambda=config.fedsparse_lambda)
             results.append(result)
 
         # -- divergence, adaptive tau, and tier assignment ---------------------
