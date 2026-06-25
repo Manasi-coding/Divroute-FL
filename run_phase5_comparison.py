@@ -59,8 +59,10 @@ ALL_METHODS = ["fedavg", "fedzip", "fedsparse", "uniform", "divroute"]
 FEDZIP_Z_RATIO    = 0.01
 FEDZIP_K_CLUSTERS = 3
 
-# FedSparse lambda (mild setting from FedSparse paper)
-FEDSPARSE_LAMBDA  = 0.01
+# FedSparse lambda — must be scaled to model size.
+# SimpleCNN (200K params): 0.01 works.  ResNet-18 (11M params): 0.0001.
+# At 0.01 on ResNet-18 the L1 penalty overwhelms cross-entropy → accuracy ≈ random.
+FEDSPARSE_LAMBDA  = 0.0001
 
 # Acc@MB budget checkpoints (in bytes) — tuned for ResNet-18 scale
 ACC_AT_BUDGETS_MB = [500, 1000, 2000, 5000]

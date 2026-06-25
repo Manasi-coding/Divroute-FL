@@ -71,6 +71,10 @@ class FLClient:
                 # ─────────────────────────────────────────────────────────────
 
                 loss.backward()
+                # Gradient clipping: prevents NaN/Inf weight explosions on
+                # large models (ResNet-18) with SGD. Clip norm matches the
+                # server-side grad_clip_norm default (10.0).
+                nn.utils.clip_grad_norm_(local_model.parameters(), max_norm=10.0)
                 opt.step()
 
         self._local_model = local_model

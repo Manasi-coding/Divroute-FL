@@ -59,7 +59,11 @@ class FLServer:
             payload = apply_tiered_compression(
                 raw_delta, r["tier"], self.config, error_buffers, r["client_id"])
             r["bytes_received"] = payload["bytes_transmitted"]
-            r["upload_bytes"]   = payload["bytes_transmitted"]
+            # Upload: client always sends its full local model back (float32 state_dict).
+            # This is independent of which tier/compression the server used for download.
+            r["upload_bytes"] = r["num_samples"] and sum(
+                p.numel() * 4 for p in self.global_model.parameters()
+            )
 
             if payload["values"] is None:      # Tier 3 — skip aggregation
                 continue
