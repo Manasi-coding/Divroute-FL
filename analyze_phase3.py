@@ -121,11 +121,11 @@ def main() -> None:
                 "fedavg_bidir_mb":f"{row['fedavg_bidir_mb']:.2f}",
                 "saving_pct":     f"{row['saving_pct']:.1f}",
             })
-    print(f"[analyze_phase3] CSV saved → {CSV_PATH}")
+    print(f"[analyze_phase3] CSV saved -> {CSV_PATH}")
 
     # ── Publication-ready table ────────────────────────────────────────────────
     print(f"\n{'='*72}")
-    print("  PHASE 3 — CIFAR-100 / ResNet-18 / 100 clients / 100 rounds  "
+    print("  PHASE 3 — CIFAR-100 / ResNet-18 / 75 clients / 100 rounds  "
           f"({len(SEEDS)} seeds)")
     print(f"{'='*72}\n")
 
@@ -210,7 +210,7 @@ def main() -> None:
         if not subset:
             continue
         detail = ", ".join(
-            f"seed={r['seed']} → {r['final_accuracy']*100:.2f}%"
+            f"seed={r['seed']} -> {r['final_accuracy']*100:.2f}%"
             for r in sorted(subset, key=lambda x: x["seed"])
         )
         print(f"    [{method_label}] {detail}")
