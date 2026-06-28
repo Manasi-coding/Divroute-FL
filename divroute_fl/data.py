@@ -84,12 +84,24 @@ def get_client_datasets(
         # draw Dirichlet proportions — this is the core of the non-IID split
         proportions = rng.dirichlet(np.repeat(alpha, num_clients))
         proportions = proportions / proportions.sum()
-        counts = (proportions * len(cls_idx)).astype(int)
 
-        # fix any off-by-one from rounding
-        leftover = len(cls_idx) - counts.sum()
-        for i in range(leftover):
-            counts[i % num_clients] += 1
+        if dataset_name.lower().strip() == "cifar100":
+            exact = proportions * len(cls_idx)
+            counts = np.floor(exact).astype(int)
+            remainders = exact - counts
+            leftover = len(cls_idx) - counts.sum()
+            
+            # Largest-remainder apportionment: give the leftover units to whichever
+            # clients were closest to rounding up, instead of always client 0, 1, 2...
+            top_leftover_clients = np.argsort(-remainders)[:leftover]
+            counts[top_leftover_clients] += 1
+        else:
+            counts = (proportions * len(cls_idx)).astype(int)
+
+            # fix any off-by-one from rounding
+            leftover = len(cls_idx) - counts.sum()
+            for i in range(leftover):
+                counts[i % num_clients] += 1
 
         start = 0
         for cid in range(num_clients):

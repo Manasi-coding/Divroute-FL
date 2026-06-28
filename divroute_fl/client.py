@@ -18,11 +18,19 @@ class FLClient:
         self._local_model: nn.Module | None = None
 
         # persistent loader — created once, reused every round
-        self._loader = DataLoader(
-            dataset, batch_size=batch_size, shuffle=True,
-            drop_last=True, num_workers=0, pin_memory=(device.type == "cuda"),
-            persistent_workers=False,
-        )
+        if self.num_classes == 100:
+            effective_batch_size = min(batch_size, len(dataset))
+            self._loader = DataLoader(
+                dataset, batch_size=effective_batch_size, shuffle=True,
+                drop_last=False, num_workers=0, pin_memory=(device.type == "cuda"),
+                persistent_workers=False,
+            )
+        else:
+            self._loader = DataLoader(
+                dataset, batch_size=batch_size, shuffle=True,
+                drop_last=True, num_workers=0, pin_memory=(device.type == "cuda"),
+                persistent_workers=False,
+            )
 
     def train(self, global_state_dict: dict, local_epochs: int | None = None,
               fedsparse_lambda: float = 0.0) -> dict:

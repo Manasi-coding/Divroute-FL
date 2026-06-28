@@ -29,7 +29,7 @@ class FLServer:
                                  replace=False, p=prob).tolist()
 
     def aggregate(self, client_results: List[dict], error_buffers: dict) -> None:
-        old_flat = self._flatten(self.global_model.state_dict())
+        old_flat = self._flatten_params(self.global_model.state_dict())
 
         # NaN guard
         clean = [r for r in client_results
@@ -48,7 +48,7 @@ class FLServer:
         # would dilute aggregation weights without providing any gradient signal
         client_flats = []
         for r in clean:
-            cf = self._flatten(r["state_dict"])
+            cf = self._flatten_params(r["state_dict"])
             raw_delta = cf - old_flat
 
             norm = torch.norm(raw_delta)
@@ -117,7 +117,28 @@ class FLServer:
             agg_delta = self.config.server_lr * self._momentum_buf
 
         new_flat = old_flat + agg_delta
-        self._load_flat(new_flat)
+        
+        # Reconstruct full state_dict: parameters get the clipped/compressed update,
+        # buffers get a simple sample-weighted average.
+        param_names = {n for n, _ in self.global_model.named_parameters()}
+        new_sd = OrderedDict()
+        
+        offset = 0
+        for k, v in self.global_model.state_dict().items():
+            if k in param_names:
+                numel = v.numel()
+                new_sd[k] = new_flat[offset:offset + numel].reshape(v.shape).to(v.dtype)
+                offset += numel
+            else:
+                # BN Buffers
+                if client_flats:
+                    buf_sum = sum((r["num_samples"] / total_samples) * r["state_dict"][k].to(self.device) 
+                                  for r, _ in client_flats)
+                    new_sd[k] = buf_sum
+                else:
+                    new_sd[k] = v
+                    
+        self.global_model.load_state_dict(new_sd)
         self.global_delta = agg_delta
 
     def evaluate(self, test_loader: DataLoader) -> float:
@@ -170,6 +191,11 @@ class FLServer:
 
     def _flatten(self, state_dict: OrderedDict) -> torch.Tensor:
         return torch.cat([v.flatten().float().to(self.device) for v in state_dict.values()])
+
+    def _flatten_params(self, state_dict: OrderedDict) -> torch.Tensor:
+        param_names = {n for n, _ in self.global_model.named_parameters()}
+        return torch.cat([v.flatten().float().to(self.device) 
+                          for k, v in state_dict.items() if k in param_names])
 
     def _load_flat(self, flat: torch.Tensor) -> None:
         sd = self.global_model.state_dict()

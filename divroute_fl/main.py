@@ -148,8 +148,9 @@ def run(config: Config | None = None) -> None:
                 r["tier"] = 2          # Tier-2 path → k_ratio_tier2=0.05
         else:
             # -- divergence: EMA-smoothed cosine distance -------------------------
+            param_names = [n for n, _ in server.global_model.named_parameters()]
             global_flat = torch.cat([
-                v.flatten().float().cpu() for v in global_sd.values()
+                global_sd[k].flatten().float().cpu() for k in param_names
             ])
 
             raw_d_scores = []
@@ -162,13 +163,13 @@ def run(config: Config | None = None) -> None:
                     continue
 
                 client_flat = torch.cat([
-                    v.flatten().float().cpu() for v in r["state_dict"].values()
+                    r["state_dict"][k].flatten().float().cpu() for k in param_names
                 ])
                 cos = F.cosine_similarity(
-                    client_flat.unsqueeze(0), global_flat.unsqueeze(0),
+                    client_flat.double().unsqueeze(0), global_flat.double().unsqueeze(0),
                     dim=1, eps=1e-8
                 ).item()
-                d_raw = 1.0 - cos
+                d_raw = max(0.0, 1.0 - cos)
                 d_ema = update_ema(ema_scores, r["client_id"], d_raw, config.ema_beta)
                 r["divergence_score"] = d_ema
                 raw_d_scores.append(d_ema)

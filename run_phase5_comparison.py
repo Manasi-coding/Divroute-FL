@@ -85,8 +85,11 @@ DATASET_PRESETS = {
         "dataset_name":      "cifar100",
         "model_name":        "resnet18",
         "num_clients":       100,
-        "clients_per_round": 10,    # 10% participation — realistic FL
-        "num_rounds":        100,
+        "clients_per_round": 20,    # raised from 10 → 20% participation for faster convergence
+        "num_rounds":        150,   # raised from 100 → 150 for credible accuracy plateau
+        # local_lr tuned down from 0.1 (SimpleCNN default) — ResNet-18 on CIFAR-100
+        # needs smaller steps to reduce client drift across 5 local epochs.
+        "local_lr":          0.01,
         "seeds":             [42, 123, 456],
         # FedSparse: scaled down 100x for ResNet-18 (11M params) vs SimpleCNN (200K).
         # At 0.01, the L1 penalty overwhelms cross-entropy → accuracy ≈ random chance.
@@ -96,9 +99,24 @@ DATASET_PRESETS = {
         "fedzip_k_clusters": 3,
         # Acc@MB budgets tuned for ResNet-18 / CIFAR-100 scale
         "acc_at_budgets_mb": [500, 1000, 2000, 5000],
-        # DivRoute fixed thresholds from Phase 4.1 ablation sweep
-        "tau_high":          0.03,
-        "tau_low":           0.015,
+        # DivRoute fixed thresholds tuned for true float64 parameter divergence:
+        # Without BN buffer contamination, ResNet-18 divergence is ~0.0007 - 0.0012.
+        # tau_high=0.0010 ensures top divergence gets Tier 1, tau_low=0.0007 ensures
+        # converged clients fall to Tier 3 naturally as gradients shrink over time.
+        "tau_high":          0.0008,
+        "tau_low":           0.0006,
+        # Adaptive tau settings (disabled by default to show communication savings trajectory,
+        # but available here if you want to test fixed percentile assignments later).
+        "use_adaptive_tau":  False,
+        "tau_low_pct":       20.0,
+        "tau_high_pct":      75.0,
+        # DivRoute k-ratios scaled up for ResNet-18 / CIFAR-100:
+        # Phase 4 values (0.20 / 0.05) were tuned on SimpleCNN/CIFAR-10.
+        # At k=0.20, all early-round Tier-1 clients receive only 2.24M of 11.2M params
+        # — the backbone barely updates. k=0.35 sends 3.92M params, covering all layers.
+        # k_tier2=0.10 gives Tier-2 clients 1.12M params vs only 560K at 0.05.
+        "k_ratio_tier1":     0.35,
+        "k_ratio_tier2":     0.10,
         "log_subdir":        "logs/phase5/cifar100",
         "csv_name":          "phase5_cifar100_results.csv",
     },
@@ -137,6 +155,7 @@ def _shared(seed: int, log_path: str) -> dict:
         num_clients       = p["num_clients"],
         clients_per_round = p["clients_per_round"],
         num_rounds        = p["num_rounds"],
+        local_lr          = p.get("local_lr", 0.1),  # preset-specific LR; falls back to Config default
         seed              = seed,
         dataset_name      = p["dataset_name"],
         model_name        = p["model_name"],
@@ -162,10 +181,16 @@ def _make_config(method: str, seed: int, log_path: str) -> Config:
         # Fixed thresholds from Phase 4.1 ablation (tau_high=0.03, tau_low=0.015).
         # use_adaptive_tau=False so tier distribution moves naturally with training
         # dynamics instead of being locked at a fixed percentile split every round.
+        # k-ratios read from preset so cifar100 can use scale-appropriate values
+        # (0.35/0.10) while cifar10 keeps the Phase 4 ablation values (0.20/0.05).
         return get_recommended_divroute_config(
-            use_adaptive_tau = False,
+            use_adaptive_tau = p.get("use_adaptive_tau", False),
             tau_high         = p["tau_high"],
             tau_low          = p["tau_low"],
+            tau_low_pct      = p.get("tau_low_pct", 20.0),
+            tau_high_pct     = p.get("tau_high_pct", 75.0),
+            k_ratio_tier1    = p.get("k_ratio_tier1", 0.20),
+            k_ratio_tier2    = p.get("k_ratio_tier2", 0.05),
             **s
         )
     else:
