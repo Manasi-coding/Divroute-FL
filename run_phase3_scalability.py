@@ -6,9 +6,9 @@ Phase 3 publication-quality scalability experiment for DivRoute-FL.
 Evaluates DivRoute and FedAvg on:
   - Dataset   : CIFAR-100
   - Model     : ResNet-18
-  - Clients   : 100 total, 10 selected per round
+  - Clients   : 75 total, 10 selected per round
   - Rounds    : 100
-  - Local SGD : 5 epochs per round
+  - Local SGD : 2 epochs per round
   - Alpha     : 0.1  (extreme non-IID)
   - Seeds     : [1, 42, 84]
 
@@ -35,10 +35,10 @@ LOGS_DIR = Path("logs/phase3")
 PHASE3_BASE = dict(
     dataset_name       = "cifar100",
     model_name         = "resnet18",
-    num_clients        = 100,
+    num_clients        = 75,
     clients_per_round  = 10,
     num_rounds         = 100,
-    local_epochs       = 5,
+    local_epochs       = 2,
     alpha              = 0.1,
     skip_plot_prompt   = True,
 )
@@ -78,16 +78,16 @@ def main() -> None:
     for seed in SEEDS:
         run_no += 1
         print(f"\n{'='*72}")
-        print(f"  [{run_no}/{total_runs}]  SEED {seed}  —  FedAvg baseline  "
-              f"(CIFAR-100 / ResNet-18 / 100 clients / 100 rounds)")
+        print(f"  [{run_no}/{total_runs}]  SEED {seed}  -  FedAvg baseline  "
+              f"(CIFAR-100 / ResNet-18 / 75 clients / 100 rounds)")
         print(f"{'='*72}\n")
         fedavg_log = _run_fedavg(seed)
         print(f"\n  [phase3] FedAvg log -> {fedavg_log}")
 
         run_no += 1
         print(f"\n{'='*72}")
-        print(f"  [{run_no}/{total_runs}]  SEED {seed}  —  DivRoute  "
-              f"(CIFAR-100 / ResNet-18 / 100 clients / 100 rounds)")
+        print(f"  [{run_no}/{total_runs}]  SEED {seed}  -  DivRoute  "
+              f"(CIFAR-100 / ResNet-18 / 75 clients / 100 rounds)")
         print(f"{'='*72}\n")
         divroute_log = _run_divroute(seed)
         print(f"\n  [phase3] DivRoute log -> {divroute_log}")
