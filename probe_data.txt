@@ -1,0 +1,825 @@
+
+[SPARSITY PROBE] client=19  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    265,383  ( 98.78%)
+  non-zero              :      3,267  (  1.22%)
+  |Δ| > 1e-4 (server mask):      2,795  (  1.04%)
+  |Δ| > 1e-9 (near-zero)  :      3,267  (  1.22%)
+  min non-zero |Δ|      : 1.294538e-07
+  max |Δ|               : 7.064320e-01
+  server mask retains   :   1.04% of params  (vs proximal sparsity  98.78% zeros)
+
+[SPARSITY PROBE] client=10  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    261,707  ( 97.42%)
+  non-zero              :      6,943  (  2.58%)
+  |Δ| > 1e-4 (server mask):      6,172  (  2.30%)
+  |Δ| > 1e-9 (near-zero)  :      6,943  (  2.58%)
+  min non-zero |Δ|      : 2.617016e-07
+  max |Δ|               : 7.526790e-01
+  server mask retains   :   2.30% of params  (vs proximal sparsity  97.42% zeros)
+
+[SPARSITY PROBE] client=21  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    262,417  ( 97.68%)
+  non-zero              :      6,233  (  2.32%)
+  |Δ| > 1e-4 (server mask):      5,319  (  1.98%)
+  |Δ| > 1e-9 (near-zero)  :      6,233  (  2.32%)
+  min non-zero |Δ|      : 3.725290e-07
+  max |Δ|               : 9.984467e-01
+  server mask retains   :   1.98% of params  (vs proximal sparsity  97.68% zeros)
+
+[SPARSITY PROBE] client=17  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    263,238  ( 97.99%)
+  non-zero              :      5,412  (  2.01%)
+  |Δ| > 1e-4 (server mask):      4,913  (  1.83%)
+  |Δ| > 1e-9 (near-zero)  :      5,412  (  2.01%)
+  min non-zero |Δ|      : 2.533197e-07
+  max |Δ|               : 8.201979e-01
+  server mask retains   :   1.83% of params  (vs proximal sparsity  97.99% zeros)
+
+[SPARSITY PROBE] client=2  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    262,580  ( 97.74%)
+  non-zero              :      6,070  (  2.26%)
+  |Δ| > 1e-4 (server mask):      5,193  (  1.93%)
+  |Δ| > 1e-9 (near-zero)  :      6,070  (  2.26%)
+  min non-zero |Δ|      : 4.097819e-08
+  max |Δ|               : 3.569414e-01
+  server mask retains   :   1.93% of params  (vs proximal sparsity  97.74% zeros)
+
+[SPARSITY PROBE] client=24  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    251,014  ( 93.44%)
+  non-zero              :     17,636  (  6.56%)
+  |Δ| > 1e-4 (server mask):     15,675  (  5.83%)
+  |Δ| > 1e-9 (near-zero)  :     17,636  (  6.56%)
+  min non-zero |Δ|      : 1.098961e-07
+  max |Δ|               : 7.011255e-01
+  server mask retains   :   5.83% of params  (vs proximal sparsity  93.44% zeros)
+
+[SPARSITY PROBE] client=3  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    264,246  ( 98.36%)
+  non-zero              :      4,404  (  1.64%)
+  |Δ| > 1e-4 (server mask):      3,841  (  1.43%)
+  |Δ| > 1e-9 (near-zero)  :      4,404  (  1.64%)
+  min non-zero |Δ|      : 4.097819e-08
+  max |Δ|               : 1.117925e+00
+  server mask retains   :   1.43% of params  (vs proximal sparsity  98.36% zeros)
+
+[SPARSITY PROBE] client=11  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    263,917  ( 98.24%)
+  non-zero              :      4,733  (  1.76%)
+  |Δ| > 1e-4 (server mask):      4,293  (  1.60%)
+  |Δ| > 1e-9 (near-zero)  :      4,733  (  1.76%)
+  min non-zero |Δ|      : 8.847564e-08
+  max |Δ|               : 6.385971e-01
+  server mask retains   :   1.60% of params  (vs proximal sparsity  98.24% zeros)
+
+[SPARSITY PROBE] client=9  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    259,972  ( 96.77%)
+  non-zero              :      8,678  (  3.23%)
+  |Δ| > 1e-4 (server mask):      7,394  (  2.75%)
+  |Δ| > 1e-9 (near-zero)  :      8,678  (  3.23%)
+  min non-zero |Δ|      : 5.541369e-08
+  max |Δ|               : 5.586693e-01
+  server mask retains   :   2.75% of params  (vs proximal sparsity  96.77% zeros)
+
+[SPARSITY PROBE] client=23  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    257,793  ( 95.96%)
+  non-zero              :     10,857  (  4.04%)
+  |Δ| > 1e-4 (server mask):      9,555  (  3.56%)
+  |Δ| > 1e-9 (near-zero)  :     10,857  (  4.04%)
+  min non-zero |Δ|      : 1.159497e-07
+  max |Δ|               : 3.697350e-01
+  server mask retains   :   3.56% of params  (vs proximal sparsity  95.96% zeros)
+
+[SPARSITY PROBE] client=16  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    263,887  ( 98.23%)
+  non-zero              :      4,763  (  1.77%)
+  |Δ| > 1e-4 (server mask):      4,127  (  1.54%)
+  |Δ| > 1e-9 (near-zero)  :      4,763  (  1.77%)
+  min non-zero |Δ|      : 1.583248e-08
+  max |Δ|               : 4.872066e-01
+  server mask retains   :   1.54% of params  (vs proximal sparsity  98.23% zeros)
+
+[SPARSITY PROBE] client=20  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    264,629  ( 98.50%)
+  non-zero              :      4,021  (  1.50%)
+  |Δ| > 1e-4 (server mask):      3,500  (  1.30%)
+  |Δ| > 1e-9 (near-zero)  :      4,021  (  1.50%)
+  min non-zero |Δ|      : 1.111766e-07
+  max |Δ|               : 4.845953e-01
+  server mask retains   :   1.30% of params  (vs proximal sparsity  98.50% zeros)
+
+[SPARSITY PROBE] client=4  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    265,162  ( 98.70%)
+  non-zero              :      3,488  (  1.30%)
+  |Δ| > 1e-4 (server mask):      2,879  (  1.07%)
+  |Δ| > 1e-9 (near-zero)  :      3,488  (  1.30%)
+  min non-zero |Δ|      : 6.891787e-08
+  max |Δ|               : 8.511274e-01
+  server mask retains   :   1.07% of params  (vs proximal sparsity  98.70% zeros)
+
+[SPARSITY PROBE] client=12  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    263,462  ( 98.07%)
+  non-zero              :      5,188  (  1.93%)
+  |Δ| > 1e-4 (server mask):      4,526  (  1.68%)
+  |Δ| > 1e-9 (near-zero)  :      5,188  (  1.93%)
+  min non-zero |Δ|      : 6.332994e-08
+  max |Δ|               : 1.018451e+00
+  server mask retains   :   1.68% of params  (vs proximal sparsity  98.07% zeros)
+
+[SPARSITY PROBE] client=0  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    265,388  ( 98.79%)
+  non-zero              :      3,262  (  1.21%)
+  |Δ| > 1e-4 (server mask):      2,750  (  1.02%)
+  |Δ| > 1e-9 (near-zero)  :      3,262  (  1.21%)
+  min non-zero |Δ|      : 8.754432e-08
+  max |Δ|               : 5.565109e-01
+  server mask retains   :   1.02% of params  (vs proximal sparsity  98.79% zeros)
+
+[SPARSITY PROBE] client=20  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    112,561  ( 41.90%)
+  non-zero              :    156,089  ( 58.10%)
+  |Δ| > 1e-4 (server mask):    100,414  ( 37.38%)
+  |Δ| > 1e-9 (near-zero)  :    156,087  ( 58.10%)
+  min non-zero |Δ|      : 9.313226e-10
+  max |Δ|               : 3.002298e-01
+  server mask retains   :  37.38% of params  (vs proximal sparsity  41.90% zeros)
+
+[SPARSITY PROBE] client=15  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    262,610  ( 97.75%)
+  non-zero              :      6,040  (  2.25%)
+  |Δ| > 1e-4 (server mask):      5,191  (  1.93%)
+  |Δ| > 1e-9 (near-zero)  :      6,040  (  2.25%)
+  min non-zero |Δ|      : 1.401640e-07
+  max |Δ|               : 6.476809e-01
+  server mask retains   :   1.93% of params  (vs proximal sparsity  97.75% zeros)
+
+[SPARSITY PROBE] client=18  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    264,313  ( 98.39%)
+  non-zero              :      4,337  (  1.61%)
+  |Δ| > 1e-4 (server mask):      3,804  (  1.42%)
+  |Δ| > 1e-9 (near-zero)  :      4,337  (  1.61%)
+  min non-zero |Δ|      : 1.229346e-07
+  max |Δ|               : 6.611043e-01
+  server mask retains   :   1.42% of params  (vs proximal sparsity  98.39% zeros)
+
+[SPARSITY PROBE] client=8  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    262,468  ( 97.70%)
+  non-zero              :      6,182  (  2.30%)
+  |Δ| > 1e-4 (server mask):      5,292  (  1.97%)
+  |Δ| > 1e-9 (near-zero)  :      6,182  (  2.30%)
+  min non-zero |Δ|      : 1.548324e-08
+  max |Δ|               : 7.811061e-01
+  server mask retains   :   1.97% of params  (vs proximal sparsity  97.70% zeros)
+
+[SPARSITY PROBE] client=24  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    210,465  ( 78.34%)
+  non-zero              :     58,185  ( 21.66%)
+  |Δ| > 1e-4 (server mask):     35,767  ( 13.31%)
+  |Δ| > 1e-9 (near-zero)  :     58,185  ( 21.66%)
+  min non-zero |Δ|      : 1.862645e-09
+  max |Δ|               : 7.002841e-01
+  server mask retains   :  13.31% of params  (vs proximal sparsity  78.34% zeros)
+
+[SPARSITY PROBE] client=22  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    261,818  ( 97.46%)
+  non-zero              :      6,832  (  2.54%)
+  |Δ| > 1e-4 (server mask):      5,920  (  2.20%)
+  |Δ| > 1e-9 (near-zero)  :      6,832  (  2.54%)
+  min non-zero |Δ|      : 7.450581e-08
+  max |Δ|               : 7.746964e-01
+  server mask retains   :   2.20% of params  (vs proximal sparsity  97.46% zeros)
+
+[SPARSITY PROBE] client=19  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    254,310  ( 94.66%)
+  non-zero              :     14,340  (  5.34%)
+  |Δ| > 1e-4 (server mask):     11,775  (  4.38%)
+  |Δ| > 1e-9 (near-zero)  :     14,340  (  5.34%)
+  min non-zero |Δ|      : 1.676381e-08
+  max |Δ|               : 4.263190e-01
+  server mask retains   :   4.38% of params  (vs proximal sparsity  94.66% zeros)
+
+[SPARSITY PROBE] client=4  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    248,495  ( 92.50%)
+  non-zero              :     20,155  (  7.50%)
+  |Δ| > 1e-4 (server mask):     17,248  (  6.42%)
+  |Δ| > 1e-9 (near-zero)  :     20,155  (  7.50%)
+  min non-zero |Δ|      : 4.842877e-08
+  max |Δ|               : 8.732784e-01
+  server mask retains   :   6.42% of params  (vs proximal sparsity  92.50% zeros)
+
+[SPARSITY PROBE] client=11  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    222,451  ( 82.80%)
+  non-zero              :     46,199  ( 17.20%)
+  |Δ| > 1e-4 (server mask):     34,501  ( 12.84%)
+  |Δ| > 1e-9 (near-zero)  :     46,199  ( 17.20%)
+  min non-zero |Δ|      : 5.587935e-09
+  max |Δ|               : 4.547562e-01
+  server mask retains   :  12.84% of params  (vs proximal sparsity  82.80% zeros)
+
+[SPARSITY PROBE] client=1  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    264,355  ( 98.40%)
+  non-zero              :      4,295  (  1.60%)
+  |Δ| > 1e-4 (server mask):      3,710  (  1.38%)
+  |Δ| > 1e-9 (near-zero)  :      4,295  (  1.60%)
+  min non-zero |Δ|      : 2.626330e-07
+  max |Δ|               : 3.763453e-01
+  server mask retains   :   1.38% of params  (vs proximal sparsity  98.40% zeros)
+
+[SPARSITY PROBE] client=3  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    256,501  ( 95.48%)
+  non-zero              :     12,149  (  4.52%)
+  |Δ| > 1e-4 (server mask):      9,759  (  3.63%)
+  |Δ| > 1e-9 (near-zero)  :     12,149  (  4.52%)
+  min non-zero |Δ|      : 1.071021e-08
+  max |Δ|               : 9.823937e-01
+  server mask retains   :   3.63% of params  (vs proximal sparsity  95.48% zeros)
+
+[SPARSITY PROBE] client=17  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    235,089  ( 87.51%)
+  non-zero              :     33,561  ( 12.49%)
+  |Δ| > 1e-4 (server mask):     22,424  (  8.35%)
+  |Δ| > 1e-9 (near-zero)  :     33,561  ( 12.49%)
+  min non-zero |Δ|      : 2.328306e-08
+  max |Δ|               : 4.672251e-01
+  server mask retains   :   8.35% of params  (vs proximal sparsity  87.51% zeros)
+
+[SPARSITY PROBE] client=7  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    263,557  ( 98.10%)
+  non-zero              :      5,093  (  1.90%)
+  |Δ| > 1e-4 (server mask):      4,426  (  1.65%)
+  |Δ| > 1e-9 (near-zero)  :      5,093  (  1.90%)
+  min non-zero |Δ|      : 3.352761e-08
+  max |Δ|               : 5.082017e-01
+  server mask retains   :   1.65% of params  (vs proximal sparsity  98.10% zeros)
+
+[SPARSITY PROBE] client=10  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    233,446  ( 86.90%)
+  non-zero              :     35,204  ( 13.10%)
+  |Δ| > 1e-4 (server mask):     22,221  (  8.27%)
+  |Δ| > 1e-9 (near-zero)  :     35,204  ( 13.10%)
+  min non-zero |Δ|      : 2.793968e-09
+  max |Δ|               : 6.664795e-01
+  server mask retains   :   8.27% of params  (vs proximal sparsity  86.90% zeros)
+
+[SPARSITY PROBE] client=5  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    263,330  ( 98.02%)
+  non-zero              :      5,320  (  1.98%)
+  |Δ| > 1e-4 (server mask):      4,690  (  1.75%)
+  |Δ| > 1e-9 (near-zero)  :      5,320  (  1.98%)
+  min non-zero |Δ|      : 3.166497e-08
+  max |Δ|               : 5.932607e-01
+  server mask retains   :   1.75% of params  (vs proximal sparsity  98.02% zeros)
+
+[SPARSITY PROBE] client=3  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    236,339  ( 87.97%)
+  non-zero              :     32,311  ( 12.03%)
+  |Δ| > 1e-4 (server mask):     24,999  (  9.31%)
+  |Δ| > 1e-9 (near-zero)  :     32,311  ( 12.03%)
+  min non-zero |Δ|      : 1.862645e-08
+  max |Δ|               : 9.061762e-01
+  server mask retains   :   9.31% of params  (vs proximal sparsity  87.97% zeros)
+
+[SPARSITY PROBE] client=11  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    245,382  ( 91.34%)
+  non-zero              :     23,268  (  8.66%)
+  |Δ| > 1e-4 (server mask):     17,555  (  6.53%)
+  |Δ| > 1e-9 (near-zero)  :     23,268  (  8.66%)
+  min non-zero |Δ|      : 3.166497e-08
+  max |Δ|               : 3.587715e-01
+  server mask retains   :   6.53% of params  (vs proximal sparsity  91.34% zeros)
+
+[SPARSITY PROBE] client=5  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    253,865  ( 94.50%)
+  non-zero              :     14,785  (  5.50%)
+  |Δ| > 1e-4 (server mask):     12,547  (  4.67%)
+  |Δ| > 1e-9 (near-zero)  :     14,785  (  5.50%)
+  min non-zero |Δ|      : 8.754432e-08
+  max |Δ|               : 3.782932e-01
+  server mask retains   :   4.67% of params  (vs proximal sparsity  94.50% zeros)
+
+[SPARSITY PROBE] client=16  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    211,598  ( 78.76%)
+  non-zero              :     57,052  ( 21.24%)
+  |Δ| > 1e-4 (server mask):     39,277  ( 14.62%)
+  |Δ| > 1e-9 (near-zero)  :     57,052  ( 21.24%)
+  min non-zero |Δ|      : 2.793968e-09
+  max |Δ|               : 4.732738e-01
+  server mask retains   :  14.62% of params  (vs proximal sparsity  78.76% zeros)
+
+[SPARSITY PROBE] client=10  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      2,850  (  1.06%)
+  non-zero              :    265,800  ( 98.94%)
+  |Δ| > 1e-4 (server mask):    240,385  ( 89.48%)
+  |Δ| > 1e-9 (near-zero)  :    265,800  ( 98.94%)
+  min non-zero |Δ|      : 1.862645e-09
+  max |Δ|               : 4.242081e-01
+  server mask retains   :  89.48% of params  (vs proximal sparsity   1.06% zeros)
+
+[SPARSITY PROBE] client=20  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      5,243  (  1.95%)
+  non-zero              :    263,407  ( 98.05%)
+  |Δ| > 1e-4 (server mask):    241,123  ( 89.75%)
+  |Δ| > 1e-9 (near-zero)  :    263,407  ( 98.05%)
+  min non-zero |Δ|      : 1.862645e-09
+  max |Δ|               : 2.369108e-01
+  server mask retains   :  89.75% of params  (vs proximal sparsity   1.95% zeros)
+
+[SPARSITY PROBE] client=17  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    228,303  ( 84.98%)
+  non-zero              :     40,347  ( 15.02%)
+  |Δ| > 1e-4 (server mask):     27,716  ( 10.32%)
+  |Δ| > 1e-9 (near-zero)  :     40,347  ( 15.02%)
+  min non-zero |Δ|      : 7.450581e-09
+  max |Δ|               : 4.186037e-01
+  server mask retains   :  10.32% of params  (vs proximal sparsity  84.98% zeros)
+
+[SPARSITY PROBE] client=7  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    247,758  ( 92.22%)
+  non-zero              :     20,892  (  7.78%)
+  |Δ| > 1e-4 (server mask):     17,132  (  6.38%)
+  |Δ| > 1e-9 (near-zero)  :     20,892  (  7.78%)
+  min non-zero |Δ|      : 5.587935e-09
+  max |Δ|               : 4.578091e-01
+  server mask retains   :   6.38% of params  (vs proximal sparsity  92.22% zeros)
+
+[SPARSITY PROBE] client=9  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    256,307  ( 95.41%)
+  non-zero              :     12,343  (  4.59%)
+  |Δ| > 1e-4 (server mask):      9,696  (  3.61%)
+  |Δ| > 1e-9 (near-zero)  :     12,343  (  4.59%)
+  min non-zero |Δ|      : 1.490116e-08
+  max |Δ|               : 7.243493e-01
+  server mask retains   :   3.61% of params  (vs proximal sparsity  95.41% zeros)
+
+[SPARSITY PROBE] client=4  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    238,709  ( 88.86%)
+  non-zero              :     29,941  ( 11.14%)
+  |Δ| > 1e-4 (server mask):     23,077  (  8.59%)
+  |Δ| > 1e-9 (near-zero)  :     29,941  ( 11.14%)
+  min non-zero |Δ|      : 6.984919e-09
+  max |Δ|               : 6.544892e-01
+  server mask retains   :   8.59% of params  (vs proximal sparsity  88.86% zeros)
+
+[SPARSITY PROBE] client=0  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    237,665  ( 88.47%)
+  non-zero              :     30,985  ( 11.53%)
+  |Δ| > 1e-4 (server mask):     22,400  (  8.34%)
+  |Δ| > 1e-9 (near-zero)  :     30,985  ( 11.53%)
+  min non-zero |Δ|      : 6.519258e-09
+  max |Δ|               : 3.965209e-01
+  server mask retains   :   8.34% of params  (vs proximal sparsity  88.47% zeros)
+
+[SPARSITY PROBE] client=21  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    244,484  ( 91.00%)
+  non-zero              :     24,166  (  9.00%)
+  |Δ| > 1e-4 (server mask):     19,265  (  7.17%)
+  |Δ| > 1e-9 (near-zero)  :     24,166  (  9.00%)
+  min non-zero |Δ|      : 3.096648e-08
+  max |Δ|               : 9.112613e-01
+  server mask retains   :   7.17% of params  (vs proximal sparsity  91.00% zeros)
+
+[SPARSITY PROBE] client=18  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    237,967  ( 88.58%)
+  non-zero              :     30,683  ( 11.42%)
+  |Δ| > 1e-4 (server mask):     22,096  (  8.22%)
+  |Δ| > 1e-9 (near-zero)  :     30,683  ( 11.42%)
+  min non-zero |Δ|      : 2.793968e-09
+  max |Δ|               : 6.176944e-01
+  server mask retains   :   8.22% of params  (vs proximal sparsity  88.58% zeros)
+
+[SPARSITY PROBE] client=19  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    145,079  ( 54.00%)
+  non-zero              :    123,571  ( 46.00%)
+  |Δ| > 1e-4 (server mask):     72,205  ( 26.88%)
+  |Δ| > 1e-9 (near-zero)  :    123,571  ( 46.00%)
+  min non-zero |Δ|      : 5.122274e-09
+  max |Δ|               : 2.671376e-01
+  server mask retains   :  26.88% of params  (vs proximal sparsity  54.00% zeros)
+
+[SPARSITY PROBE] client=13  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    261,581  ( 97.37%)
+  non-zero              :      7,069  (  2.63%)
+  |Δ| > 1e-4 (server mask):      6,139  (  2.29%)
+  |Δ| > 1e-9 (near-zero)  :      7,069  (  2.63%)
+  min non-zero |Δ|      : 2.980232e-08
+  max |Δ|               : 7.782766e-01
+  server mask retains   :   2.29% of params  (vs proximal sparsity  97.37% zeros)
+
+[SPARSITY PROBE] client=14  round=1
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    261,352  ( 97.28%)
+  non-zero              :      7,298  (  2.72%)
+  |Δ| > 1e-4 (server mask):      6,420  (  2.39%)
+  |Δ| > 1e-9 (near-zero)  :      7,298  (  2.72%)
+  min non-zero |Δ|      : 1.955777e-08
+  max |Δ|               : 7.212025e-01
+  server mask retains   :   2.39% of params  (vs proximal sparsity  97.28% zeros)
+
+[SPARSITY PROBE] client=3  round=4
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    247,461  ( 92.11%)
+  non-zero              :     21,189  (  7.89%)
+  |Δ| > 1e-4 (server mask):     16,494  (  6.14%)
+  |Δ| > 1e-9 (near-zero)  :     21,189  (  7.89%)
+  min non-zero |Δ|      : 1.396984e-08
+  max |Δ|               : 6.914427e-01
+  server mask retains   :   6.14% of params  (vs proximal sparsity  92.11% zeros)
+
+[SPARSITY PROBE] client=2  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      4,247  (  1.58%)
+  non-zero              :    264,403  ( 98.42%)
+  |Δ| > 1e-4 (server mask):    240,463  ( 89.51%)
+  |Δ| > 1e-9 (near-zero)  :    264,402  ( 98.42%)
+  min non-zero |Δ|      : 4.656613e-10
+  max |Δ|               : 2.277648e-01
+  server mask retains   :  89.51% of params  (vs proximal sparsity   1.58% zeros)
+
+[SPARSITY PROBE] client=16  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    178,903  ( 66.59%)
+  non-zero              :     89,747  ( 33.41%)
+  |Δ| > 1e-4 (server mask):     53,481  ( 19.91%)
+  |Δ| > 1e-9 (near-zero)  :     89,747  ( 33.41%)
+  min non-zero |Δ|      : 1.862645e-09
+  max |Δ|               : 3.200023e-01
+  server mask retains   :  19.91% of params  (vs proximal sparsity  66.59% zeros)
+
+[SPARSITY PROBE] client=11  round=4
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    239,796  ( 89.26%)
+  non-zero              :     28,854  ( 10.74%)
+  |Δ| > 1e-4 (server mask):     22,292  (  8.30%)
+  |Δ| > 1e-9 (near-zero)  :     28,854  ( 10.74%)
+  min non-zero |Δ|      : 5.355105e-09
+  max |Δ|               : 3.922778e-01
+  server mask retains   :   8.30% of params  (vs proximal sparsity  89.26% zeros)
+
+[SPARSITY PROBE] client=19  round=4
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      5,868  (  2.18%)
+  non-zero              :    262,782  ( 97.82%)
+  |Δ| > 1e-4 (server mask):    239,314  ( 89.08%)
+  |Δ| > 1e-9 (near-zero)  :    262,782  ( 97.82%)
+  min non-zero |Δ|      : 3.259629e-09
+  max |Δ|               : 2.010768e-01
+  server mask retains   :  89.08% of params  (vs proximal sparsity   2.18% zeros)
+
+[SPARSITY PROBE] client=15  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    160,341  ( 59.68%)
+  non-zero              :    108,309  ( 40.32%)
+  |Δ| > 1e-4 (server mask):     74,516  ( 27.74%)
+  |Δ| > 1e-9 (near-zero)  :    108,309  ( 40.32%)
+  min non-zero |Δ|      : 3.725290e-09
+  max |Δ|               : 2.450124e-01
+  server mask retains   :  27.74% of params  (vs proximal sparsity  59.68% zeros)
+
+[SPARSITY PROBE] client=13  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    247,296  ( 92.05%)
+  non-zero              :     21,354  (  7.95%)
+  |Δ| > 1e-4 (server mask):     17,782  (  6.62%)
+  |Δ| > 1e-9 (near-zero)  :     21,354  (  7.95%)
+  min non-zero |Δ|      : 1.583248e-08
+  max |Δ|               : 6.783102e-01
+  server mask retains   :   6.62% of params  (vs proximal sparsity  92.05% zeros)
+
+[SPARSITY PROBE] client=7  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    220,626  ( 82.12%)
+  non-zero              :     48,024  ( 17.88%)
+  |Δ| > 1e-4 (server mask):     37,357  ( 13.91%)
+  |Δ| > 1e-9 (near-zero)  :     48,024  ( 17.88%)
+  min non-zero |Δ|      : 4.540198e-09
+  max |Δ|               : 3.527454e-01
+  server mask retains   :  13.91% of params  (vs proximal sparsity  82.12% zeros)
+
+[SPARSITY PROBE] client=0  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    194,135  ( 72.26%)
+  non-zero              :     74,515  ( 27.74%)
+  |Δ| > 1e-4 (server mask):     45,238  ( 16.84%)
+  |Δ| > 1e-9 (near-zero)  :     74,515  ( 27.74%)
+  min non-zero |Δ|      : 1.862645e-09
+  max |Δ|               : 3.116828e-01
+  server mask retains   :  16.84% of params  (vs proximal sparsity  72.26% zeros)
+
+[SPARSITY PROBE] client=10  round=4
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      5,783  (  2.15%)
+  non-zero              :    262,867  ( 97.85%)
+  |Δ| > 1e-4 (server mask):    243,724  ( 90.72%)
+  |Δ| > 1e-9 (near-zero)  :    262,867  ( 97.85%)
+  min non-zero |Δ|      : 1.862645e-09
+  max |Δ|               : 2.086437e-01
+  server mask retains   :  90.72% of params  (vs proximal sparsity   2.15% zeros)
+
+[SPARSITY PROBE] client=5  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    257,170  ( 95.73%)
+  non-zero              :     11,480  (  4.27%)
+  |Δ| > 1e-4 (server mask):      9,867  (  3.67%)
+  |Δ| > 1e-9 (near-zero)  :     11,480  (  4.27%)
+  min non-zero |Δ|      : 9.313226e-09
+  max |Δ|               : 4.450619e-01
+  server mask retains   :   3.67% of params  (vs proximal sparsity  95.73% zeros)
+
+[SPARSITY PROBE] client=23  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    217,502  ( 80.96%)
+  non-zero              :     51,148  ( 19.04%)
+  |Δ| > 1e-4 (server mask):     35,369  ( 13.17%)
+  |Δ| > 1e-9 (near-zero)  :     51,148  ( 19.04%)
+  min non-zero |Δ|      : 6.752089e-09
+  max |Δ|               : 3.207204e-01
+  server mask retains   :  13.17% of params  (vs proximal sparsity  80.96% zeros)
+
+[SPARSITY PROBE] client=8  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    222,164  ( 82.70%)
+  non-zero              :     46,486  ( 17.30%)
+  |Δ| > 1e-4 (server mask):     32,329  ( 12.03%)
+  |Δ| > 1e-9 (near-zero)  :     46,486  ( 17.30%)
+  min non-zero |Δ|      : 4.889444e-09
+  max |Δ|               : 2.915590e-01
+  server mask retains   :  12.03% of params  (vs proximal sparsity  82.70% zeros)
+
+[SPARSITY PROBE] client=1  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    235,096  ( 87.51%)
+  non-zero              :     33,554  ( 12.49%)
+  |Δ| > 1e-4 (server mask):     23,554  (  8.77%)
+  |Δ| > 1e-9 (near-zero)  :     33,554  ( 12.49%)
+  min non-zero |Δ|      : 3.725290e-09
+  max |Δ|               : 3.476644e-01
+  server mask retains   :   8.77% of params  (vs proximal sparsity  87.51% zeros)
+
+[SPARSITY PROBE] client=7  round=4
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    214,265  ( 79.76%)
+  non-zero              :     54,385  ( 20.24%)
+  |Δ| > 1e-4 (server mask):     42,377  ( 15.77%)
+  |Δ| > 1e-9 (near-zero)  :     54,385  ( 20.24%)
+  min non-zero |Δ|      : 1.490116e-08
+  max |Δ|               : 3.119124e-01
+  server mask retains   :  15.77% of params  (vs proximal sparsity  79.76% zeros)
+
+[SPARSITY PROBE] client=16  round=4
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      5,334  (  1.99%)
+  non-zero              :    263,316  ( 98.01%)
+  |Δ| > 1e-4 (server mask):    245,138  ( 91.25%)
+  |Δ| > 1e-9 (near-zero)  :    263,316  ( 98.01%)
+  min non-zero |Δ|      : 1.303852e-08
+  max |Δ|               : 2.499672e-01
+  server mask retains   :  91.25% of params  (vs proximal sparsity   1.99% zeros)
+
+[SPARSITY PROBE] client=13  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    253,052  ( 94.19%)
+  non-zero              :     15,598  (  5.81%)
+  |Δ| > 1e-4 (server mask):     12,905  (  4.80%)
+  |Δ| > 1e-9 (near-zero)  :     15,598  (  5.81%)
+  min non-zero |Δ|      : 3.911555e-08
+  max |Δ|               : 5.710475e-01
+  server mask retains   :   4.80% of params  (vs proximal sparsity  94.19% zeros)
+
+[SPARSITY PROBE] client=19  round=5
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      5,405  (  2.01%)
+  non-zero              :    263,245  ( 97.99%)
+  |Δ| > 1e-4 (server mask):    242,524  ( 90.28%)
+  |Δ| > 1e-9 (near-zero)  :    263,245  ( 97.99%)
+  min non-zero |Δ|      : 2.793968e-09
+  max |Δ|               : 1.285441e-01
+  server mask retains   :  90.28% of params  (vs proximal sparsity   2.01% zeros)
+
+[SPARSITY PROBE] client=10  round=5
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      5,617  (  2.09%)
+  non-zero              :    263,033  ( 97.91%)
+  |Δ| > 1e-4 (server mask):    246,348  ( 91.70%)
+  |Δ| > 1e-9 (near-zero)  :    263,033  ( 97.91%)
+  min non-zero |Δ|      : 1.862645e-09
+  max |Δ|               : 2.022388e-01
+  server mask retains   :  91.70% of params  (vs proximal sparsity   2.09% zeros)
+
+[SPARSITY PROBE] client=20  round=4
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      4,857  (  1.81%)
+  non-zero              :    263,793  ( 98.19%)
+  |Δ| > 1e-4 (server mask):    248,599  ( 92.54%)
+  |Δ| > 1e-9 (near-zero)  :    263,793  ( 98.19%)
+  min non-zero |Δ|      : 9.313226e-09
+  max |Δ|               : 1.821080e-01
+  server mask retains   :  92.54% of params  (vs proximal sparsity   1.81% zeros)
+
+[SPARSITY PROBE] client=4  round=4
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    221,161  ( 82.32%)
+  non-zero              :     47,489  ( 17.68%)
+  |Δ| > 1e-4 (server mask):     34,291  ( 12.76%)
+  |Δ| > 1e-9 (near-zero)  :     47,489  ( 17.68%)
+  min non-zero |Δ|      : 6.519258e-09
+  max |Δ|               : 7.405137e-01
+  server mask retains   :  12.76% of params  (vs proximal sparsity  82.32% zeros)
+
+[SPARSITY PROBE] client=0  round=4
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      3,200  (  1.19%)
+  non-zero              :    265,450  ( 98.81%)
+  |Δ| > 1e-4 (server mask):    243,171  ( 90.52%)
+  |Δ| > 1e-9 (near-zero)  :    265,450  ( 98.81%)
+  min non-zero |Δ|      : 7.450581e-09
+  max |Δ|               : 2.003401e-01
+  server mask retains   :  90.52% of params  (vs proximal sparsity   1.19% zeros)
+
+[SPARSITY PROBE] client=2  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :      5,620  (  2.09%)
+  non-zero              :    263,030  ( 97.91%)
+  |Δ| > 1e-4 (server mask):    240,867  ( 89.66%)
+  |Δ| > 1e-9 (near-zero)  :    263,030  ( 97.91%)
+  min non-zero |Δ|      : 1.862645e-09
+  max |Δ|               : 1.390602e-01
+  server mask retains   :  89.66% of params  (vs proximal sparsity   2.09% zeros)
+
+[SPARSITY PROBE] client=18  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    243,932  ( 90.80%)
+  non-zero              :     24,718  (  9.20%)
+  |Δ| > 1e-4 (server mask):     19,736  (  7.35%)
+  |Δ| > 1e-9 (near-zero)  :     24,718  (  9.20%)
+  min non-zero |Δ|      : 9.313226e-09
+  max |Δ|               : 4.151189e-01
+  server mask retains   :   7.35% of params  (vs proximal sparsity  90.80% zeros)
+
+[SPARSITY PROBE] client=11  round=5
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    253,106  ( 94.21%)
+  non-zero              :     15,544  (  5.79%)
+  |Δ| > 1e-4 (server mask):     12,929  (  4.81%)
+  |Δ| > 1e-9 (near-zero)  :     15,544  (  5.79%)
+  min non-zero |Δ|      : 9.313226e-09
+  max |Δ|               : 4.551129e-01
+  server mask retains   :   4.81% of params  (vs proximal sparsity  94.21% zeros)
+
+[SPARSITY PROBE] client=12  round=2
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    246,973  ( 91.93%)
+  non-zero              :     21,677  (  8.07%)
+  |Δ| > 1e-4 (server mask):     17,414  (  6.48%)
+  |Δ| > 1e-9 (near-zero)  :     21,677  (  8.07%)
+  min non-zero |Δ|      : 1.583248e-08
+  max |Δ|               : 8.225296e-01
+  server mask retains   :   6.48% of params  (vs proximal sparsity  91.93% zeros)
+
+[SPARSITY PROBE] client=3  round=5
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    250,945  ( 93.41%)
+  non-zero              :     17,705  (  6.59%)
+  |Δ| > 1e-4 (server mask):     14,056  (  5.23%)
+  |Δ| > 1e-9 (near-zero)  :     17,705  (  6.59%)
+  min non-zero |Δ|      : 2.002344e-08
+  max |Δ|               : 7.113677e-01
+  server mask retains   :   5.23% of params  (vs proximal sparsity  93.41% zeros)
+
+[SPARSITY PROBE] client=21  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    195,266  ( 72.68%)
+  non-zero              :     73,384  ( 27.32%)
+  |Δ| > 1e-4 (server mask):     47,754  ( 17.78%)
+  |Δ| > 1e-9 (near-zero)  :     73,382  ( 27.32%)
+  min non-zero |Δ|      : 9.313226e-10
+  max |Δ|               : 7.203182e-01
+  server mask retains   :  17.78% of params  (vs proximal sparsity  72.68% zeros)
+
+[SPARSITY PROBE] client=9  round=3
+  total params          :    268,650
+  proximal threshold    : 0.001000  (lr=0.1 × λ=0.01)
+  exact zeros (prox)    :    244,832  ( 91.13%)
+  non-zero              :     23,818  (  8.87%)
+  |Δ| > 1e-4 (server mask):     18,102  (  6.74%)
+  |Δ| > 1e-9 (near-zero)  :     23,818  (  8.87%)
+  min non-zero |Δ|      : 8.381903e-09
+  max |Δ|               : 5.867757e-01
+  server mask retains   :   6.74% of params  (vs proximal sparsity  91.13% zeros)

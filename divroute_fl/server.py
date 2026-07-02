@@ -55,15 +55,62 @@ class FLServer:
             if norm > self.config.grad_clip_norm:
                 raw_delta = raw_delta * (self.config.grad_clip_norm / norm)
 
-            # compress client's upload delta; sets bytes and clears buffer for Tier 3
-            payload = apply_tiered_compression(
-                raw_delta, r["tier"], self.config, error_buffers, r["client_id"])
-            r["bytes_received"] = payload["bytes_transmitted"]
-            # Upload: client always sends its full local model back (float32 state_dict).
-            # This is independent of which tier/compression the server used for download.
-            r["upload_bytes"] = r["num_samples"] and sum(
-                p.numel() * 4 for p in self.global_model.parameters()
-            )
+            # FedZip actual mode (Phase 5)
+            if getattr(self.config, "fedzip_actual_mode", False):
+                from baselines.fedzip_actual import fedzip_compress_delta
+                # Compress and reconstruct the client update
+                reconstructed_delta, bytes_received = fedzip_compress_delta(
+                    raw_delta,
+                    z_ratio=self.config.fedzip_z_ratio,
+                    k_clusters=self.config.fedzip_k_clusters,
+                    random_state=self.config.seed
+                )
+                r["bytes_received"] = bytes_received
+                r["upload_bytes"] = r["num_samples"] and sum(
+                    p.numel() * 4 for p in self.global_model.parameters()
+                )
+                client_flats.append((r, reconstructed_delta.to(self.device)))
+                continue
+
+            # FedSparse upload sparsification (Phase 5)
+            # Transmits exactly the coordinates left non-zero by the client's
+            # proximal operator — no separate server-side magnitude threshold.
+            # The proximal operator (client.py) applies soft-thresholding with
+            # threshold = lr * lambda_j per mini-batch step, zeroing small
+            # coordinates in-place.  The server reads the accumulated post-prox
+            # delta (raw_delta = final_param − global_param) and should transmit
+            # every coordinate the prox left non-zero, i.e. abs > 0.
+            #
+            # A tiny epsilon (1e-12) is used solely for numerical stability
+            # (guards against exact floating-point zeros that may survive due to
+            # rounding), matching the FedSparse paper (Ruan et al.) which defines
+            # sparsity purely through the proximal operator's structural output,
+            # not through a separate post-hoc magnitude cutoff.
+            #
+            # Each transmitted entry: 4-byte float value + 4-byte int32 index = 8 bytes.
+            if self.config.fedsparse_sparsify_upload:
+                # Transmit all coordinates the proximal operator left non-zero.
+                # epsilon=1e-12 for numerical stability only — not a compression threshold.
+                mask = raw_delta.abs() > 1e-12
+                sparse_delta = raw_delta * mask
+                # Number of non-zero entries (nnz) — determined solely by the prox output
+                nnz = int(mask.sum().item())
+                # Each non-zero is encoded as 4-byte float value + 4-byte int32 index = 8 bytes
+                bytes_received = nnz * 8
+                r["bytes_received"] = bytes_received
+                r["upload_bytes"] = bytes_received
+                # Payload mimics compression output but contains dense sparse_delta
+                payload = {"values": sparse_delta, "indices": None, "bytes_transmitted": bytes_received}
+            else:
+                # compress client's upload delta; sets bytes and clears buffer for Tier 3
+                payload = apply_tiered_compression(
+                    raw_delta, r["tier"], self.config, error_buffers, r["client_id"])
+                r["bytes_received"] = payload["bytes_transmitted"]
+                # Upload: client always sends its full local model back (float32 state_dict).
+                # This is independent of which tier/compression the server used for download.
+                r["upload_bytes"] = r["num_samples"] and sum(
+                    p.numel() * 4 for p in self.global_model.parameters()
+                )
 
             if payload["values"] is None:      # Tier 3 — skip aggregation
                 continue

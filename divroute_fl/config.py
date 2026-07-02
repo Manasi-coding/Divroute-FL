@@ -75,6 +75,16 @@ class Config:
     # lambda=0.0 (default) → standard training, no regularisation.
     # lambda>0  → FedSparse mode; recommended values: 0.01, 0.04.
     fedsparse_lambda: float = 0.0
+    # FedSparse upload sparsification options (Phase 5)
+    fedsparse_sparsify_upload: bool = False
+    fedsparse_threshold: float = 1e-4
+
+    # FedZip baseline options (Phase 5)
+    fedzip_actual_mode: bool = False
+    fedzip_z_ratio: float = 0.01
+    fedzip_k_clusters: int = 3
+
+
 
     # Set True to suppress the interactive "Generate plots?" prompt.
     # Required for automated / multi-run scripts.

@@ -12,13 +12,20 @@ This encourages clients to produce sparse gradient updates, making the
 uploads more compressible.  The full DivRoute-FL download pipeline is kept
 intact — clients still receive the global delta from the server normally.
 
-The actual L1 regularisation is implemented in client.py (6 lines, gated
-behind fedsparse_lambda > 0) and wired through config.fedsparse_lambda.
-This file only provides the config factory that external scripts use.
+Under Option 3 of the Phase 5 implementation plan:
+  * We use standard sparse value + index encoding (float32 value [4 bytes] +
+    int32 index [4 bytes] = 8 bytes per non-zero/retained parameter).
+  * We do not retune threshold values or introduce bitmask/run-length encoding.
+  * Because each retained non-zero coordinate costs 8 bytes instead of the
+    4 bytes per parameter in dense FedAvg, the communication volume will
+    exceed FedAvg if the retained fraction exceeds 50% (retaining >50%
+    parameters at 8 bytes each is larger than 100% at 4 bytes each).
+  * This is expected, correct, and intentional behavior to evaluate raw
+    FedSparse thresholding against the baselines.
 
-Recommended lambda values (from the FedSparse paper): 0.01 and 0.04.
-Usage (called from run_phase5_comparison.py — do not call directly):
-    from baselines.fedsparse_baseline import get_fedsparse_config
+The actual L1 regularisation is implemented in client.py (gated behind
+fedsparse_lambda > 0). The server-side upload sparsification is gated behind
+config.fedsparse_sparsify_upload in server.py.
 """
 
 from divroute_fl.config import Config
@@ -48,7 +55,9 @@ def get_fedsparse_config(fedsparse_lambda: float = 0.01, **overrides) -> Config:
         use_divergence_weighting  = False,
         use_adaptive_tau          = False,
         use_epoch_warmup          = False,
-        # FedSparse L1 regularisation strength
+        # FedSparse upload sparsification options (Phase 5)
+        fedsparse_sparsify_upload = True,
+        fedsparse_threshold       = 1e-4,
         fedsparse_lambda          = fedsparse_lambda,
         skip_plot_prompt          = True,
     )

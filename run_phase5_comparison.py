@@ -47,7 +47,7 @@ import torch
 
 from divroute_fl.config import Config, get_recommended_divroute_config, get_uniform_top5_config
 from divroute_fl.main import run
-from baselines.fedzip_baseline import get_fedzip_config, fedzip_bytes_for_delta
+from baselines.fedzip_actual import get_fedzip_actual_config
 from baselines.fedsparse_baseline import get_fedsparse_config
 
 # ── Dataset presets ────────────────────────────────────────────────────────────
@@ -170,8 +170,11 @@ def _make_config(method: str, seed: int, log_path: str) -> Config:
     if method == "fedavg":
         return Config(fedavg_baseline_mode=True, **s)
     elif method == "fedzip":
-        # FedZip runs full-delta training; bytes are recalculated post-hoc.
-        return Config(fedavg_baseline_mode=True, **s)
+        return get_fedzip_actual_config(
+            z_ratio=p["fedzip_z_ratio"],
+            k_clusters=p["fedzip_k_clusters"],
+            **s
+        )
     elif method == "fedsparse":
         # Lambda is auto-scaled to the model size via the preset.
         return get_fedsparse_config(fedsparse_lambda=p["fedsparse_lambda"], **s)
@@ -223,28 +226,7 @@ def _parse_log(path: Path, method: str) -> dict:
         elif "clients" in e:
             total_ul += sum(c.get("upload_bytes", 0) for c in e["clients"])
 
-    # ── FedZip post-hoc byte recalculation ───────────────────────────────────
-    # FedZip's download bytes are *much* lower than the raw full-delta that was
-    # actually transmitted during training.  We recalculate them using the
-    # FedZip formula applied to the delta sizes recorded in the log.
-    if method == "fedzip":
-        p = _PRESET
-        fedzip_dl = 0
-        for e in history:
-            delta_numel = e.get("delta_numel", None)
-            if delta_numel is not None:
-                dummy = torch.zeros(delta_numel)
-                per_client = fedzip_bytes_for_delta(
-                    dummy,
-                    z_ratio=p["fedzip_z_ratio"],
-                    k_clusters=p["fedzip_k_clusters"],
-                )
-                n_clients = e.get("num_selected_clients", p["clients_per_round"])
-                fedzip_dl += per_client * n_clients
-            else:
-                fedzip_dl += int(total_dl / num_rounds * p["fedzip_z_ratio"])
-        total_dl = fedzip_dl
-    # ─────────────────────────────────────────────────────────────────────────
+
 
     total_bidir = total_dl + total_ul
 
@@ -264,14 +246,7 @@ def _parse_log(path: Path, method: str) -> dict:
         acc_found = None
         for e in history:
             dl = e.get("total_download_bytes", e.get("total_bytes_transmitted", 0))
-            if method == "fedzip" and "delta_numel" in e:
-                dummy = torch.zeros(e["delta_numel"])
-                n = e.get("num_selected_clients", _PRESET["clients_per_round"])
-                dl = fedzip_bytes_for_delta(
-                    dummy,
-                    _PRESET["fedzip_z_ratio"],
-                    _PRESET["fedzip_k_clusters"],
-                ) * n
+
             cum_dl += dl
             if cum_dl >= budget_bytes:
                 acc_found = e["test_accuracy"]

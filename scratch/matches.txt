@@ -1,0 +1,16 @@
+Tier 1  Client model has drifted far from the global model  Top 20% of the global update high fidelity  Drifted clients need a strong correction signal
+Tier 2  Moderate alignment  Top 5% of the global update low fidelity  Mostly-aligned clients need only a nudge
+- Top-k sparsification Alistarh et al. 2018 Lin et al. 2018  transmit only the k largest-magnitude gradient components. Empirical findings show that top-1% to top-20% compression can achieve near-lossless convergence.
+Tier 1  send top 20% of delta by absolute magnitude
+Tier 2  send top  5% of delta
+commvsaccuracy.png       bandwidth savings headline plot
+kratiotier1 float  0.20     top-k ratio for Tier 1 20%
+kratiotier2 float  0.05     top-k ratio for Tier 2 5%
+d  0.02  1  Client drifted substantially  send top 20% of delta
+0.01  d  0.02  2  Moderate drift  send top 5% of delta
+- Gold  Uniform Top-5% prior work baseline  same compression for all clients
+kratiotier1  0.20  Top-k fraction for Tier 1 20%
+kratiotier2  0.05  Top-k fraction for Tier 2 5%
+Savings 814 - 81  733 KB 90% reduction for Tier 2
+DivRoute-FL savings 85%
+- 3 lines Full FedAvg red  Uniform Top-5% gold  DivRoute-FL blue
