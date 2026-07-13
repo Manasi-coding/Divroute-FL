@@ -28,7 +28,12 @@ class FLServer:
         return self._rng.choice(all_ids, size=self.config.clients_per_round,
                                  replace=False, p=prob).tolist()
 
-    def aggregate(self, client_results: List[dict], error_buffers: dict) -> None:
+    # ── DEBUG: rounds at which client-0 delta statistics are logged ──────────
+    _DEBUG_ROUNDS = frozenset({1, 20, 40, 60, 80, 100})
+    # ─────────────────────────────────────────────────────────────────────────
+
+    def aggregate(self, client_results: List[dict], error_buffers: dict,
+                  round_num: int | None = None) -> None:
         old_flat = self._flatten_params(self.global_model.state_dict())
 
         # NaN guard
@@ -50,6 +55,37 @@ class FLServer:
         for r in clean:
             cf = self._flatten_params(r["state_dict"])
             raw_delta = cf - old_flat
+
+            # ── DEBUG: log upload delta statistics for client 0 ───────────────
+            # Temporary instrumentation — no algorithm changes.
+            # Logs: L2, L1, nnz, nnz%, and element counts above three thresholds:
+            #   1e-12  (numerical-stability epsilon used in fedsparse_sparsify_upload)
+            #   1e-4   (fedsparse_threshold config value)
+            #   lr×λ   (proximal operator threshold: local_lr * fedsparse_lambda)
+            if (r["client_id"] == 0
+                    and round_num is not None
+                    and round_num in self._DEBUG_ROUNDS):
+                with torch.no_grad():
+                    _d = raw_delta.float().cpu()
+                    _n = _d.numel()
+                    _l2  = float(_d.norm(p=2))
+                    _l1  = float(_d.norm(p=1))
+                    _nnz = int((_d.abs() > 1e-12).sum())   # matches upload mask criterion
+                    _lr_lam = self.config.local_lr * self.config.fedsparse_lambda
+                    _gt_eps   = int((_d.abs() > 1e-4).sum())
+                    _gt_1e12  = int((_d.abs() > 1e-12).sum())
+                    _gt_lrlam = int((_d.abs() > _lr_lam).sum()) if _lr_lam > 0 else -1
+                    print(
+                        f"  [DEBUG-delta] round={round_num} client=0 "
+                        f"n={_n} "
+                        f"L2={_l2:.6e} L1={_l1:.6e} "
+                        f"nnz={_nnz} ({100*_nnz/_n:.2f}%) "
+                        f">1e-12={_gt_1e12} "
+                        f">1e-4={_gt_eps} "
+                        f">lr*lam({_lr_lam:.2e})="
+                        f"{_gt_lrlam if _gt_lrlam >= 0 else 'N/A (lam=0)'}"
+                    )
+            # ─────────────────────────────────────────────────────────────────
 
             norm = torch.norm(raw_delta)
             if norm > self.config.grad_clip_norm:
@@ -181,7 +217,7 @@ class FLServer:
                 if client_flats:
                     buf_sum = sum((r["num_samples"] / total_samples) * r["state_dict"][k].to(self.device) 
                                   for r, _ in client_flats)
-                    new_sd[k] = buf_sum
+                    new_sd[k] = buf_sum.to(v.dtype)
                 else:
                     new_sd[k] = v
                     

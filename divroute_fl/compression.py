@@ -78,7 +78,10 @@ def apply_tiered_compression(delta: torch.Tensor, tier: int, config,
         payload = compress_delta(effective_delta, k_ratio)
         # residual = what was dropped; carry it to next round
         residual = effective_delta.clone()
-        residual[payload["indices"].long()] = 0.0    # int32 -> int64 for indexing
+        if payload["indices"] is not None:
+            residual[payload["indices"].long()] = 0.0    # int32 -> int64 for indexing
+        else:
+            residual.zero_()
         error_buffers[client_id] = residual
     else:
         payload = compress_delta(delta, k_ratio)

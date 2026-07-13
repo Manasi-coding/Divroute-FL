@@ -126,7 +126,111 @@ def run(config: Config | None = None) -> None:
     cumulative_upload             = 0
     cumulative_baseline_upload    = 0
 
-    for rnd in range(config.num_rounds):
+    # ── Checkpoint and Resume System ─────────────────────────────────────────
+    import os
+    def _get_method_name(cfg: Config) -> str:
+        if cfg.fedavg_baseline_mode:
+            if getattr(cfg, "fedzip_actual_mode", False):
+                return "fedzip"
+            if getattr(cfg, "fedsparse_lambda", 0.0) > 0.0:
+                return "fedsparse"
+            return "fedavg"
+        if getattr(cfg, "uniform_top5_mode", False):
+            return "uniform"
+        return "divroute"
+
+    method_name = _get_method_name(config)
+    checkpoint_dir = os.path.join("checkpoints", f"{method_name}_{config.dataset_name}_seed{config.seed}")
+    latest_path = os.path.join(checkpoint_dir, "latest.pt")
+    
+    start_round = 0
+    should_resume = False
+    
+    if config.fresh:
+        should_resume = False
+    elif config.resume:
+        if not os.path.exists(latest_path):
+            raise FileNotFoundError(f"Checkpoint not found at {latest_path} but --resume was specified.")
+        should_resume = True
+    else:
+        # Default: auto-resume if checkpoint exists
+        if os.path.exists(latest_path):
+            should_resume = True
+            
+    if should_resume:
+        print("[checkpoint]")
+        print(f"Loaded checkpoint: {latest_path}")
+        print(f"Method: {method_name}")
+        print(f"Dataset: {config.dataset_name}")
+        print(f"Seed: {config.seed}")
+        
+        checkpoint = torch.load(latest_path, map_location=device)
+        
+        # Safety/compatibility checks
+        if checkpoint["method_name"] != method_name:
+            raise ValueError(f"Incompatible checkpoint: method mismatch. Checkpoint={checkpoint['method_name']}, Expected={method_name}")
+        if checkpoint["dataset_name"] != config.dataset_name:
+            raise ValueError(f"Incompatible checkpoint: dataset mismatch. Checkpoint={checkpoint['dataset_name']}, Expected={config.dataset_name}")
+        if checkpoint["model_name"] != config.model_name:
+            raise ValueError(f"Incompatible checkpoint: model mismatch. Checkpoint={checkpoint['model_name']}, Expected={config.model_name}")
+        if checkpoint["seed"] != config.seed:
+            raise ValueError(f"Incompatible checkpoint: seed mismatch. Checkpoint={checkpoint['seed']}, Expected={config.seed}")
+            
+        checkpoint_config = checkpoint["config"]
+        for field in ["num_clients", "clients_per_round", "local_lr", "alpha"]:
+            checkpoint_val = getattr(checkpoint_config, field, None)
+            expected_val = getattr(config, field, None)
+            if checkpoint_val != expected_val:
+                raise ValueError(f"Incompatible checkpoint: config field '{field}' mismatch. Checkpoint={checkpoint_val}, Expected={expected_val}")
+                
+        # Restore dynamically adapted configuration state
+        config.tau_low = checkpoint_config.tau_low
+        config.tau_high = checkpoint_config.tau_high
+        config.k_ratio_tier1 = checkpoint_config.k_ratio_tier1
+        config.k_ratio_tier2 = checkpoint_config.k_ratio_tier2
+                
+        # Restore RNG states
+        random.setstate(checkpoint["rng_state"]["python"])
+        np.random.set_state(checkpoint["rng_state"]["numpy"])
+        torch.set_rng_state(checkpoint["rng_state"]["torch_cpu"])
+        if torch.cuda.is_available() and checkpoint["rng_state"].get("torch_cuda"):
+            torch.cuda.set_rng_state_all(checkpoint["rng_state"]["torch_cuda"])
+            
+        # Restore server state
+        server.global_model.load_state_dict(checkpoint["global_model_state_dict"])
+        server.selection_weights = checkpoint["server_state"]["selection_weights"]
+        server.global_delta = checkpoint["server_state"]["global_delta"]
+        if server.global_delta is not None:
+            server.global_delta = server.global_delta.to(device)
+        server._rng.bit_generator.state = checkpoint["server_state"]["_rng_state"]
+        server._momentum_buf = checkpoint["server_state"]["_momentum_buf"]
+        if server._momentum_buf is not None:
+            server._momentum_buf = server._momentum_buf.to(device)
+            
+        # Restore client states
+        checkpoint_client_irw = checkpoint["client_states"]["irw_norms"]
+        for client in clients:
+            if client.client_id in checkpoint_client_irw:
+                client._irw_norms = checkpoint_client_irw[client.client_id]
+                
+        # Restore main loop state
+        ema_scores = checkpoint["main_loop_state"]["ema_scores"]
+        error_buffers = {k: v.to(device) for k, v in checkpoint["main_loop_state"]["error_buffers"].items()}
+        _baseline_bpr = checkpoint["main_loop_state"]["_baseline_bpr"]
+        cumulative_divroute_download = checkpoint["main_loop_state"]["cumulative_divroute_download"]
+        cumulative_baseline_download = checkpoint["main_loop_state"]["cumulative_baseline_download"]
+        cumulative_upload = checkpoint["main_loop_state"]["cumulative_upload"]
+        cumulative_baseline_upload = checkpoint["main_loop_state"]["cumulative_baseline_upload"]
+        
+        # Restore logger history
+        logger.history = checkpoint["logger_history"]
+        logger._flush()
+        
+        start_round = checkpoint["round_num"] + 1
+        print(f"Resuming from round {start_round}/{config.num_rounds}")
+    # ─────────────────────────────────────────────────────────────────────────
+
+    for rnd in range(start_round, config.num_rounds):
         selected = server.select_clients(all_ids)
         local_epochs = _get_local_epochs(rnd, config)
 
@@ -136,7 +240,9 @@ def run(config: Config | None = None) -> None:
 
         for cid in selected:
             result = clients[cid].train(global_sd, local_epochs,
-                                        fedsparse_lambda=config.fedsparse_lambda)
+                                        fedsparse_lambda=config.fedsparse_lambda,
+                                        round_num=rnd,
+                                        total_rounds=config.num_rounds)
             results.append(result)
 
         # -- divergence, adaptive tau, and tier assignment ---------------------
@@ -159,11 +265,15 @@ def run(config: Config | None = None) -> None:
                 # Writing NaN into ema_scores would permanently poison all future rounds.
                 if any(torch.isnan(v).any() or torch.isinf(v).any()
                        for v in r["state_dict"].values()):
-                    r["divergence_score"] = ema_scores.get(r["client_id"], config.tau_low)
+                    fallback_val = ema_scores.get(r["client_id"], config.tau_low)
+                    if rnd == 15:
+                        print(f"  [DEBUG-NAN] client {r['client_id']:>3} triggered NaN/Inf fallback. Score set to {fallback_val:.8f}")
+                    r["divergence_score"] = fallback_val
                     continue
 
+                local_model = clients[r["client_id"]].get_local_model()
                 client_flat = torch.cat([
-                    r["state_dict"][k].flatten().float().cpu() for k in param_names
+                    p.flatten().float().cpu() for n, p in local_model.named_parameters()
                 ])
                 cos = F.cosine_similarity(
                     client_flat.double().unsqueeze(0), global_flat.double().unsqueeze(0),
@@ -181,7 +291,32 @@ def run(config: Config | None = None) -> None:
 
             # -- tier assignment ---------------------------------------------------
             for r in results:
-                r["tier"] = server.assign_tier(r["divergence_score"])
+                tier = server.assign_tier(r["divergence_score"])
+                # Tier-3 warm-up period (first 15 rounds)
+                if rnd < 15 and tier == 3:
+                    tier = 2
+                r["tier"] = tier
+
+            # -- [DEBUG] per-client detail on the first post-warmup round ----------
+            if rnd == 15:
+                print(f"  [DEBUG] round 16 tier assignment — tau_low={config.tau_low:.8f} tau_high={config.tau_high:.8f}")
+                for r in results:
+                    print(
+                        f"  [DEBUG] client {r['client_id']:>3} "
+                        f"d={r['divergence_score']:.8f} "
+                        f"tier={r['tier']} "
+                        f"tau_low={config.tau_low:.8f} "
+                        f"tau_high={config.tau_high:.8f}"
+                    )
+            # ----------------------------------------------------------------------
+
+        # -- communication schedule --------------------------------------------
+        if rnd < 30:
+            config.k_ratio_tier1 = 0.50
+            config.k_ratio_tier2 = 0.20
+        else:
+            config.k_ratio_tier1 = 0.35
+            config.k_ratio_tier2 = 0.10
 
         # -- adaptive k_ratio (updated before aggregate so compression uses
         #    the correct ratios for this round) --------------------------------
@@ -193,7 +328,7 @@ def run(config: Config | None = None) -> None:
         for r in results:
             r["bytes_received"] = 0
 
-        server.aggregate(results, error_buffers)
+        server.aggregate(results, error_buffers, round_num=rnd + 1)
 
         # -- Tier-3 staleness sync (Phase 1.2, Option A) ------------------------
         # Every `tier3_sync_interval` rounds, Tier-3 clients receive a
@@ -240,11 +375,66 @@ def run(config: Config | None = None) -> None:
             f"down: {total_download/1e6:.3f}MB (save {saving_pct:.1f}%, "
             f"cum {cumulative_saving_pct:.1f}%) | "
             f"up: {total_upload/1e6:.3f}MB | "
-            f"tau: [{config.tau_low:.4f}, {config.tau_high:.4f}] | "
-            f"d: [{min(d_vals):.4f}, {max(d_vals):.4f}] | "
+            f"tau: [{config.tau_low:.8f}, {config.tau_high:.8f}] | "
+            f"d: [{min(d_vals):.8f}, {max(d_vals):.8f}] | "
             f"epochs: {local_epochs}"
             f"{sync_note}"
         )
+
+        # ── Checkpoint and Resume System: Save Checkpoint ───────────────────────
+        completed_round = rnd + 1
+        if completed_round % 5 == 0:
+            os.makedirs(checkpoint_dir, exist_ok=True)
+            
+            client_irw_norms = {client.client_id: client._irw_norms for client in clients}
+            
+            rng_state = {
+                "python": random.getstate(),
+                "numpy": np.random.get_state(),
+                "torch_cpu": torch.get_rng_state(),
+                "torch_cuda": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else [],
+            }
+            
+            checkpoint = {
+                "round_num": rnd,
+                "num_rounds": config.num_rounds,
+                "seed": config.seed,
+                "config": config,
+                "method_name": method_name,
+                "dataset_name": config.dataset_name,
+                "model_name": config.model_name,
+                "global_model_state_dict": {k: v.cpu() for k, v in server.global_model.state_dict().items()},
+                "server_state": {
+                    "selection_weights": server.selection_weights.copy(),
+                    "global_delta": server.global_delta.cpu() if server.global_delta is not None else None,
+                    "_rng_state": server._rng.bit_generator.state,
+                    "_momentum_buf": server._momentum_buf.cpu() if server._momentum_buf is not None else None,
+                },
+                "client_states": {
+                    "irw_norms": client_irw_norms,
+                },
+                "main_loop_state": {
+                    "ema_scores": ema_scores.copy(),
+                    "error_buffers": {k: v.cpu() for k, v in error_buffers.items()},
+                    "_baseline_bpr": _baseline_bpr.copy() if _baseline_bpr is not None else None,
+                    "cumulative_divroute_download": cumulative_divroute_download,
+                    "cumulative_baseline_download": cumulative_baseline_download,
+                    "cumulative_upload": cumulative_upload,
+                    "cumulative_baseline_upload": cumulative_baseline_upload,
+                },
+                "logger_history": logger.history.copy(),
+                "rng_state": rng_state,
+            }
+            
+            tmp_path = latest_path + ".tmp"
+            torch.save(checkpoint, tmp_path)
+            os.replace(tmp_path, latest_path)
+            print(f"[checkpoint] Saved checkpoint Round {completed_round}")
+            
+            if completed_round % 50 == 0:
+                milestone_path = os.path.join(checkpoint_dir, f"round_{completed_round:03d}.pt")
+                torch.save(checkpoint, milestone_path)
+        # ─────────────────────────────────────────────────────────────────────────
 
     cumulative_bidirectional         = cumulative_divroute_download + cumulative_upload
     cumulative_baseline_bidirectional = cumulative_baseline_download + cumulative_baseline_upload

@@ -14,8 +14,41 @@ CIFAR100_MEAN = (0.5071, 0.4867, 0.4408)
 CIFAR100_STD  = (0.2675, 0.2565, 0.2761)
 
 
-def _make_transform(dataset_name: str) -> transforms.Compose:
-    """Return a normalisation transform for the requested dataset."""
+def _make_train_transform(dataset_name: str) -> transforms.Compose:
+    """Return the training transform for the requested dataset.
+
+    Includes standard data augmentation (RandomCrop + RandomHorizontalFlip)
+    applied before tensor conversion.  Applied only to client training data;
+    the test transform (_make_test_transform) is kept augmentation-free.
+
+    Augmentation is identical for every client because all clients share the
+    same torchvision Dataset object (partitioned via index Subsets).  Every
+    FL method (FedAvg, FedSparse, FedZip, Uniform, DivRoute) therefore sees
+    the same augmented distribution, preserving experimental fairness.
+    """
+    name = dataset_name.lower().strip()
+    if name == "cifar10":
+        mean, std = CIFAR10_MEAN, CIFAR10_STD
+    elif name == "cifar100":
+        mean, std = CIFAR100_MEAN, CIFAR100_STD
+    else:
+        raise ValueError(
+            f"Unknown dataset_name '{dataset_name}'. "
+            f"Supported values: 'cifar10', 'cifar100'."
+        )
+    return transforms.Compose([
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean, std),
+    ])
+
+
+def _make_test_transform(dataset_name: str) -> transforms.Compose:
+    """Return the evaluation/test transform for the requested dataset.
+
+    No augmentation — deterministic ToTensor + Normalize only.
+    """
     name = dataset_name.lower().strip()
     if name == "cifar10":
         mean, std = CIFAR10_MEAN, CIFAR10_STD
@@ -69,7 +102,7 @@ def get_client_datasets(
     The Dirichlet partitioning logic is identical for both datasets;
     the only difference is num_classes (10 or 100) and the normalisation transform.
     """
-    transform    = _make_transform(dataset_name)
+    transform    = _make_train_transform(dataset_name)   # augmented training transform
     full_train   = _load_train(dataset_name, transform)
     targets      = np.array(full_train.targets)
     num_classes  = _num_classes(dataset_name)
@@ -90,7 +123,7 @@ def get_client_datasets(
             counts = np.floor(exact).astype(int)
             remainders = exact - counts
             leftover = len(cls_idx) - counts.sum()
-            
+
             # Largest-remainder apportionment: give the leftover units to whichever
             # clients were closest to rounding up, instead of always client 0, 1, 2...
             top_leftover_clients = np.argsort(-remainders)[:leftover]
@@ -118,5 +151,5 @@ def get_test_dataset(dataset_name: str = "cifar10") -> Dataset:
     Supported dataset_name values: "cifar10", "cifar100"
     Default is "cifar10" for backward compatibility.
     """
-    transform = _make_transform(dataset_name)
+    transform = _make_test_transform(dataset_name)   # no augmentation on test data
     return _load_test(dataset_name, transform)

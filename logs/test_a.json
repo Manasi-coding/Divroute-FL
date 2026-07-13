@@ -1,0 +1,462 @@
+[
+  {
+    "round": 0,
+    "test_accuracy": 0.1073,
+    "total_bytes_transmitted": 2579008,
+    "total_download_bytes": 2579008,
+    "total_upload_bytes": 16119000,
+    "delta_numel": 268650,
+    "clients": [
+      {
+        "client_id": 19,
+        "divergence_score": 0.0015831807373055673,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 10,
+        "divergence_score": 0.014355879201636057,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 21,
+        "divergence_score": 0.021305776508011576,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 17,
+        "divergence_score": 0.010549773629295656,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 2,
+        "divergence_score": 0.0035822503957146923,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 24,
+        "divergence_score": 0.0041866675459238945,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 3,
+        "divergence_score": 0.029075469606630433,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 11,
+        "divergence_score": 0.007533767412494785,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 9,
+        "divergence_score": 0.00906051845349265,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 23,
+        "divergence_score": 0.012332961050701252,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 16,
+        "divergence_score": 0.0061533221834175755,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 20,
+        "divergence_score": 0.005483413607439647,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 4,
+        "divergence_score": 0.0035538219362973855,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 12,
+        "divergence_score": 0.011553407694195661,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 0,
+        "divergence_score": 0.0059368346519852455,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      }
+    ]
+  },
+  {
+    "round": 1,
+    "test_accuracy": 0.097,
+    "total_bytes_transmitted": 2579008,
+    "total_download_bytes": 2579008,
+    "total_upload_bytes": 16119000,
+    "delta_numel": 268650,
+    "clients": [
+      {
+        "client_id": 20,
+        "divergence_score": 0.004084013262121133,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 15,
+        "divergence_score": 0.0021091705521539827,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 18,
+        "divergence_score": 0.00031740007703962014,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 9,
+        "divergence_score": 0.007441867135616587,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 24,
+        "divergence_score": 0.0032110211527621056,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 22,
+        "divergence_score": 0.002834915601935828,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 19,
+        "divergence_score": 0.0011198507594375462,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 5,
+        "divergence_score": 0.006690217278116695,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 11,
+        "divergence_score": 0.007571728393503752,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 1,
+        "divergence_score": 4.518062596936545e-05,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 3,
+        "divergence_score": 0.03206713853458738,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 17,
+        "divergence_score": 0.008436790179941811,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 8,
+        "divergence_score": 0.0037842072573587293,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 7,
+        "divergence_score": 0.004233706331748355,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 10,
+        "divergence_score": 0.010170278596028837,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      }
+    ]
+  },
+  {
+    "round": 2,
+    "test_accuracy": 0.1,
+    "total_bytes_transmitted": 2579008,
+    "total_download_bytes": 2579008,
+    "total_upload_bytes": 16119000,
+    "delta_numel": 268650,
+    "clients": [
+      {
+        "client_id": 5,
+        "divergence_score": 0.004488046633491915,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 3,
+        "divergence_score": 0.022048850925606597,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 11,
+        "divergence_score": 0.006490291096418868,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 16,
+        "divergence_score": 0.004375112731019914,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 10,
+        "divergence_score": 0.007683201745002891,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 20,
+        "divergence_score": 0.00451888282285807,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 17,
+        "divergence_score": 0.006889671112177886,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 7,
+        "divergence_score": 0.003251382729865559,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 9,
+        "divergence_score": 0.005968847919855005,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 4,
+        "divergence_score": 0.002948618206503362,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 0,
+        "divergence_score": 0.005723878623245637,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 21,
+        "divergence_score": 0.01733542913133963,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 18,
+        "divergence_score": 0.0002930403186607311,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 19,
+        "divergence_score": 0.0007713013072079057,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 13,
+        "divergence_score": 0.002300551504913373,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      }
+    ]
+  },
+  {
+    "round": 3,
+    "test_accuracy": 0.1,
+    "total_bytes_transmitted": 2579008,
+    "total_download_bytes": 2579008,
+    "total_upload_bytes": 16119000,
+    "delta_numel": 268650,
+    "clients": [
+      {
+        "client_id": 14,
+        "divergence_score": 0.0021364299781344576,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 3,
+        "divergence_score": 0.015773085059714174,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 16,
+        "divergence_score": 0.003061315479028641,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 11,
+        "divergence_score": 0.004859358744038918,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 13,
+        "divergence_score": 0.0016820509290430552,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 19,
+        "divergence_score": 0.0005717569302046012,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 15,
+        "divergence_score": 0.0014098458616629505,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 7,
+        "divergence_score": 0.002475841716337843,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 0,
+        "divergence_score": 0.0037759617159607737,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 10,
+        "divergence_score": 0.006830965231137224,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 5,
+        "divergence_score": 0.0030930251900921487,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 23,
+        "divergence_score": 0.007759981551898542,
+        "tier": 1,
+        "bytes_received": 429840,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 6,
+        "divergence_score": 0.0013834745460071796,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 1,
+        "divergence_score": 4.060929576277239e-05,
+        "tier": 3,
+        "bytes_received": 0,
+        "upload_bytes": 1074600
+      },
+      {
+        "client_id": 8,
+        "divergence_score": 0.0027042032008663284,
+        "tier": 2,
+        "bytes_received": 107456,
+        "upload_bytes": 1074600
+      }
+    ]
+  }
+]

@@ -86,9 +86,10 @@ DATASET_PRESETS = {
         "model_name":        "resnet18",
         "num_clients":       100,
         "clients_per_round": 20,    # raised from 10 → 20% participation for faster convergence
-        "num_rounds":        150,   # raised from 100 → 150 for credible accuracy plateau
+        "num_rounds":        300,   # increased from 100 → 300 rounds
+        "local_epochs":      3,     # reduced from 5 → 3 epochs
         # local_lr tuned down from 0.1 (SimpleCNN default) — ResNet-18 on CIFAR-100
-        # needs smaller steps to reduce client drift across 5 local epochs.
+        # needs smaller steps to reduce client drift across local epochs.
         "local_lr":          0.01,
         "seeds":             [42, 123, 456],
         # FedSparse: scaled down 100x for ResNet-18 (11M params) vs SimpleCNN (200K).
@@ -103,8 +104,8 @@ DATASET_PRESETS = {
         # Without BN buffer contamination, ResNet-18 divergence is ~0.0007 - 0.0012.
         # tau_high=0.0010 ensures top divergence gets Tier 1, tau_low=0.0007 ensures
         # converged clients fall to Tier 3 naturally as gradients shrink over time.
-        "tau_high":          0.0008,
-        "tau_low":           0.0006,
+        "tau_high":          0.00045,
+        "tau_low":           0.00030,
         # Adaptive tau settings (disabled by default to show communication savings trajectory,
         # but available here if you want to test fixed percentile assignments later).
         "use_adaptive_tau":  False,
@@ -149,24 +150,27 @@ def _csv_columns() -> list:
 
 
 # ── Config factories ───────────────────────────────────────────────────────────
-def _shared(seed: int, log_path: str) -> dict:
+def _shared(seed: int, log_path: str, args=None) -> dict:
     p = _PRESET
     return dict(
         num_clients       = p["num_clients"],
         clients_per_round = p["clients_per_round"],
         num_rounds        = p["num_rounds"],
         local_lr          = p.get("local_lr", 0.1),  # preset-specific LR; falls back to Config default
+        local_epochs      = p.get("local_epochs", 5), # preset-specific local epochs
         seed              = seed,
         dataset_name      = p["dataset_name"],
         model_name        = p["model_name"],
         skip_plot_prompt  = True,
         log_path          = log_path,
+        resume            = getattr(args, "resume", False),
+        fresh             = getattr(args, "fresh", False),
     )
 
 
-def _make_config(method: str, seed: int, log_path: str) -> Config:
+def _make_config(method: str, seed: int, log_path: str, args=None) -> Config:
     p = _PRESET
-    s = _shared(seed, log_path)
+    s = _shared(seed, log_path, args)
     if method == "fedavg":
         return Config(fedavg_baseline_mode=True, **s)
     elif method == "fedzip":
@@ -176,8 +180,17 @@ def _make_config(method: str, seed: int, log_path: str) -> Config:
             **s
         )
     elif method == "fedsparse":
-        # Lambda is auto-scaled to the model size via the preset.
-        return get_fedsparse_config(fedsparse_lambda=p["fedsparse_lambda"], **s)
+        # Lambda is auto-scaled to the model size via the preset, but CLI can override.
+        fedsparse_lambda_override = getattr(args, "fedsparse_lambda", None)
+        lam = fedsparse_lambda_override if fedsparse_lambda_override is not None else p["fedsparse_lambda"]
+        kwargs = {"fedsparse_lambda": lam}
+        local_epochs_override = getattr(args, "local_epochs", None)
+        if local_epochs_override is not None:
+            kwargs["local_epochs"] = local_epochs_override
+        batch_size_override = getattr(args, "batch_size", None)
+        if batch_size_override is not None:
+            kwargs["batch_size"] = batch_size_override
+        return get_fedsparse_config(**{**s, **kwargs})
     elif method == "uniform":
         return get_uniform_top5_config(**s)
     elif method == "divroute":
@@ -324,6 +337,14 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Run Phase 5 baseline comparisons")
     parser.add_argument(
+        "--resume", action="store_true",
+        help="Resume from the latest checkpoint if available"
+    )
+    parser.add_argument(
+        "--fresh", action="store_true",
+        help="Ignore existing checkpoints and start a new experiment"
+    )
+    parser.add_argument(
         "--dataset", choices=list(DATASET_PRESETS.keys()), default="cifar100",
         help=(
             "Dataset/model preset to use.\n"
@@ -341,6 +362,18 @@ def main() -> None:
         "--seeds", nargs="+", type=int, default=None,
         help="Override seeds (default: use preset's seed list)"
     )
+    parser.add_argument(
+        "--local-epochs", type=int, default=None,
+        help="Override local_epochs for FedSparse"
+    )
+    parser.add_argument(
+        "--batch-size", type=int, default=None,
+        help="Override batch_size for FedSparse"
+    )
+    parser.add_argument(
+        "--fedsparse-lambda", type=float, default=None,
+        help="Override fedsparse_lambda"
+    )
     args = parser.parse_args()
 
     # ── Apply preset ──────────────────────────────────────────────────────────
@@ -357,7 +390,8 @@ def main() -> None:
     print(f"  Rounds      : {p['num_rounds']}")
     print(f"  Seeds       : {seeds}")
     print(f"  Methods     : {methods}")
-    print(f"  FedSparse λ : {p['fedsparse_lambda']}")
+    _effective_lambda = args.fedsparse_lambda if args.fedsparse_lambda is not None else p["fedsparse_lambda"]
+    print(f"  FedSparse λ : {_effective_lambda}")
     print(f"  DivRoute τ  : fixed  tau_high={p['tau_high']}  tau_low={p['tau_low']}")
     print(f"  Logs dir    : {p['log_subdir']}")
     print(f"{'='*76}\n")
@@ -392,7 +426,7 @@ def main() -> None:
     for method, seed in pending:
         run_num += 1
         lp  = _log_path(method, seed)
-        cfg = _make_config(method, seed, str(lp))
+        cfg = _make_config(method, seed, str(lp), args)
         label = _method_labels().get(method, method)
 
         print(f"\n{'='*76}")

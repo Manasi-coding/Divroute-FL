@@ -90,6 +90,10 @@ class Config:
     # Required for automated / multi-run scripts.
     skip_plot_prompt: bool = False
 
+    # Checkpoint and resume options
+    resume: bool = False
+    fresh: bool = False
+
     # parallelism (set to 0 to disable multiprocessing — sequential on GPU)
     num_workers: int = 0
 

@@ -3,3 +3,5 @@ __pycache__/
 records/
 plots/
 venv
+scratch/
+checkpoints/

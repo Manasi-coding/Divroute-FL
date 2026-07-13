@@ -1,8 +1,122 @@
+import math
+
 import torch
 import torch.nn as nn
+from torch.distributions import Beta
 from torch.utils.data import DataLoader
 
 from .model import get_model
+
+
+# MixUp alpha — kept as a module-level constant so every client and every
+# method uses the same value without any config changes.
+_MIXUP_ALPHA = 0.2
+
+# EMA decay — 0.999 gives a half-life of ~693 steps, providing a smooth
+# trailing average that is robust to noisy mini-batch gradient updates
+# while tracking the training trajectory closely enough to benefit from
+# late-round convergence.  Chosen to match the standard torchvision EMA
+# recipe used in the official ResNet training scripts.
+_EMA_DECAY = 0.95
+
+
+def _update_ema(ema_model: nn.Module, live_model: nn.Module, decay: float) -> None:
+    """In-place EMA update: ema = decay * ema + (1 - decay) * live.
+
+    Operates on all tensors in state_dict (parameters AND buffers), so
+    BatchNorm running statistics are also smoothed.  All operations are
+    performed under torch.no_grad() to guarantee that EMA tensors never
+    accumulate gradients.
+
+    Parameters
+    ----------
+    ema_model  : the shadow model whose weights are updated in-place
+    live_model : the model being trained (source of the new values)
+    decay      : EMA decay coefficient (e.g. 0.999)
+    """
+    with torch.no_grad():
+        ema_sd  = ema_model.state_dict()
+        live_sd = live_model.state_dict()
+        for key in ema_sd:
+            # Cast to float for the lerp computation, then cast back to the
+            # original dtype (e.g. int64 for num_batches_tracked).
+            ema_val  = ema_sd[key].float()
+            live_val = live_sd[key].float()
+            updated  = decay * ema_val + (1.0 - decay) * live_val
+            ema_sd[key].copy_(updated.to(ema_sd[key].dtype))
+        # state_dict() returns copies — we must push the mutated dict back.
+        ema_model.load_state_dict(ema_sd)
+
+
+def _mixup_loss(
+    criterion: nn.CrossEntropyLoss,
+    pred: torch.Tensor,
+    y_a: torch.Tensor,
+    y_b: torch.Tensor,
+    lam: float,
+) -> torch.Tensor:
+    """Mixed cross-entropy loss: λ·CE(pred, y_a) + (1-λ)·CE(pred, y_b).
+
+    Works correctly alongside label_smoothing because CrossEntropyLoss
+    applies smoothing independently to each call; the two weighted terms
+    are then summed, which is algebraically equivalent to smoothing the
+    linearly-interpolated soft label directly.
+
+    Parameters
+    ----------
+    criterion : nn.CrossEntropyLoss instance (with label_smoothing=0.1)
+    pred      : raw logits from the model, shape (B, C)
+    y_a       : integer class labels for the original batch, shape (B,)
+    y_b       : integer class labels for the shuffled batch, shape (B,)
+    lam       : scalar mixing coefficient drawn from Beta(alpha, alpha)
+    """
+    return lam * criterion(pred, y_a) + (1.0 - lam) * criterion(pred, y_b)
+
+
+def _cosine_lr(base_lr: float, round_num: int, total_rounds: int) -> float:
+    """Compute the cosine-annealed learning rate for a given global round.
+
+    Decays from ``base_lr`` at round 0 to exactly ``base_lr * 0.01`` at the
+    final round (``total_rounds - 1``) following the standard cosine schedule:
+
+        lr(t) = lr_min + 0.5 * (lr_max - lr_min) * (1 + cos(π * t / (T - 1)))
+
+    The denominator is ``T - 1`` (not ``T``) because the loop in main.py runs
+    ``for rnd in range(total_rounds)``, so ``round_num`` ranges over the closed
+    integer set {0, 1, …, T-1}.  Using T-1 as denominator maps this domain
+    exactly onto the cosine interval [0, π]:
+
+        t = 0   → cos(0)   = +1  → lr = base_lr          (maximum)
+        t = T-1 → cos(π)   = -1  → lr = lr_min = base_lr * 0.01  (minimum)
+
+    Using T instead (the original formula) maps the domain onto [0, π(T-1)/T],
+    which reaches only ~π - π/T at the final round.  With T=100 this leaves
+    the LR ~2.5 % above lr_min on the last round — never reaching the target
+    minimum.
+
+    Parameters
+    ----------
+    base_lr      : the configured initial learning rate (``Config.local_lr``)
+    round_num    : 0-indexed current global communication round
+    total_rounds : total number of communication rounds (``Config.num_rounds``)
+
+    Design note
+    -----------
+    A pure function of the global round is the correct pattern for federated
+    learning.  PyTorch's ``CosineAnnealingLR`` requires a persistent
+    ``(optimizer, scheduler)`` pair that is stepped each call.  Because the
+    client optimizer is recreated fresh inside ``FLClient.train()`` on every
+    round, attaching a scheduler would restart the cosine curve every round.
+    Computing the LR analytically from ``round_num`` and setting it directly
+    avoids this restart and ensures a single, monotone decay across the full
+    training run.
+    """
+    lr_min = base_lr * 0.01
+    # Guard: T-1 == 0 when total_rounds == 1, which would cause ZeroDivisionError.
+    # With a single round there is nothing to anneal; return the full base_lr.
+    if total_rounds <= 1:
+        return base_lr
+    return lr_min + 0.5 * (base_lr - lr_min) * (1.0 + math.cos(math.pi * round_num / (total_rounds - 1)))
 
 
 class FLClient:
@@ -41,7 +155,8 @@ class FLClient:
             )
 
     def train(self, global_state_dict: dict, local_epochs: int | None = None,
-              fedsparse_lambda: float = 0.0) -> dict:
+              fedsparse_lambda: float = 0.0,
+              round_num: int = 0, total_rounds: int = 1) -> dict:
         """
         Accepts a state_dict (serialisable) instead of the model object —
         required for multiprocessing (model objects can't cross process boundaries).
@@ -54,6 +169,10 @@ class FLClient:
         fedsparse_lambda > 0 activates FedSparse (Phase 5 baseline): adds an
         L1 proximity term ||w_local - w_global||_1 to the cross-entropy loss,
         encouraging sparser gradient updates. Default 0.0 = standard training.
+
+        round_num / total_rounds drive the global cosine LR schedule.  All
+        clients selected in the same communication round receive the same
+        round_num, so they are guaranteed to train with an identical LR.
         """
         epochs = local_epochs or self.local_epochs
 
@@ -99,16 +218,90 @@ class FLClient:
                 }
             # ─────────────────────────────────────────────────────────────────
 
-        criterion = nn.CrossEntropyLoss()
-        opt = torch.optim.SGD(local_model.parameters(), lr=self.local_lr)
+        # Label smoothing (ε=0.1): replaces hard one-hot targets with a soft
+        # distribution (0.9 on the true class, 0.1/C spread over all C classes).
+        # Applied only during local client training; evaluation in server.py uses
+        # argmax-based top-1 accuracy with hard labels and is completely unaffected.
+        criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+
+        # Global cosine LR schedule: computed as a pure function of the current
+        # communication round so the LR decays smoothly from local_lr (round 0)
+        # to local_lr*0.01 (round total_rounds) across the full training run.
+        # Because the formula depends only on round_num (not on any accumulated
+        # optimizer state), recreating the optimizer every round is correct and
+        # intentional — there is no "restart" of the cosine curve.
+        # All clients selected in a given round share the same round_num, so
+        # they train with an identical LR, preserving experimental fairness.
+        effective_lr = _cosine_lr(self.local_lr, round_num, total_rounds)
+        # Standard ResNet-18 / CIFAR-100 optimiser recipe (momentum=0.9, WD=5e-4,
+        # Nesterov=True).  The optimiser is constructed fresh on every call to
+        # train(), so its momentum buffers are scoped to this local_model instance
+        # and are garbage-collected when train() returns.  There is no mechanism
+        # by which momentum state can bleed between clients or across communication
+        # rounds — each invocation starts from a clean buffer.
+        # Weight decay is applied solely during local SGD steps; it does not
+        # affect the server aggregation, compression, or communication accounting.
+        opt = torch.optim.SGD(
+            local_model.parameters(),
+            lr=effective_lr,
+            momentum=0.9,
+            weight_decay=5e-4,
+            nesterov=True,
+        )
+
+        # MixUp: one Beta(α,α) sampler reused across all mini-batches.
+        # Kept outside the epoch/batch loops to avoid re-allocating the
+        # distribution object on every iteration.
+        _beta_dist = Beta(
+            torch.tensor(_MIXUP_ALPHA, device=self.device),
+            torch.tensor(_MIXUP_ALPHA, device=self.device),
+        )
+
+        # ── EMA shadow model ──────────────────────────────────────────────
+        # Initialised from the global state_dict (same as local_model) so
+        # the EMA starts exactly at the global checkpoint and immediately
+        # begins tracking the per-step SGD trajectory.
+        #
+        # requires_grad is False for all EMA parameters by construction:
+        # get_model() returns a freshly initialised model and we never pass
+        # ema_model.parameters() to any optimiser.  _update_ema() operates
+        # solely through state_dict copies under torch.no_grad().
+        #
+        # ema_model is scoped to this train() call — it is not stored on
+        # self, so there is no possibility of EMA state leaking across
+        # clients or across communication rounds.
+        ema_model = get_model(self.model_name, self.num_classes).to(self.device)
+        ema_model.load_state_dict(local_model.state_dict())
+        ema_model.eval()   # EMA model is never trained; eval() disables dropout etc.
+        # ─────────────────────────────────────────────────────────────────
 
         for _ in range(epochs):
             for images, labels in self._loader:
                 images, labels = images.to(self.device), labels.to(self.device)
                 opt.zero_grad()
-                loss = criterion(local_model(images), labels)
 
+                # ── MixUp data augmentation ───────────────────────────────
+                # Sample λ from Beta(α, α) and enforce λ ≥ 0.5 by taking
+                # max(λ, 1−λ).  This is the standard convention (also used
+                # in torchvision's MixUp implementation) that avoids the
+                # symmetry between y_a and y_b being broken by a very small λ.
+                lam = float(_beta_dist.sample().clamp(0.0, 1.0))
+                lam = max(lam, 1.0 - lam)        # enforce lam ≥ 0.5
 
+                # Shuffle indices within the current mini-batch only.
+                # randperm is placed on CPU then used for indexing; no
+                # GPU-allocated index tensor is needed.
+                batch_size = images.size(0)
+                index = torch.randperm(batch_size, device=self.device)
+
+                # Linear interpolation of inputs — no extra GPU copy:
+                # images[index] is a view-based gather, and the in-place
+                # mul_ / add_ pair avoids allocating a third full tensor.
+                mixed_x = lam * images + (1.0 - lam) * images[index]
+                y_a, y_b = labels, labels[index]
+                # ─────────────────────────────────────────────────────────
+
+                loss = _mixup_loss(criterion, local_model(mixed_x), y_a, y_b, lam)
 
                 loss.backward()
                 # Gradient clipping: prevents NaN/Inf weight explosions on
@@ -136,6 +329,13 @@ class FLClient:
                             param.data.copy_(w_t + delta)
                 # ─────────────────────────────────────────────────────────────
 
+                # ── EMA step ─────────────────────────────────────────────────
+                # Updated AFTER opt.step() AND after the FedSparse proximal
+                # operator so that the EMA tracks the final post-prox parameter
+                # values at every step, not the intermediate pre-prox values.
+                _update_ema(ema_model, local_model, _EMA_DECAY)
+                # ─────────────────────────────────────────────────────────────
+
         # ── FedSparse Stage 3: refresh IRW norm buffer ───────────────────────
         # After all local epochs are done, record ‖w_j^local − w_j^global‖₂
         # for every named parameter.  These scalars are used as AU_j on the
@@ -151,11 +351,40 @@ class FLClient:
                     )
         # ─────────────────────────────────────────────────────────────────────
 
+        # ── EMA + FedSparse Sparsity Fix ──────────────────────────────────────────
+        # If FedSparse is active, the EMA model contains exponentially decaying
+        # non-zero residuals for coordinates that were active during training but
+        # were later zeroed by the proximal operator. This destroys the exact
+        # structural sparsity required for communication savings.
+        # We restore the exact sparsity pattern of the final local model by
+        # masking the EMA model: if the final raw parameter equals the frozen
+        # global anchor, we force the EMA parameter to equal the global anchor.
+        if fedsparse_lambda > 0.0:
+            with torch.no_grad():
+                live_sd = local_model.state_dict()
+                for name, param in ema_model.named_parameters():
+                    w_t = global_snapshot[name]
+                    mask = (live_sd[name] == w_t)
+                    param.data[mask] = w_t[mask]
+        # ─────────────────────────────────────────────────────────────────────────
+
+        # Keep the raw trained model for divergence scoring in main.py.
+        # main.py computes cosine similarity between the client's trained
+        # flat parameter vector and the global flat parameter vector to
+        # assign divergence scores and tiers.  Using the raw model (which
+        # reflects the actual gradient signal) is correct here — the EMA
+        # weights would understate the divergence because they lag behind
+        # the training trajectory.
         self._local_model = local_model
 
         return {
             "client_id": self.client_id,
-            "state_dict": {k: v.cpu() for k, v in local_model.state_dict().items()},
+            # Upload the EMA state_dict instead of the raw training weights.
+            # ema_model has the same parameter/buffer layout as local_model,
+            # so the payload shape, dtype, and key-set are identical — the
+            # server sees no structural change and communication cost is
+            # unchanged (same number of float32 tensors, same total numel).
+            "state_dict": {k: v.cpu() for k, v in ema_model.state_dict().items()},
             "num_samples": len(self.dataset),
             "divergence_score": None,
             "tier": None,

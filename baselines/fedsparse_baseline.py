@@ -31,7 +31,12 @@ config.fedsparse_sparsify_upload in server.py.
 from divroute_fl.config import Config
 
 
-def get_fedsparse_config(fedsparse_lambda: float = 0.01, **overrides) -> Config:
+def get_fedsparse_config(
+    fedsparse_lambda: float = 0.01,
+    local_epochs: int = 5,
+    batch_size: int = 32,
+    **overrides
+) -> Config:
     """
     Returns a Config for the FedSparse baseline.
 
@@ -59,6 +64,8 @@ def get_fedsparse_config(fedsparse_lambda: float = 0.01, **overrides) -> Config:
         fedsparse_sparsify_upload = True,
         fedsparse_threshold       = 1e-4,
         fedsparse_lambda          = fedsparse_lambda,
+        local_epochs              = local_epochs,
+        batch_size                = batch_size,
         skip_plot_prompt          = True,
     )
     base.update(overrides)
