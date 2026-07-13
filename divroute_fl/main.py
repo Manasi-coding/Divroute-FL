@@ -297,6 +297,13 @@ def run(config: Config | None = None) -> None:
                     tier = 2
                 r["tier"] = tier
 
+            # -- Progress Guarantee ------------------------------------------------
+            p_count = sum(1 for r in results if r["tier"] in (1, 2))
+            if p_count == 0 and results:
+                highest_div_client = max(results, key=lambda x: x["divergence_score"])
+                highest_div_client["tier"] = 2
+                print(f"  [Progress Guarantee] Promoted client {highest_div_client['client_id']} to Tier 2")
+
             # -- [DEBUG] per-client detail on the first post-warmup round ----------
             if rnd == 15:
                 print(f"  [DEBUG] round 16 tier assignment — tau_low={config.tau_low:.8f} tau_high={config.tau_high:.8f}")
