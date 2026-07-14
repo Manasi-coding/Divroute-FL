@@ -100,6 +100,7 @@ def run(config: Config | None = None) -> None:
     all_ids = list(range(config.num_clients))
 
     ema_scores: dict = {}
+    _pg_last_round: dict = {}
     error_buffers: dict = {}
 
     _baseline_bpr: dict | None = None   # FedAvg bytes-per-round (set once after round 0)
@@ -215,6 +216,7 @@ def run(config: Config | None = None) -> None:
                 
         # Restore main loop state
         ema_scores = checkpoint["main_loop_state"]["ema_scores"]
+        _pg_last_round = checkpoint["main_loop_state"].get("_pg_last_round", {})
         error_buffers = {k: v.to(device) for k, v in checkpoint["main_loop_state"]["error_buffers"].items()}
         _baseline_bpr = checkpoint["main_loop_state"]["_baseline_bpr"]
         cumulative_divroute_download = checkpoint["main_loop_state"]["cumulative_divroute_download"]
@@ -288,6 +290,9 @@ def run(config: Config | None = None) -> None:
             if config.use_adaptive_tau and len(raw_d_scores) >= 3:
                 config.tau_low, config.tau_high = compute_adaptive_taus(
                     raw_d_scores, config.tau_low_pct, config.tau_high_pct)
+                print(f"  [adaptive-tau] rnd={rnd+1:>3}  "
+                      f"tau_low={config.tau_low:.6f}  tau_high={config.tau_high:.6f}  "
+                      f"(p{int(config.tau_low_pct)}/p{int(config.tau_high_pct)} of {len(raw_d_scores)} scores)")
 
             # -- tier assignment ---------------------------------------------------
             for r in results:
@@ -295,14 +300,21 @@ def run(config: Config | None = None) -> None:
                 # Tier-3 warm-up period (first 15 rounds)
                 if rnd < 15 and tier == 3:
                     tier = 2
+                r["natural_tier"] = tier
                 r["tier"] = tier
 
             # -- Progress Guarantee ------------------------------------------------
             p_count = sum(1 for r in results if r["tier"] in (1, 2))
             if p_count == 0 and results:
-                highest_div_client = max(results, key=lambda x: x["divergence_score"])
-                highest_div_client["tier"] = 2
-                print(f"  [Progress Guarantee] Promoted client {highest_div_client['client_id']} to Tier 2")
+                ranked = sorted(
+                    results,
+                    key=lambda r: (r["divergence_score"], -_pg_last_round.get(r["client_id"], -1)),
+                    reverse=True
+                )
+                for winner in ranked[:2]:
+                    winner["tier"] = 2
+                    _pg_last_round[winner["client_id"]] = rnd
+                    print(f"  [Progress Guarantee] Promoted client {winner['client_id']} to Tier 2")
 
             # -- [DEBUG] per-client detail on the first post-warmup round ----------
             if rnd == 15:
@@ -422,6 +434,7 @@ def run(config: Config | None = None) -> None:
                 },
                 "main_loop_state": {
                     "ema_scores": ema_scores.copy(),
+                    "_pg_last_round": _pg_last_round.copy(),
                     "error_buffers": {k: v.cpu() for k, v in error_buffers.items()},
                     "_baseline_bpr": _baseline_bpr.copy() if _baseline_bpr is not None else None,
                     "cumulative_divroute_download": cumulative_divroute_download,

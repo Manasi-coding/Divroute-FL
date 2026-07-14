@@ -106,11 +106,12 @@ DATASET_PRESETS = {
         # converged clients fall to Tier 3 naturally as gradients shrink over time.
         "tau_high":          0.00045,
         "tau_low":           0.00030,
-        # Adaptive tau settings (disabled by default to show communication savings trajectory,
-        # but available here if you want to test fixed percentile assignments later).
-        "use_adaptive_tau":  False,
-        "tau_low_pct":       20.0,
-        "tau_high_pct":      75.0,
+        # Adaptive tau: percentile-based thresholds recomputed each round from the
+        # selected clients' divergence scores. Prevents permanent threshold collapse
+        # as the weight-space cosine metric shrinks with LR decay.
+        "use_adaptive_tau":  True,
+        "tau_low_pct":       20.0,   # bottom 20% of divergence scores -> Tier 3
+        "tau_high_pct":      75.0,   # top 25% of divergence scores   -> Tier 1
         # DivRoute k-ratios scaled up for ResNet-18 / CIFAR-100:
         # Phase 4 values (0.20 / 0.05) were tuned on SimpleCNN/CIFAR-10.
         # At k=0.20, all early-round Tier-1 clients receive only 2.24M of 11.2M params

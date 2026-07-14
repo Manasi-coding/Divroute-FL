@@ -34,24 +34,24 @@ def assign_tier(d: float, tau_low: float, tau_high: float) -> int:
 def compute_divergence_weight(d: float, mode: str = "sqrt") -> float:
     """
     Convert a divergence score to an aggregation weight multiplier.
-    Lower divergence = more aligned = higher weight.
+    Higher divergence = more novel/informative = higher weight.
 
     Modes:
-        inverse  - 1/(d+eps)         - aggressive, unstable at small d
-        sqrt     - 1/sqrt(d+eps)     - moderate, recommended
-        exp      - exp(-10*d)        - smooth decay
+        inverse  - 1/(d+eps)         - historically inverted (legacy)
+        sqrt     - sqrt(d) + eps     - amplifies highly divergent updates (recommended)
+        exp      - exp(-10*d)        - historically inverted (legacy)
         softmax  - use compute_softmax_weights() for the full client list
     """
     eps = 1e-6
     if mode == "inverse":
         return 1.0 / (d + eps)
     elif mode == "sqrt":
-        return 1.0 / (d ** 0.5 + eps)
+        return d ** 0.5 + eps
     elif mode == "exp":
         return float(np.exp(-10.0 * d))
     else:
         # fallback — caller should use the softmax variant for the "softmax" mode
-        return 1.0 / (d ** 0.5 + eps)
+        return d ** 0.5 + eps
 
 
 def compute_softmax_weights(d_scores: list, temperature: float = 50.0) -> list:
@@ -101,7 +101,8 @@ def update_selection_weights(weights: np.ndarray, results: list, gamma: float) -
     """
     for r in results:
         cid = r["client_id"]
-        if r["tier"] == 3:
+        tier = r.get("natural_tier", r["tier"])
+        if tier == 3:
             weights[cid] *= gamma
         else:
             weights[cid] = 1.0
