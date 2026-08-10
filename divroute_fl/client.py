@@ -2,6 +2,7 @@ import math
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.distributions import Beta
 from torch.utils.data import DataLoader
 
@@ -10,7 +11,42 @@ from .model import get_model
 
 # MixUp alpha — kept as a module-level constant so every client and every
 # method uses the same value without any config changes.
-_MIXUP_ALPHA = 0.2
+_MIXUP_ALPHA = 0.4
+
+# ── BatchNorm propagation diagnostic ─────────────────────────────────────────
+# Set True to print BN state at key moments for the first participating client.
+# Has zero effect on any computation — all prints are gated on this flag.
+# Set False (default) for all production / ablation runs.
+DEBUG_BN = False
+_DEBUG_BN_CLIENT  = 0      # only log this client_id
+_DEBUG_BN_LAYER   = "bn1"  # only log this BN layer name
+
+
+def _bn_snapshot(sd: dict, layer: str) -> str:
+    """Return a compact multi-line string showing BN buffer values for `layer`."""
+    keys = [
+        f"{layer}.weight",
+        f"{layer}.bias",
+        f"{layer}.running_mean",
+        f"{layer}.running_var",
+        f"{layer}.num_batches_tracked",
+    ]
+    lines = []
+    for k in keys:
+        if k not in sd:
+            lines.append(f"  {k}: MISSING")
+            continue
+        v = sd[k].float().cpu()
+        if v.numel() == 1:
+            lines.append(f"  {k}: {v.item():.6f}")
+        else:
+            # show first 4 values + norm
+            lines.append(
+                f"  {k}: [{', '.join(f'{x:.6f}' for x in v[:4].tolist())} ...] "
+                f"norm={v.norm().item():.6f}"
+            )
+    return "\n".join(lines)
+# ─────────────────────────────────────────────────────────────────────────────
 
 # EMA decay — 0.999 gives a half-life of ~693 steps, providing a smooth
 # trailing average that is robust to noisy mini-batch gradient updates
@@ -73,6 +109,42 @@ def _mixup_loss(
     return lam * criterion(pred, y_a) + (1.0 - lam) * criterion(pred, y_b)
 
 
+def _ntd_loss(student_logits: torch.Tensor, teacher_logits: torch.Tensor,
+              y_a: torch.Tensor, y_b: torch.Tensor = None, tau: float = 3.0) -> torch.Tensor:
+    """Not-True Distillation loss (NeurIPS 2022).
+
+    Computes the KL divergence between student and teacher softmax
+    distributions over the non-true classes only.  This preserves the
+    global model's knowledge about inter-class relationships without
+    conflicting with the cross-entropy loss on the true class(es).
+
+    Parameters
+    ----------
+    student_logits : (B, C) raw logits from the local model
+    teacher_logits : (B, C) raw logits from the frozen global model
+    y_a            : (B,)   primary integer class labels
+    y_b            : (B,)   optional secondary integer class labels (for MixUp)
+    tau            : temperature for soft probabilities
+    """
+    s_nt = student_logits.clone()
+    t_nt = teacher_logits.clone()
+
+    # Mask out true classes by setting logits to a large negative number.
+    # This forces their softmax probabilities to exactly 0.0 in both distributions,
+    # effectively removing them from the KL divergence without changing the tensor shape.
+    s_nt.scatter_(1, y_a.unsqueeze(1), -1e9)
+    t_nt.scatter_(1, y_a.unsqueeze(1), -1e9)
+    if y_b is not None:
+        s_nt.scatter_(1, y_b.unsqueeze(1), -1e9)
+        t_nt.scatter_(1, y_b.unsqueeze(1), -1e9)
+
+    return F.kl_div(
+        F.log_softmax(s_nt / tau, dim=1),
+        F.softmax(t_nt / tau, dim=1),
+        reduction='batchmean',
+    ) * (tau ** 2)
+
+
 def _cosine_lr(base_lr: float, round_num: int, total_rounds: int) -> float:
     """Compute the cosine-annealed learning rate for a given global round.
 
@@ -111,7 +183,7 @@ def _cosine_lr(base_lr: float, round_num: int, total_rounds: int) -> float:
     avoids this restart and ensures a single, monotone decay across the full
     training run.
     """
-    lr_min = base_lr * 0.01
+    lr_min = base_lr * 0.05
     # Guard: T-1 == 0 when total_rounds == 1, which would cause ZeroDivisionError.
     # With a single round there is nothing to anneal; return the full base_lr.
     if total_rounds <= 1:
@@ -120,7 +192,8 @@ def _cosine_lr(base_lr: float, round_num: int, total_rounds: int) -> float:
 
 
 class FLClient:
-    def __init__(self, client_id, dataset, local_epochs, local_lr, batch_size, device, model_name, num_classes):
+    def __init__(self, client_id, dataset, local_epochs, local_lr, batch_size, device, model_name, num_classes,
+                 val_dataset=None):
         self.client_id = client_id
         self.dataset = dataset
         self.local_epochs = local_epochs
@@ -139,7 +212,7 @@ class FLClient:
         # client has completed at least one FedSparse round (bootstrap: uniform).
         self._irw_norms: dict = {}
 
-        # persistent loader — created once, reused every round
+        # persistent training loader — created once, reused every round
         if self.num_classes == 100:
             effective_batch_size = min(batch_size, len(dataset))
             self._loader = DataLoader(
@@ -154,8 +227,26 @@ class FLClient:
                 persistent_workers=False,
             )
 
+        # ── Local validation loader (diagnostic only) ─────────────────────────
+        # Created only when a held-out val_dataset is provided (local_val_fraction > 0).
+        # Validation samples are backed by the test-transform (no-augmentation) Dataset
+        # so they are never affected by RandomCrop, RandomHorizontalFlip, or RandomErasing.
+        # This loader is NEVER used in the training loop, loss computation, optimiser
+        # step, divergence scoring, EMA update, or aggregation.
+        if val_dataset is not None and len(val_dataset) > 0:
+            val_bs = min(batch_size * 4, len(val_dataset))
+            self._val_loader: DataLoader | None = DataLoader(
+                val_dataset, batch_size=val_bs, shuffle=False,
+                drop_last=False, num_workers=0, pin_memory=(device.type == "cuda"),
+                persistent_workers=False,
+            )
+        else:
+            self._val_loader = None
+        # ─────────────────────────────────────────────────────────────────────
+
     def train(self, global_state_dict: dict, local_epochs: int | None = None,
               fedsparse_lambda: float = 0.0,
+              ntd_beta: float = 0.0, ntd_tau: float = 3.0,
               round_num: int = 0, total_rounds: int = 1) -> dict:
         """
         Accepts a state_dict (serialisable) instead of the model object —
@@ -179,6 +270,13 @@ class FLClient:
         local_model = get_model(self.model_name, self.num_classes).to(self.device)
         local_model.load_state_dict(global_state_dict)   # fast, no deepcopy
         local_model.train()
+
+        # ── [DEBUG_BN] Log global BN state BEFORE local training ──────────────
+        if DEBUG_BN and self.client_id == _DEBUG_BN_CLIENT:
+            print(f"\n[DEBUG_BN] client={self.client_id} round={round_num}  "
+                  f"GLOBAL MODEL BEFORE training ({_DEBUG_BN_LAYER}):")
+            print(_bn_snapshot(global_state_dict, _DEBUG_BN_LAYER))
+        # ──────────────────────────────────────────────────────────────────────
 
         # ── FedSparse Stage 1: snapshot global weights before local training ──
         # Stored as a named-parameter dict so each tensor can be paired with
@@ -275,6 +373,19 @@ class FLClient:
         ema_model.eval()   # EMA model is never trained; eval() disables dropout etc.
         # ─────────────────────────────────────────────────────────────────
 
+        # ── FedNTD: frozen teacher model ──────────────────────────────────
+        # The global model serves as the teacher for Not-True Distillation.
+        # It is frozen (no grad) and kept in eval mode.  The teacher sees
+        # the same mixed inputs as the student so the NTD loss is computed
+        # on the correct input distribution.
+        if ntd_beta > 0:
+            teacher_model = get_model(self.model_name, self.num_classes).to(self.device)
+            teacher_model.load_state_dict(global_state_dict)
+            teacher_model.eval()
+            for p in teacher_model.parameters():
+                p.requires_grad_(False)
+        # ─────────────────────────────────────────────────────────────────
+
         for _ in range(epochs):
             for images, labels in self._loader:
                 images, labels = images.to(self.device), labels.to(self.device)
@@ -301,7 +412,17 @@ class FLClient:
                 y_a, y_b = labels, labels[index]
                 # ─────────────────────────────────────────────────────────
 
-                loss = _mixup_loss(criterion, local_model(mixed_x), y_a, y_b, lam)
+                student_logits = local_model(mixed_x)
+                loss = _mixup_loss(criterion, student_logits, y_a, y_b, lam)
+
+                # ── FedNTD: Not-True Distillation loss ────────────────────
+                if ntd_beta > 0:
+                    with torch.no_grad():
+                        teacher_logits = teacher_model(mixed_x)
+                    # Mask both MixUp labels to prevent gradient conflict.
+                    loss = loss + ntd_beta * _ntd_loss(
+                        student_logits, teacher_logits, y_a, y_b=y_b, tau=ntd_tau)
+                # ─────────────────────────────────────────────────────────
 
                 loss.backward()
                 # Gradient clipping: prevents NaN/Inf weight explosions on
@@ -368,6 +489,40 @@ class FLClient:
                     param.data[mask] = w_t[mask]
         # ─────────────────────────────────────────────────────────────────────────
 
+        # ── Evaluate Local Train Accuracy ────────────────────────────────────────
+        # Evaluated on the *training* loader to measure how well the model fits
+        # its local training data.  Named "local_train_acc" to distinguish it from
+        # the held-out validation accuracy below.  This metric was previously
+        # labelled "local_accuracy" and is unchanged in computation.
+        local_model.eval()
+        correct, total = 0, 0
+        with torch.no_grad():
+            for images, labels in self._loader:
+                images, labels = images.to(self.device), labels.to(self.device)
+                preds = local_model(images).argmax(dim=1)
+                correct += (preds == labels).sum().item()
+                total += labels.size(0)
+        local_train_acc = correct / total if total > 0 else 0.0
+        # ─────────────────────────────────────────────────────────────────────────
+
+        # ── Evaluate Local Val Accuracy (diagnostic only) ─────────────────────────
+        # Evaluated on the held-out validation subset (test transform, no augmentation).
+        # None when no val loader was provided (local_val_fraction == 0.0).
+        # This block does NOT affect training, routing, aggregation, or any other
+        # DivRoute logic — it is purely diagnostic.
+        if self._val_loader is not None:
+            val_correct, val_total = 0, 0
+            with torch.no_grad():
+                for images, labels in self._val_loader:
+                    images, labels = images.to(self.device), labels.to(self.device)
+                    preds = local_model(images).argmax(dim=1)
+                    val_correct += (preds == labels).sum().item()
+                    val_total   += labels.size(0)
+            local_val_acc: float | None = val_correct / val_total if val_total > 0 else None
+        else:
+            local_val_acc = None
+        # ─────────────────────────────────────────────────────────────────────────
+
         # Keep the raw trained model for divergence scoring in main.py.
         # main.py computes cosine similarity between the client's trained
         # flat parameter vector and the global flat parameter vector to
@@ -377,15 +532,52 @@ class FLClient:
         # the training trajectory.
         self._local_model = local_model
 
+        # ── [DEBUG_BN] Log raw post-training and uploaded BN state ────────────
+        if DEBUG_BN and self.client_id == _DEBUG_BN_CLIENT:
+            raw_sd      = local_model.state_dict()
+            uploaded_sd = {k: v.cpu() for k, v in raw_sd.items()}  # matches return below
+
+            print(f"\n[DEBUG_BN] client={self.client_id} round={round_num}  "
+                  f"RAW LOCAL MODEL AFTER training ({_DEBUG_BN_LAYER}):")
+            print(_bn_snapshot(raw_sd, _DEBUG_BN_LAYER))
+
+            print(f"\n[DEBUG_BN] client={self.client_id} round={round_num}  "
+                  f"STATE_DICT UPLOADED TO SERVER ({_DEBUG_BN_LAYER}) "
+                  f"[note: raw model, NOT EMA]:")
+            print(_bn_snapshot(uploaded_sd, _DEBUG_BN_LAYER))
+
+            # Check whether BN buffers differ from the incoming global state_dict
+            bn_buffer_keys = [k for k in uploaded_sd
+                              if any(s in k for s in
+                                     ("running_mean", "running_var", "num_batches_tracked"))]
+            present = [k for k in bn_buffer_keys if k in uploaded_sd]
+            changed = [k for k in present
+                       if not torch.allclose(
+                           uploaded_sd[k].float(),
+                           global_state_dict[k].float().cpu(),
+                           atol=1e-7)]
+            print(f"\n[DEBUG_BN] BN buffers present in uploaded state_dict: "
+                  f"{len(present)} / {len(bn_buffer_keys)}")
+            print(f"[DEBUG_BN] BN buffers that changed vs global:          "
+                  f"{len(changed)} of {len(present)}")
+            if changed:
+                print(f"[DEBUG_BN] Changed keys: {changed}")
+        # ──────────────────────────────────────────────────────────────────────
+
         return {
             "client_id": self.client_id,
-            # Upload the EMA state_dict instead of the raw training weights.
-            # ema_model has the same parameter/buffer layout as local_model,
-            # so the payload shape, dtype, and key-set are identical — the
-            # server sees no structural change and communication cost is
-            # unchanged (same number of float32 tensors, same total numel).
-            "state_dict": {k: v.cpu() for k, v in ema_model.state_dict().items()},
-            "num_samples": len(self.dataset),
+            # Upload the raw locally-trained model, not the EMA shadow model.
+            # EMA is retained (ema_model is still in scope) for potential local
+            # evaluation or diagnostics, but is not transmitted to the server.
+            # The server must receive w_T (final post-SGD weights) to compute
+            # the true gradient signal Δ = w_T - w_global.  Transmitting the
+            # EMA model ê_T instead causes a systematic dampening of every
+            # aggregated update by a factor of ~0.64 (with β=0.95, T=48 steps).
+            "state_dict": {k: v.cpu() for k, v in local_model.state_dict().items()},
+            "num_samples": len(self.dataset),  # training shard size only — feeds aggregation weights
+            "local_loss": loss.item() if 'loss' in locals() else 0.0,
+            "local_train_acc": local_train_acc,
+            "local_val_acc":   local_val_acc,
             "divergence_score": None,
             "tier": None,
             "bytes_received": None,

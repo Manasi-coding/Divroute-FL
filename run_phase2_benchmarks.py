@@ -15,6 +15,7 @@ Usage:
     python run_phase2_benchmarks.py
 """
 
+import argparse
 import csv
 import json
 import statistics
@@ -55,7 +56,7 @@ CSV_COLUMNS = [
 
 
 # ── Config factories ───────────────────────────────────────────────────────────
-def _make_config(method: str, seed: int, log_path: str) -> Config:
+def _make_config(method: str, seed: int, log_path: str, args=None) -> Config:
     shared = dict(
         num_clients       = NUM_CLIENTS,
         clients_per_round = CLIENTS_PER_ROUND,
@@ -63,6 +64,9 @@ def _make_config(method: str, seed: int, log_path: str) -> Config:
         seed              = seed,
         skip_plot_prompt  = True,
         log_path          = log_path,
+        resume            = getattr(args, "resume", False),
+        fresh             = getattr(args, "fresh", False),
+        checkpoint_dir    = getattr(args, "checkpoint_dir", "checkpoints"),
     )
     if method == "FedAvg":
         return Config(fedavg_baseline_mode=True, **shared)
@@ -157,6 +161,12 @@ def _print_summary(rows: list[dict]) -> None:
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Run Phase 2 benchmarks")
+    parser.add_argument("--resume", action="store_true", help="Resume from the latest checkpoint if available")
+    parser.add_argument("--fresh", action="store_true", help="Ignore existing logs and checkpoints")
+    parser.add_argument("--checkpoint_dir", type=str, default="checkpoints", help="Directory to load checkpoints from")
+    args = parser.parse_args()
+
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(exist_ok=True)
 
@@ -171,8 +181,18 @@ def main() -> None:
     for seed in SEEDS:
         for method in METHODS:
             lp = _log_path(method, seed)
+            is_finished = False
             if lp.exists():
-                print(f"[skip] {method} seed={seed} — log exists: {lp}")
+                try:
+                    with open(lp, "r", encoding="utf-8") as f:
+                        history = json.load(f)
+                    if len(history) >= NUM_ROUNDS:
+                        is_finished = True
+                except Exception:
+                    pass
+
+            if is_finished and not args.fresh:
+                print(f"[skip] {method} seed={seed} — log is complete")
                 skipped += 1
             else:
                 pending.append((seed, method))
@@ -193,9 +213,9 @@ def main() -> None:
     for seed, method in pending:
         run_num += 1
         lp = _log_path(method, seed)
-        cfg = _make_config(method, seed, str(lp))
-
-        print(f"\n{'='*68}")
+        cfg = _make_config(method, seed, str(lp), args)
+        
+        print(f"\n{'='*60}")
         print(f"  Run {run_num}/{total_runs}: {method} | seed={seed} | {NUM_ROUNDS} rounds")
         print(f"{'='*68}\n")
 

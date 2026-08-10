@@ -10,6 +10,7 @@ from .config import Config
 from .mechanism import (assign_tier, update_selection_weights,
                          compute_divergence_weight, compute_softmax_weights)
 from .compression import apply_tiered_compression, reconstruct_delta
+import divroute_fl.client as _fl_client  # read DEBUG_BN live at call-time
 
 
 class FLServer:
@@ -21,6 +22,22 @@ class FLServer:
         self.global_delta: torch.Tensor | None = None
         self._rng = np.random.default_rng(config.seed)
         self._momentum_buf: torch.Tensor | None = None
+        self._layer_slices = None
+        self._layer_importance = None
+
+    def _get_layer_slices(self) -> list:
+        if self._layer_slices is not None:
+            return self._layer_slices
+        param_names = {n for n, _ in self.global_model.named_parameters()}
+        slices = []
+        offset = 0
+        for k, v in self.global_model.state_dict().items():
+            if k in param_names:
+                numel = v.numel()
+                slices.append((k, offset, numel))
+                offset += numel
+        self._layer_slices = slices
+        return slices
 
     def select_clients(self, all_ids: List[int]) -> List[int]:
         weights = self.selection_weights[all_ids].copy()
@@ -48,20 +65,66 @@ class FLServer:
             self.global_delta = torch.zeros_like(old_flat)
             return
 
-        # per-client deltas: clip -> compress -> reconstruct
-        # Tier 3 clients are excluded from client_flats — contributing zero delta
-        # would dilute aggregation weights without providing any gradient signal
-        client_flats = []
+        # -- Determine which clients will participate in aggregation --
+        agg_clients = []
         for r in clean:
+            if getattr(self.config, "fedzip_actual_mode", False):
+                agg_clients.append(r)
+            elif self.config.fedsparse_sparsify_upload:
+                agg_clients.append(r)
+            else:
+                if r["tier"] != 3 or getattr(self.config, "include_tier3_in_aggregation", False):
+                    agg_clients.append(r)
+
+        if not agg_clients:
+            print("  [warn] all clients Tier 3 — skipping aggregation")
+            self.global_delta = torch.zeros_like(old_flat)
+            return
+
+        # -- Compute aggregation weights ahead of time --
+        total_samples = sum(r["num_samples"] for r in agg_clients)
+
+        use_softmax = (
+            self.config.use_divergence_weighting
+            and self.config.divergence_weight_mode == "softmax"
+            and all(r.get("divergence_score") is not None for r in agg_clients)
+        )
+
+        if use_softmax:
+            d_scores = [r["divergence_score"] for r in agg_clients]
+            div_weights = compute_softmax_weights(d_scores)
+            weights = [dw * (r["num_samples"] / total_samples)
+                       for dw, r in zip(div_weights, agg_clients)]
+        else:
+            weights = []
+            for r in agg_clients:
+                sample_w = r["num_samples"] / total_samples
+                if self.config.use_divergence_weighting and r.get("divergence_score") is not None:
+                    div_w = compute_divergence_weight(
+                        r["divergence_score"], self.config.divergence_weight_mode)
+                    weights.append(sample_w * div_w)
+                else:
+                    weights.append(sample_w)
+
+        # normalise
+        w_sum = sum(weights)
+        weights = [w / w_sum for w in weights]
+        
+        for r in client_results:
+            r["aggregation_weight"] = 0.0
+
+        for r, w in zip(agg_clients, weights):
+            r["aggregation_weight"] = w
+
+        # -- Streaming Weighted Accumulation --
+        agg_delta = torch.zeros_like(old_flat)
+        active_mask = torch.zeros_like(old_flat, dtype=torch.bool)
+
+        for r, w in zip(agg_clients, weights):
             cf = self._flatten_params(r["state_dict"])
             raw_delta = cf - old_flat
 
             # ── DEBUG: log upload delta statistics for client 0 ───────────────
-            # Temporary instrumentation — no algorithm changes.
-            # Logs: L2, L1, nnz, nnz%, and element counts above three thresholds:
-            #   1e-12  (numerical-stability epsilon used in fedsparse_sparsify_upload)
-            #   1e-4   (fedsparse_threshold config value)
-            #   lr×λ   (proximal operator threshold: local_lr * fedsparse_lambda)
             if (r["client_id"] == 0
                     and round_num is not None
                     and round_num in self._DEBUG_ROUNDS):
@@ -70,7 +133,7 @@ class FLServer:
                     _n = _d.numel()
                     _l2  = float(_d.norm(p=2))
                     _l1  = float(_d.norm(p=1))
-                    _nnz = int((_d.abs() > 1e-12).sum())   # matches upload mask criterion
+                    _nnz = int((_d.abs() > 1e-12).sum())
                     _lr_lam = self.config.local_lr * self.config.fedsparse_lambda
                     _gt_eps   = int((_d.abs() > 1e-4).sum())
                     _gt_1e12  = int((_d.abs() > 1e-12).sum())
@@ -88,108 +151,65 @@ class FLServer:
             # ─────────────────────────────────────────────────────────────────
 
             norm = torch.norm(raw_delta)
-            if norm > self.config.grad_clip_norm:
+            if getattr(self.config, "server_clip_updates", False) and norm > self.config.grad_clip_norm:
                 raw_delta = raw_delta * (self.config.grad_clip_norm / norm)
 
             # FedZip actual mode (Phase 5)
             if getattr(self.config, "fedzip_actual_mode", False):
                 from baselines.fedzip_actual import fedzip_compress_delta
-                # Compress and reconstruct the client update
-                reconstructed_delta, bytes_received = fedzip_compress_delta(
+                compressed_delta, bytes_received = fedzip_compress_delta(
                     raw_delta,
                     z_ratio=self.config.fedzip_z_ratio,
                     k_clusters=self.config.fedzip_k_clusters,
                     random_state=self.config.seed
                 )
                 r["bytes_received"] = bytes_received
-                r["upload_bytes"] = r["num_samples"] and sum(
-                    p.numel() * 4 for p in self.global_model.parameters()
-                )
-                client_flats.append((r, reconstructed_delta.to(self.device)))
-                continue
-
-            # FedSparse upload sparsification (Phase 5)
-            # Transmits exactly the coordinates left non-zero by the client's
-            # proximal operator — no separate server-side magnitude threshold.
-            # The proximal operator (client.py) applies soft-thresholding with
-            # threshold = lr * lambda_j per mini-batch step, zeroing small
-            # coordinates in-place.  The server reads the accumulated post-prox
-            # delta (raw_delta = final_param − global_param) and should transmit
-            # every coordinate the prox left non-zero, i.e. abs > 0.
-            #
-            # A tiny epsilon (1e-12) is used solely for numerical stability
-            # (guards against exact floating-point zeros that may survive due to
-            # rounding), matching the FedSparse paper (Ruan et al.) which defines
-            # sparsity purely through the proximal operator's structural output,
-            # not through a separate post-hoc magnitude cutoff.
-            #
-            # Each transmitted entry: 4-byte float value + 4-byte int32 index = 8 bytes.
-            if self.config.fedsparse_sparsify_upload:
-                # Transmit all coordinates the proximal operator left non-zero.
-                # epsilon=1e-12 for numerical stability only — not a compression threshold.
-                mask = raw_delta.abs() > 1e-12
-                sparse_delta = raw_delta * mask
-                # Number of non-zero entries (nnz) — determined solely by the prox output
-                nnz = int(mask.sum().item())
-                # Each non-zero is encoded as 4-byte float value + 4-byte int32 index = 8 bytes
-                bytes_received = nnz * 8
-                r["bytes_received"] = bytes_received
+                # upload = compressed bytes actually sent by client
                 r["upload_bytes"] = bytes_received
-                # Payload mimics compression output but contains dense sparse_delta
-                payload = {"values": sparse_delta, "indices": None, "bytes_transmitted": bytes_received}
-            else:
-                # compress client's upload delta; sets bytes and clears buffer for Tier 3
-                payload = apply_tiered_compression(
-                    raw_delta, r["tier"], self.config, error_buffers, r["client_id"])
-                r["bytes_received"] = payload["bytes_transmitted"]
-                # Upload: client always sends its full local model back (float32 state_dict).
-                # This is independent of which tier/compression the server used for download.
-                r["upload_bytes"] = r["num_samples"] and sum(
-                    p.numel() * 4 for p in self.global_model.parameters()
+                # download = full global model broadcast by server to this client
+                r["download_bytes"] = sum(
+                    p.numel() * (2 if getattr(self.config, "use_fp16_download", False) else 4) for p in self.global_model.parameters()
                 )
-
-            if payload["values"] is None:      # Tier 3 — skip aggregation
-                continue
-
-            compressed_delta = reconstruct_delta(payload).to(self.device)
-            client_flats.append((r, compressed_delta))
-
-        # all selected clients may be Tier 3 in late training
-        if not client_flats:
-            print("  [warn] all clients Tier 3 — skipping aggregation")
-            self.global_delta = torch.zeros_like(old_flat)
-            return
-
-        # compute aggregation weights over Tier 1/2 clients only
-        total_samples = sum(r["num_samples"] for r, _ in client_flats)
-
-        use_softmax = (
-            self.config.use_divergence_weighting
-            and self.config.divergence_weight_mode == "softmax"
-            and all(r.get("divergence_score") is not None for r, _ in client_flats)
-        )
-
-        if use_softmax:
-            d_scores = [r["divergence_score"] for r, _ in client_flats]
-            div_weights = compute_softmax_weights(d_scores)
-            weights = [dw * (r["num_samples"] / total_samples)
-                       for dw, (r, _) in zip(div_weights, client_flats)]
-        else:
-            weights = []
-            for r, _ in client_flats:
-                sample_w = r["num_samples"] / total_samples
-                if self.config.use_divergence_weighting and r.get("divergence_score") is not None:
-                    div_w = compute_divergence_weight(
-                        r["divergence_score"], self.config.divergence_weight_mode)
-                    weights.append(sample_w * div_w)
+                compressed_delta = compressed_delta.to(self.device)
+            else:
+                if self.config.fedsparse_sparsify_upload:
+                    mask = raw_delta.abs() > 1e-12
+                    sparse_delta = raw_delta * mask
+                    nnz = int(mask.sum().item())
+                    bytes_received = nnz * 8
+                    r["bytes_received"] = bytes_received
+                    r["upload_bytes"] = bytes_received   # compressed sparse upload
+                    r["download_bytes"] = sum(
+                        p.numel() * 4 for p in self.global_model.parameters()
+                    )
+                    payload = {"values": sparse_delta, "indices": None, "bytes_transmitted": bytes_received}
                 else:
-                    weights.append(sample_w)
+                    layer_slices = None
+                    if getattr(self.config, "use_layerwise_topk", False):
+                        layer_slices = self._get_layer_slices()
+                            
+                    payload = apply_tiered_compression(
+                        raw_delta, r["tier"], self.config, error_buffers, r["client_id"],
+                        layer_slices=layer_slices, layer_importances=self._layer_importance)
+                    r["bytes_received"] = payload["bytes_transmitted"]
+                    # upload = compressed top-k bytes actually sent by client
+                    r["upload_bytes"] = payload["bytes_transmitted"]
+                    # download = full global model broadcast by server to this client
+                    r["download_bytes"] = sum(
+                        p.numel() * (2 if getattr(self.config, "use_fp16_download", False) else 4) for p in self.global_model.parameters()
+                    )
+                
+                compressed_delta = reconstruct_delta(payload).to(self.device)
 
-        # normalise
-        w_sum = sum(weights)
-        weights = [w / w_sum for w in weights]
+            agg_delta += w * compressed_delta
 
-        agg_delta = sum(w * d for w, (_, d) in zip(weights, client_flats))
+            if getattr(self.config, "fedzip_actual_mode", False):
+                active_mask.fill_(True)
+            else:
+                if payload.get("indices") is not None:
+                    active_mask[payload["indices"].long()] = True
+                elif payload.get("values") is not None:
+                    active_mask.fill_(True)
 
         # server momentum
         if self.config.use_server_momentum:
@@ -197,9 +217,32 @@ class FLServer:
                 self._momentum_buf = torch.zeros_like(agg_delta)
             self._momentum_buf = (self.config.server_momentum * self._momentum_buf
                                    + agg_delta)
-            agg_delta = self.config.server_lr * self._momentum_buf
+            agg_delta = self.config.server_lr * self._momentum_buf * active_mask.float()
 
         new_flat = old_flat + agg_delta
+
+        # ── [DEBUG_BN] Global model BN state BEFORE aggregation ────────────────
+        if _fl_client.DEBUG_BN:
+            _pre_agg_sd = {k: v.cpu() for k, v in self.global_model.state_dict().items()}
+            print(f"\n[DEBUG_BN] SERVER round={round_num}  "
+                  f"GLOBAL MODEL BEFORE aggregation ({_fl_client._DEBUG_BN_LAYER}):")
+            print(_fl_client._bn_snapshot(_pre_agg_sd, _fl_client._DEBUG_BN_LAYER))
+
+            # show what client _DEBUG_BN_CLIENT uploaded (if it participated)
+            _matching = [r for r in agg_clients
+                         if r["client_id"] == _fl_client._DEBUG_BN_CLIENT]
+            if _matching:
+                _cr = _matching[0]
+                print(f"\n[DEBUG_BN] SERVER: uploaded state_dict from client "
+                      f"{_fl_client._DEBUG_BN_CLIENT} ({_fl_client._DEBUG_BN_LAYER}):")
+                print(_fl_client._bn_snapshot(
+                    {k: v.cpu() for k, v in _cr['state_dict'].items()},
+                    _fl_client._DEBUG_BN_LAYER
+                ))
+            else:
+                print(f"[DEBUG_BN] SERVER: client {_fl_client._DEBUG_BN_CLIENT} "
+                      f"not in agg_clients this round.")
+        # ──────────────────────────────────────────────────────────────────────
         
         # Reconstruct full state_dict: parameters get the clipped/compressed update,
         # buffers get a simple sample-weighted average.
@@ -214,15 +257,59 @@ class FLServer:
                 offset += numel
             else:
                 # BN Buffers
-                if client_flats:
-                    buf_sum = sum((r["num_samples"] / total_samples) * r["state_dict"][k].to(self.device) 
-                                  for r, _ in client_flats)
+                if clean:
+                    total_clean_samples = sum(r["num_samples"] for r in clean)
+                    buf_sum = sum((r["num_samples"] / total_clean_samples) * r["state_dict"][k].to(self.device) 
+                                  for r in clean)
                     new_sd[k] = buf_sum.to(v.dtype)
                 else:
                     new_sd[k] = v
                     
         self.global_model.load_state_dict(new_sd)
         self.global_delta = agg_delta
+
+        # ── [DEBUG_BN] Global model BN state AFTER aggregation ─────────────────
+        if _fl_client.DEBUG_BN:
+            _post_agg_sd = {k: v.cpu() for k, v in self.global_model.state_dict().items()}
+            print(f"\n[DEBUG_BN] SERVER round={round_num}  "
+                  f"GLOBAL MODEL AFTER aggregation ({_fl_client._DEBUG_BN_LAYER}):")
+            print(_fl_client._bn_snapshot(_post_agg_sd, _fl_client._DEBUG_BN_LAYER))
+
+            # Check whether BN buffers actually changed
+            _pre = _pre_agg_sd   # captured in the block above
+            _bn_buf_keys = [k for k in _post_agg_sd
+                            if any(s in k for s in
+                                   ("running_mean", "running_var", "num_batches_tracked"))]
+            _changed = [k for k in _bn_buf_keys
+                        if not torch.allclose(
+                            _post_agg_sd[k].float(), _pre[k].float(), atol=1e-7)]
+            print(f"[DEBUG_BN] BN buffers changed by aggregation: "
+                  f"{len(_changed)} / {len(_bn_buf_keys)}")
+            if _changed:
+                print(f"[DEBUG_BN] Changed: {_changed[:5]}{'...' if len(_changed)>5 else ''}")
+        # ──────────────────────────────────────────────────────────────────────
+        
+        # -- Layer-wise Top-k Importance EMA Update --
+        # Computed exactly ONCE per round from the globally aggregated delta.
+        # This guarantees all clients in the next round will share exactly
+        # the same budget, and removes the beta^N decay bug.
+        if getattr(self.config, "use_layerwise_topk", False):
+            layer_slices = self._get_layer_slices()
+            layer_rms = [
+                (self.global_delta[offset:offset+size].norm(p=2).item() / (size ** 0.5))
+                for _, offset, size in layer_slices
+            ]
+            if getattr(self.config, "enable_routing_diagnostics", False) and round_num == 1:
+                 print(f"  [DEBUG] Layer importance EMA updated ONCE. Slices: {len(layer_slices)}")
+                 
+            if self._layer_importance is None:
+                self._layer_importance = layer_rms
+            else:
+                beta = self.config.layerwise_ema_beta
+                self._layer_importance = [
+                    beta * old + (1.0 - beta) * new
+                    for old, new in zip(self._layer_importance, layer_rms)
+                ]
 
     def evaluate(self, test_loader: DataLoader) -> float:
         self.global_model.eval()

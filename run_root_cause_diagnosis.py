@@ -2,92 +2,75 @@
 run_root_cause_diagnosis.py
 ===========================
 Root-cause diagnostic suite — 4 experiments to isolate why DivRoute-FL
-loses 16-20 pp relative to FedAvg.
-
-No algorithm changes. All experiments use existing config flags.
-Baseline from Phase 1: "Neither" (EF=OFF, HB=OFF) at 49.57%.
+loses 16-20 pp relative to FedAvg, testing different divergence metrics.
 """
 
 import json
-from divroute_fl.config import Config
+import shutil
+import os
+from divroute_fl.config import Config, get_recommended_divroute_config
 from divroute_fl.main import run
 
-# ── Shared config (matches Phase 1 ablation settings) ──────────────────────
-SHARED = dict(
-    num_clients       = 25,
-    clients_per_round = 15,
-    num_rounds        = 20,
+# ── Shared overrides for CIFAR-100 Phase-5 and Diagnostics ──────────────
+SHARED_OVERRIDES = dict(
+    dataset_name      = "cifar100",
+    model_name        = "resnet18",
+    num_clients       = 100,
+    clients_per_round = 20,
+    num_rounds        = 100,
     local_epochs      = 5,
     local_lr          = 0.1,
     batch_size        = 32,
     alpha             = 0.9,
     seed              = 42,
-    use_epoch_warmup  = False,
+    
     skip_plot_prompt  = True,
-    # Phase 1 result: EF and HB are non-contributing or harmful,
-    # so the diagnostic baseline disables them.
-    use_error_feedback = False,
-    use_tier3_sync     = False,
+    
+    # ── Diagnostics ───────────────────────────────────────────────────────
+    enable_gradient_diagnostics     = True,
+    enable_routing_quality_analysis = True,
+    enable_compression_analysis     = True,
+    enable_tau_diagnostics          = True,
+    
+    # ── Checkpoint / State Isolation ──────────────────────────────────────
+    resume = False,
+    fresh = True,
 )
 
 # ── Experiments ─────────────────────────────────────────────────────────────
 EXPERIMENTS = [
     {
-        "name":  "Exp 1: No compression      (k=1.0, div-w ON, mom ON)  ",
-        "overrides": {
-            "k_ratio_tier1":         1.0,
-            "k_ratio_tier2":         1.0,
-            "use_adaptive_k":        False,
-        },
-        "log_path": "logs/diag_no_compression.json",
-        "tests": "Is compression the dominant accuracy cost?",
+        "metric": "cosine",
+        "overrides": {"divergence_metric": "cosine"},
+        "log_path": "logs/diag_cosine.json",
     },
     {
-        "name":  "Exp 2: No div-weighting     (k default, div-w OFF, mom ON) ",
-        "overrides": {
-            "use_divergence_weighting": False,
-        },
-        "log_path": "logs/diag_no_divweight.json",
-        "tests": "Is sqrt weighting upweighting damaged Tier-2 updates?",
+        "metric": "l2",
+        "overrides": {"divergence_metric": "l2"},
+        "log_path": "logs/diag_l2.json",
     },
     {
-        "name":  "Exp 3: No momentum          (k default, div-w ON, mom OFF)",
-        "overrides": {
-            "use_server_momentum": False,
-        },
-        "log_path": "logs/diag_no_momentum.json",
-        "tests": "Is momentum compounding compression bias?",
+        "metric": "relative_l2",
+        "overrides": {"divergence_metric": "relative_l2"},
+        "log_path": "logs/diag_relative_l2.json",
     },
     {
-        "name":  "Exp 4: No compression/dw/mom (k=1.0, div-w OFF, mom OFF)",
-        "overrides": {
-            "k_ratio_tier1":           1.0,
-            "k_ratio_tier2":           1.0,
-            "use_adaptive_k":          False,
-            "use_divergence_weighting": False,
-            "use_server_momentum":     False,
-        },
-        "log_path": "logs/diag_tier_only.json",
-        "tests": "Upper bound: FedAvg minus Tier-3 exclusion only",
+        "metric": "layerwise_cosine",
+        "overrides": {"divergence_metric": "layerwise_cosine"},
+        "log_path": "logs/diag_layerwise_cosine.json",
     },
 ]
 
-# ── Reference baselines (from previous runs — not re-run) ──────────────────
-REFERENCES = {
-    "FedAvg":                0.6595,
-    "DivRoute (neither)":    0.4957,
-}
-
-
-def _read_final_acc(log_path: str) -> float:
-    with open(log_path, encoding="utf-8") as f:
-        history = json.load(f)
-    return history[-1]["test_accuracy"]
-
 
 def _read_summary(log_path: str, clients_per_round: int) -> dict:
+    if not os.path.exists(log_path):
+        raise FileNotFoundError(f"Log file not found: {log_path}")
+        
     with open(log_path, encoding="utf-8") as f:
         history = json.load(f)
+
+    if len(history) != 100:
+        raise ValueError(f"Experiment finished with {len(history)} rounds instead of 100 in log {log_path}.")
 
     final_acc   = history[-1]["test_accuracy"]
     total_dl    = sum(e["total_download_bytes"] for e in history)
@@ -102,101 +85,90 @@ def _read_summary(log_path: str, clients_per_round: int) -> dict:
 
     return {
         "final_acc":         final_acc,
+        "upload_mb":         total_ul / 1e6,
+        "download_mb":       total_dl / 1e6,
         "bidir_mb":          total_bidir / 1e6,
-        "fedavg_bidir_mb":   fedavg_total_bidir / 1e6,
         "bidir_saving_pct":  bidir_saving,
     }
 
 
 def main():
+    os.makedirs("logs", exist_ok=True)
     results = []
+    
+    # Track cosine accuracy for difference calculation
+    cosine_acc = None
 
     for i, exp in enumerate(EXPERIMENTS, 1):
+        metric = exp["metric"]
+        log_path = exp["log_path"]
         print(f"\n{'='*72}")
-        print(f"  DIAGNOSTIC {i}/4: {exp['name'].strip()}")
-        print(f"  Tests: {exp['tests']}")
+        print(f"  DIAGNOSTIC {i}/4: Metric = {metric}")
         print(f"{'='*72}\n")
+        
+        print("Starting from scratch: no previous checkpoint will be used.")
 
-        cfg_dict = {**SHARED, **exp["overrides"], "log_path": exp["log_path"]}
-        cfg = Config(**cfg_dict)
+        # Clean old log
+        if os.path.exists(log_path):
+            os.remove(log_path)
+            print(f"  [Setup] Removed old log file: {log_path}")
+
+        # Checkpoint isolation
+        checkpoint_dir = Config().checkpoint_dir
+        if os.path.exists(checkpoint_dir):
+            shutil.rmtree(checkpoint_dir, ignore_errors=True)
+            print(f"  [Setup] Deleted existing checkpoints directory: {checkpoint_dir}")
+            
+        # Construct Config using the validated baseline
+        cfg_dict = {**SHARED_OVERRIDES, **exp["overrides"], "log_path": log_path}
+        cfg = get_recommended_divroute_config(**cfg_dict)
+        
+        print(f"  [Config] dataset           = {cfg.dataset_name}")
+        print(f"  [Config] model             = {cfg.model_name}")
+        print(f"  [Config] clients           = {cfg.num_clients}")
+        print(f"  [Config] clients_per_round = {cfg.clients_per_round}")
+        print(f"  [Config] rounds            = {cfg.num_rounds}")
+        print(f"  [Config] local_epochs      = {cfg.local_epochs}")
+        print(f"  [Config] seed              = {cfg.seed}")
+        print(f"  [Config] divergence_metric = {cfg.divergence_metric}")
+        print(f"  [Config] diagnostics       = GRAD: {cfg.enable_gradient_diagnostics} | ROUTING: {cfg.enable_routing_quality_analysis} | COMPRESSION: {cfg.enable_compression_analysis} | TAU: {cfg.enable_tau_diagnostics}")
+        print("\n")
+
         run(cfg)
 
-        summary = _read_summary(exp["log_path"], SHARED["clients_per_round"])
-        results.append({"name": exp["name"], **summary})
+        summary = _read_summary(log_path, cfg.clients_per_round)
+        if metric == "cosine":
+            cosine_acc = summary["final_acc"]
+            acc_diff = 0.0
+        else:
+            acc_diff = summary["final_acc"] - cosine_acc if cosine_acc is not None else 0.0
+            
+        results.append({
+            "metric": metric, 
+            "acc_diff": acc_diff,
+            **summary
+        })
 
     # ── Summary table ───────────────────────────────────────────────────────
-    fedavg_acc   = REFERENCES["FedAvg"]
-    neither_acc  = REFERENCES["DivRoute (neither)"]
-
-    print(f"\n\n{'='*72}")
-    print("  ROOT CAUSE DIAGNOSTIC RESULTS")
-    print(f"{'='*72}")
-
-    print(f"\n  Reference baselines (from previous runs):")
-    print(f"    FedAvg baseline            : {fedavg_acc*100:6.2f}%")
-    print(f"    DivRoute (neither, EF/HB off): {neither_acc*100:6.2f}%")
-    print(f"    Gap to explain             : {(fedavg_acc - neither_acc)*100:6.2f} pp")
-
-    print(f"\n  {'Experiment':<56} {'Acc':>7}  {'Δ vs Neither':>13}  {'Δ vs FedAvg':>12}  {'Bidir Save':>11}")
-    print(f"  {'-'*56} {'-'*7}  {'-'*13}  {'-'*12}  {'-'*11}")
+    print(f"\n\n{'='*102}")
+    print("  ROOT-CAUSE DIAGNOSTIC RESULTS")
+    print(f"{'='*102}")
+    print(f"\n  {'-'*100}")
+    print(f"  {'Metric':<20}  {'Final Acc':>9}  {'Diff vs Cos':>11}  {'Upload MB':>11}  {'Download MB':>11}  {'Bidir MB':>10}  {'Saving %':>8}")
+    print(f"  {'-'*100}")
 
     for r in results:
-        delta_vs_neither = (r["final_acc"] - neither_acc) * 100
-        delta_vs_fedavg  = (r["final_acc"] - fedavg_acc)  * 100
+        diff_str = f"{r['acc_diff']*100:>+10.2f}%" if r['metric'] != "cosine" else f"{'-':>10} "
         print(
-            f"  {r['name']:<56} "
-            f"{r['final_acc']*100:>6.2f}%  "
-            f"{delta_vs_neither:>+12.2f}pp  "
-            f"{delta_vs_fedavg:>+11.2f}pp  "
-            f"{r['bidir_saving_pct']:>9.1f}%"
+            f"  {r['metric']:<20}  "
+            f"{r['final_acc']*100:>8.2f}%  "
+            f"{diff_str}  "
+            f"{r['upload_mb']:>11.2f}  "
+            f"{r['download_mb']:>11.2f}  "
+            f"{r['bidir_mb']:>10.2f}  "
+            f"{r['bidir_saving_pct']:>7.1f}%"
         )
-
-    # ── Attribution ─────────────────────────────────────────────────────────
-    exp1_acc = results[0]["final_acc"]  # no compression
-    exp4_acc = results[3]["final_acc"]  # tier-only (no comp, no dw, no mom)
-
-    compression_cost   = (exp1_acc - neither_acc) * 100
-    mechanism_cost     = (fedavg_acc - exp4_acc) * 100
-    divweight_isolated = (results[1]["final_acc"] - neither_acc) * 100
-    momentum_isolated  = (results[2]["final_acc"] - neither_acc) * 100
-
-    print(f"\n  ── Attribution (approximate, pp recovered from 'Neither') ──")
-    print(f"    Removing compression       : {compression_cost:>+7.2f} pp")
-    print(f"    Removing div-weighting     : {divweight_isolated:>+7.2f} pp")
-    print(f"    Removing momentum          : {momentum_isolated:>+7.2f} pp")
-    print(f"  ── Residual gap ──")
-    print(f"    Tier-3 exclusion cost      : {mechanism_cost:>+7.2f} pp  (FedAvg − Exp 4)")
-    print(f"    Total gap                  : {(fedavg_acc - neither_acc)*100:>7.2f} pp")
-
-    # ── Interpretation ──────────────────────────────────────────────────────
-    print(f"\n  ── Interpretation ──")
-    if compression_cost > 10:
-        print(f"    ✗  COMPRESSION IS DOMINANT ({compression_cost:+.1f}pp).")
-        print(f"       k_ratio_tier2=0.05 is too aggressive. Raise to 0.15-0.25.")
-        print(f"       Adaptive k decay compounds this. Disable or reduce decay rate.")
-    elif compression_cost > 5:
-        print(f"    ⚠  Compression is a major contributor ({compression_cost:+.1f}pp) but not sole cause.")
-    else:
-        print(f"    ✓  Compression is not the primary issue ({compression_cost:+.1f}pp).")
-
-    if divweight_isolated > 3:
-        print(f"    ✗  Divergence weighting is harmful ({divweight_isolated:+.1f}pp).")
-        print(f"       1/√d upweights Tier-2 (most compressed) clients. Disable or use uniform.")
-    elif divweight_isolated > 1:
-        print(f"    ⚠  Divergence weighting has a moderate effect ({divweight_isolated:+.1f}pp).")
-    else:
-        print(f"    ─  Divergence weighting is neutral ({divweight_isolated:+.1f}pp).")
-
-    if momentum_isolated > 3:
-        print(f"    ✗  Server momentum is harmful ({momentum_isolated:+.1f}pp).")
-        print(f"       β=0.9 amplifies top-k selection bias across rounds.")
-    elif momentum_isolated > 1:
-        print(f"    ⚠  Server momentum has a moderate effect ({momentum_isolated:+.1f}pp).")
-    else:
-        print(f"    ─  Server momentum is neutral ({momentum_isolated:+.1f}pp).")
-
-    print(f"\n{'='*72}\n")
-
+    print(f"  {'-'*100}\n")
 
 if __name__ == "__main__":
     main()

@@ -87,10 +87,9 @@ DATASET_PRESETS = {
         "num_clients":       100,
         "clients_per_round": 20,    # raised from 10 → 20% participation for faster convergence
         "num_rounds":        300,   # increased from 100 → 300 rounds
-        "local_epochs":      3,     # reduced from 5 → 3 epochs
-        # local_lr tuned down from 0.1 (SimpleCNN default) — ResNet-18 on CIFAR-100
-        # needs smaller steps to reduce client drift across local epochs.
-        "local_lr":          0.01,
+        "local_epochs":      5,     # restored to 5 for better local optimization
+        # local_lr increased to 0.05 (from 0.01) to prevent freezing mid-training
+        "local_lr":          0.05,
         "seeds":             [42, 123, 456],
         # FedSparse: scaled down 100x for ResNet-18 (11M params) vs SimpleCNN (200K).
         # At 0.01, the L1 penalty overwhelms cross-entropy → accuracy ≈ random chance.
@@ -106,12 +105,12 @@ DATASET_PRESETS = {
         # converged clients fall to Tier 3 naturally as gradients shrink over time.
         "tau_high":          0.00045,
         "tau_low":           0.00030,
-        # Adaptive tau: percentile-based thresholds recomputed each round from the
+        # Adaptive tau: mean/std thresholds recomputed each round from the
         # selected clients' divergence scores. Prevents permanent threshold collapse
         # as the weight-space cosine metric shrinks with LR decay.
         "use_adaptive_tau":  True,
-        "tau_low_pct":       20.0,   # bottom 20% of divergence scores -> Tier 3
-        "tau_high_pct":      75.0,   # top 25% of divergence scores   -> Tier 1
+        "tau_alpha":         0.5,    # tau_low = mu - alpha * sigma
+        "tau_beta":          1.0,    # tau_high = mu + beta * sigma
         # DivRoute k-ratios scaled up for ResNet-18 / CIFAR-100:
         # Phase 4 values (0.20 / 0.05) were tuned on SimpleCNN/CIFAR-10.
         # At k=0.20, all early-round Tier-1 clients receive only 2.24M of 11.2M params
@@ -166,6 +165,7 @@ def _shared(seed: int, log_path: str, args=None) -> dict:
         log_path          = log_path,
         resume            = getattr(args, "resume", False),
         fresh             = getattr(args, "fresh", False),
+        checkpoint_dir    = getattr(args, "checkpoint_dir", "checkpoints"),
     )
 
 
@@ -204,8 +204,8 @@ def _make_config(method: str, seed: int, log_path: str, args=None) -> Config:
             use_adaptive_tau = p.get("use_adaptive_tau", False),
             tau_high         = p["tau_high"],
             tau_low          = p["tau_low"],
-            tau_low_pct      = p.get("tau_low_pct", 20.0),
-            tau_high_pct     = p.get("tau_high_pct", 75.0),
+            tau_alpha        = p.get("tau_alpha", 0.5),
+            tau_beta         = p.get("tau_beta", 1.0),
             k_ratio_tier1    = p.get("k_ratio_tier1", 0.20),
             k_ratio_tier2    = p.get("k_ratio_tier2", 0.05),
             **s
@@ -226,23 +226,16 @@ def _parse_log(path: Path, method: str) -> dict:
     final_acc = history[-1]["test_accuracy"]
     num_rounds = len(history)
 
-    # Download bytes ── prefer the explicit field, fall back to legacy field
-    total_dl = sum(
-        e.get("total_download_bytes", e.get("total_bytes_transmitted", 0))
+    # Upload bytes (C->S): compressed payload each client transmitted
+    total_ul = sum(
+        e.get("total_upload_bytes", e.get("total_bytes_transmitted", 0))
         for e in history
     )
 
-    # Upload bytes ── prefer explicit field, fall back to per-client sum
-    total_ul = 0
-    for e in history:
-        if "total_upload_bytes" in e:
-            total_ul += e["total_upload_bytes"]
-        elif "clients" in e:
-            total_ul += sum(c.get("upload_bytes", 0) for c in e["clients"])
+    # Download bytes (S->C): full global model broadcast to all selected clients
+    total_dl = sum(e.get("total_download_bytes", 0) for e in history)
 
-
-
-    total_bidir = total_dl + total_ul
+    total_bidir = total_ul + total_dl
 
     # FedAvg reference (full float32 delta, both directions, every round)
     delta_numel = history[0].get("delta_numel", 0)
@@ -256,13 +249,15 @@ def _parse_log(path: Path, method: str) -> dict:
     acc_at = {}
     for budget_mb in _PRESET["acc_at_budgets_mb"]:
         budget_bytes = budget_mb * 1e6
-        cum_dl = 0
+        cum_bidir = 0
         acc_found = None
         for e in history:
-            dl = e.get("total_download_bytes", e.get("total_bytes_transmitted", 0))
+            ul = e.get("total_upload_bytes", e.get("total_bytes_transmitted", 0))
+            dl = e.get("total_download_bytes", 0)
 
-            cum_dl += dl
-            if cum_dl >= budget_bytes:
+            cum_bidir += ul + dl
+            if cum_bidir >=budget_bytes:
+
                 acc_found = e["test_accuracy"]
                 break
         acc_at[budget_mb] = acc_found if acc_found is not None else final_acc
@@ -346,6 +341,10 @@ def main() -> None:
         help="Ignore existing checkpoints and start a new experiment"
     )
     parser.add_argument(
+        "--checkpoint_dir", type=str, default="checkpoints",
+        help="Directory to load checkpoints from when resuming (defaults to 'checkpoints')"
+    )
+    parser.add_argument(
         "--dataset", choices=list(DATASET_PRESETS.keys()), default="cifar100",
         help=(
             "Dataset/model preset to use.\n"
@@ -407,8 +406,18 @@ def main() -> None:
     for method in methods:
         for seed in seeds:
             lp = _log_path(method, seed)
+            is_finished = False
             if lp.exists():
-                print(f"[skip] {_method_labels().get(method, method)} seed={seed} — log exists")
+                try:
+                    with open(lp, "r", encoding="utf-8") as f:
+                        history = json.load(f)
+                    if len(history) >= p["num_rounds"]:
+                        is_finished = True
+                except Exception:
+                    pass
+
+            if is_finished and not args.fresh:
+                print(f"[skip] {_method_labels().get(method, method)} seed={seed} — log is complete")
                 skipped += 1
             else:
                 pending.append((method, seed))

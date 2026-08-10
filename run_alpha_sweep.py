@@ -23,6 +23,7 @@ Usage:
     python run_alpha_sweep.py
 """
 
+import argparse
 import csv
 import json
 import statistics
@@ -73,7 +74,7 @@ def _log_path(alpha: float, method: str, seed: int) -> Path:
     return LOGS_DIR / f"{_alpha_tag(alpha)}_{tag}_seed{seed}.json"
 
 
-def _make_config(alpha: float, method: str, seed: int, log_path: str) -> Config:
+def _make_config(alpha: float, method: str, seed: int, log_path: str, args=None) -> Config:
     shared = dict(
         alpha             = alpha,
         num_clients       = NUM_CLIENTS,
@@ -82,6 +83,9 @@ def _make_config(alpha: float, method: str, seed: int, log_path: str) -> Config:
         seed              = seed,
         skip_plot_prompt  = True,
         log_path          = log_path,
+        resume            = getattr(args, "resume", False),
+        fresh             = getattr(args, "fresh", False),
+        checkpoint_dir    = getattr(args, "checkpoint_dir", "checkpoints"),
     )
     if method == "FedAvg":
         return Config(fedavg_baseline_mode=True, **shared)
@@ -177,6 +181,12 @@ def _print_summary(rows: list[dict]) -> None:
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Run Alpha Sweep")
+    parser.add_argument("--resume", action="store_true", help="Resume from the latest checkpoint if available")
+    parser.add_argument("--fresh", action="store_true", help="Ignore existing logs and checkpoints")
+    parser.add_argument("--checkpoint_dir", type=str, default="checkpoints", help="Directory to load checkpoints from")
+    args = parser.parse_args()
+
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(exist_ok=True)
 
@@ -193,7 +203,17 @@ def main() -> None:
     skipped  = 0
     for alpha, method, seed in all_jobs:
         lp = _log_path(alpha, method, seed)
+        is_finished = False
         if lp.exists():
+            try:
+                with open(lp, "r", encoding="utf-8") as f:
+                    history = json.load(f)
+                if len(history) >= NUM_ROUNDS:
+                    is_finished = True
+            except Exception:
+                pass
+
+        if is_finished and not args.fresh:
             skipped += 1
         else:
             pending.append((alpha, method, seed))
@@ -216,7 +236,7 @@ def main() -> None:
     for alpha, method, seed in pending:
         run_num += 1
         lp  = _log_path(alpha, method, seed)
-        cfg = _make_config(alpha, method, seed, str(lp))
+        cfg = _make_config(alpha, method, seed, str(lp), args)
 
         print(f"\n{'='*68}")
         print(f"  Run {run_num}/{total_runs}: {method} | "

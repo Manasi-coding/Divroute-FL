@@ -41,6 +41,7 @@ def _make_train_transform(dataset_name: str) -> transforms.Compose:
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize(mean, std),
+        transforms.RandomErasing(p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3)),
     ])
 
 
@@ -143,6 +144,122 @@ def get_client_datasets(
             start = end
 
     return [Subset(full_train, idxs) for idxs in client_indices]
+
+
+def get_client_datasets_with_val(
+    dataset_name: str,
+    num_clients: int,
+    alpha: float,
+    seed: int,
+    val_fraction: float = 0.1,
+) -> tuple:
+    """Split training data across clients (Dirichlet) then carve a held-out
+    local validation set per client.
+
+    Returns
+    -------
+    train_subsets : List[Subset]
+        90% (or 1 - val_fraction) of each client's shard, backed by the
+        augmented training Dataset.  These are the *only* samples ever seen
+        during forward/backward passes, optimiser steps, or divergence scoring.
+
+    val_subsets : List[Subset | None]
+        10% (or val_fraction) of each client's shard, backed by a *separate*
+        Dataset object loaded with the test transform (no augmentation).
+        ``None`` for clients whose shard is too small (< 10 samples total) to
+        yield at least 1 validation sample after rounding.
+
+    Design guarantees
+    -----------------
+    * The Dirichlet partitioning is byte-for-byte identical to
+      ``get_client_datasets()`` for the same (dataset_name, num_clients, alpha,
+      seed) arguments — only the final Subset slicing differs.
+    * The val/train split uses a second RNG seeded with
+      ``seed + client_id + 99999`` so the shuffle is independent of the
+      Dirichlet RNG and reproducible across runs with the same seed.
+    * Validation samples are backed by the test-transform Dataset, so they
+      are never subject to RandomCrop, RandomHorizontalFlip, or RandomErasing.
+
+    Compatibility
+    -------------
+    Clients with ``val_fraction > 0`` train on fewer samples than they would
+    under ``get_client_datasets()``.  Do NOT mix results from this function
+    with checkpoints produced when ``val_fraction == 0``.
+    """
+    _MIN_SHARD_FOR_VAL = 10   # shards smaller than this get no validation set
+
+    # ── Step 1: identical Dirichlet partitioning ──────────────────────────────
+    # Re-uses the same logic as get_client_datasets(); the full_train Dataset
+    # here uses the *training* (augmented) transform so train Subsets share it.
+    train_transform = _make_train_transform(dataset_name)
+    full_train      = _load_train(dataset_name, train_transform)
+    targets         = np.array(full_train.targets)
+    num_classes     = _num_classes(dataset_name)
+
+    rng = np.random.default_rng(seed)
+    client_indices: List[List[int]] = [[] for _ in range(num_clients)]
+
+    for cls in range(num_classes):
+        cls_idx = np.where(targets == cls)[0]
+        rng.shuffle(cls_idx)
+
+        proportions = rng.dirichlet(np.repeat(alpha, num_clients))
+        proportions = proportions / proportions.sum()
+
+        if dataset_name.lower().strip() == "cifar100":
+            exact = proportions * len(cls_idx)
+            counts = np.floor(exact).astype(int)
+            remainders = exact - counts
+            leftover = len(cls_idx) - counts.sum()
+            top_leftover_clients = np.argsort(-remainders)[:leftover]
+            counts[top_leftover_clients] += 1
+        else:
+            counts = (proportions * len(cls_idx)).astype(int)
+            leftover = len(cls_idx) - counts.sum()
+            for i in range(leftover):
+                counts[i % num_clients] += 1
+
+        start = 0
+        for cid in range(num_clients):
+            end = start + counts[cid]
+            client_indices[cid].extend(cls_idx[start:end].tolist())
+            start = end
+
+    # ── Step 2: load a second Dataset for val (test transform, no augmentation)
+    test_transform = _make_test_transform(dataset_name)
+    full_train_noaug = _load_train(dataset_name, test_transform)
+
+    # ── Step 3: split each client's indices into train / val ─────────────────
+    train_subsets: list = []
+    val_subsets:   list = []
+
+    for cid, idxs in enumerate(client_indices):
+        n = len(idxs)
+
+        if n < _MIN_SHARD_FOR_VAL:
+            # Shard too small to safely carve a val set — keep all for training.
+            train_subsets.append(Subset(full_train, idxs))
+            val_subsets.append(None)
+            continue
+
+        val_size = max(1, int(n * val_fraction))
+        if val_size >= n:
+            # Pathological: val_fraction ≥ 1.0 — keep at least 1 train sample.
+            val_size = n - 1
+
+        # Deterministic per-client shuffle, independent of the Dirichlet RNG.
+        # Seed: seed + client_id + 99999 avoids any overlap with the main seed.
+        client_rng = np.random.default_rng(seed + cid + 99999)
+        shuffled = np.array(idxs, dtype=np.int64)
+        client_rng.shuffle(shuffled)
+
+        train_idxs = shuffled[val_size:].tolist()   # trailing 90%
+        val_idxs   = shuffled[:val_size].tolist()   # leading 10%
+
+        train_subsets.append(Subset(full_train, train_idxs))
+        val_subsets.append(Subset(full_train_noaug, val_idxs))
+
+    return train_subsets, val_subsets
 
 
 def get_test_dataset(dataset_name: str = "cifar10") -> Dataset:

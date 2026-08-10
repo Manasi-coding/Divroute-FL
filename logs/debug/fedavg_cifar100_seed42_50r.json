@@ -1,0 +1,232 @@
+[
+  {
+    "round": 0,
+    "test_accuracy": 0.01,
+    "total_bytes_transmitted": 1256654720,
+    "total_upload_bytes": 1256654720,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 77,
+        "divergence_score": 0.005351329090343082,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05252200246049021,
+        "local_train_acc": 0.12252252252252252,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 43,
+        "divergence_score": 0.004195989186433047,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.050913220403141855,
+        "local_train_acc": 0.12267657992565056,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 85,
+        "divergence_score": 0.004872578279689566,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04987224377779881,
+        "local_train_acc": 0.1157495256166983,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 69,
+        "divergence_score": 0.004308805467825971,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05062931768713921,
+        "local_train_acc": 0.11214953271028037,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 9,
+        "divergence_score": 0.0051709668102163375,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05053468344847166,
+        "local_train_acc": 0.08239700374531835,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 97,
+        "divergence_score": 0.00468667165040193,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.0570644459165326,
+        "local_train_acc": 0.1111111111111111,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 76,
+        "divergence_score": 0.006004714369515773,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04561370303775906,
+        "local_train_acc": 0.07676348547717843,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 78,
+        "divergence_score": 0.004760839094718916,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.056118103529857105,
+        "local_train_acc": 0.1551433389544688,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 12,
+        "divergence_score": 0.005087351211464197,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04807419324311536,
+        "local_train_acc": 0.14960629921259844,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 45,
+        "divergence_score": 0.005970660802167016,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.039746380240370964,
+        "local_train_acc": 0.11666666666666667,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 37,
+        "divergence_score": 0.00438852336363349,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04712785085643986,
+        "local_train_acc": 0.14457831325301204,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 92,
+        "divergence_score": 0.004279058482953069,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04788492476578026,
+        "local_train_acc": 0.12648221343873517,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 64,
+        "divergence_score": 0.004879137349306895,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.049493706823128605,
+        "local_train_acc": 0.14531548757170173,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 82,
+        "divergence_score": 0.005524212204365053,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05441468723384121,
+        "local_train_acc": 0.12695652173913044,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 44,
+        "divergence_score": 0.004569871673883119,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.054982492665846504,
+        "local_train_acc": 0.09122203098106713,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 22,
+        "divergence_score": 0.004675411168803545,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04514053184442131,
+        "local_train_acc": 0.16981132075471697,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 55,
+        "divergence_score": 0.005175019056688157,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.045897605753761714,
+        "local_train_acc": 0.08247422680412371,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 6,
+        "divergence_score": 0.004091200816040419,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05526639538184915,
+        "local_train_acc": 0.136986301369863,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 63,
+        "divergence_score": 0.0053216463821869064,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05441468723384121,
+        "local_train_acc": 0.16869565217391305,
+        "local_val_acc": null
+      },
+      {
+        "client_id": 73,
+        "divergence_score": 0.004380684481337438,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04428882369641336,
+        "local_train_acc": 0.12179487179487179,
+        "local_val_acc": null
+      }
+    ]
+  }
+]

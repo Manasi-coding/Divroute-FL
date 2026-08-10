@@ -74,24 +74,36 @@ def update_ema(ema_scores: dict, client_id: int, d_current: float, beta: float) 
     return smoothed
 
 
-def compute_adaptive_taus(all_d_scores: list, tau_low_pct: float, tau_high_pct: float):
+def compute_adaptive_taus(all_d_scores: list, tau_alpha: float, tau_beta: float):
     """
-    Percentile-based tau thresholds (Phase 6.1 — "Make Adaptive Real").
+    Adaptive Communication thresholds (mu/sigma).
 
     Computed fresh each round from the distribution of selected clients'
     divergence scores:
-        tau_low  = tau_low_pct-th  percentile  -> clients below this are Tier 3
-        tau_high = tau_high_pct-th percentile  -> clients above this are Tier 1
+        tau_low  = mu - alpha * sigma  -> clients below this are Tier 3
+        tau_high = mu + beta * sigma   -> clients above this are Tier 1
 
     A minimum-separation guard prevents tau_low == tau_high (which would make
     Tier 2 empty) when the distribution is degenerate (e.g. all scores equal).
     """
     arr = np.array(all_d_scores, dtype=np.float64)
-    tau_low = float(np.percentile(arr, tau_low_pct))
-    tau_high = float(np.percentile(arr, tau_high_pct))
+    mu = float(np.mean(arr))
+    sigma = float(np.std(arr))
+    
+    # Safeguard 1: Prevent microscopic Tier-2 bands when variance collapses
+    sigma = max(sigma, 1e-5)
+    
+    tau_low = mu - tau_alpha * sigma
+    tau_high = mu + tau_beta * sigma
+    
+    # Safeguard 2: Divergence is bounded [0, 2], so tau_low should not be negative
+    tau_low = max(0.0, tau_low)
+    
+    # Safeguard 3: Fallback for anomalous configurations
     if tau_low >= tau_high:
         tau_high = tau_low * 1.5 + 1e-6
-    return tau_low, tau_high
+        
+    return tau_low, tau_high, mu, sigma
 
 
 def update_selection_weights(weights: np.ndarray, results: list, gamma: float) -> None:

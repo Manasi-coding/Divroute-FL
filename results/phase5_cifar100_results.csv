@@ -1,0 +1,2 @@
+method,seed,final_acc,download_mb,upload_mb,bidir_mb,bidir_saving_pct,runtime_sec,acc_at_500mb,acc_at_1000mb,acc_at_2000mb,acc_at_5000mb
+divroute,42,0.1413,4999.69,9873.72,14873.41,24.7,,0.0171,0.0171,0.0424,0.0863
