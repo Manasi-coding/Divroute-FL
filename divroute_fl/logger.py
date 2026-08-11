@@ -4,8 +4,9 @@ from typing import Any, Dict, List, Optional
 
 
 class FLLogger:
-    def __init__(self, log_path: str):
+    def __init__(self, log_path: str, metadata: Optional[Dict[str, Any]] = None):
         self.log_path = log_path
+        self.metadata = metadata or {}
         self.history: List[dict] = []
         os.makedirs(os.path.dirname(log_path) or ".", exist_ok=True)
 
@@ -26,6 +27,13 @@ class FLLogger:
         tier_contributions: Optional[Dict[str, Any]] = None,
         compression_analysis: Optional[List[Dict[str, Any]]] = None,
         tau_diagnostics: Optional[Dict[str, Any]] = None,
+        # ── Phase-5 additions ──────────────────────────────────────────────────
+        detailed_routing_diagnostics: Optional[Dict[str, Any]] = None,
+        upload_mb: Optional[float] = None,
+        download_mb: Optional[float] = None,
+        total_mb: Optional[float] = None,
+        cumulative_total_mb: Optional[float] = None,
+        communication_savings: Optional[float] = None,
         # ────────────────────────────────────────────────────────────────────────
     ) -> None:
         """
@@ -90,6 +98,20 @@ class FLLogger:
             entry["compression_analysis"] = compression_analysis
         if tau_diagnostics:
             entry["tau_diagnostics"] = tau_diagnostics
+        
+        # ── Phase-5 additions ──────────────────────────────────────────────────
+        if detailed_routing_diagnostics:
+            entry["detailed_routing_diagnostics"] = detailed_routing_diagnostics
+        if upload_mb is not None:
+            entry["upload_mb"] = upload_mb
+        if download_mb is not None:
+            entry["download_mb"] = download_mb
+        if total_mb is not None:
+            entry["total_mb"] = total_mb
+        if cumulative_total_mb is not None:
+            entry["cumulative_total_mb"] = cumulative_total_mb
+        if communication_savings is not None:
+            entry["communication_savings"] = communication_savings
         # ────────────────────────────────────────────────────────────────────────
 
         self.history.append(entry)
@@ -97,4 +119,7 @@ class FLLogger:
 
     def _flush(self) -> None:
         with open(self.log_path, "w", encoding="utf-8") as f:
-            json.dump(self.history, f, indent=2)
+            if self.metadata:
+                json.dump({"metadata": self.metadata, "history": self.history}, f, indent=2)
+            else:
+                json.dump(self.history, f, indent=2)

@@ -257,7 +257,7 @@ class FLServer:
                 offset += numel
             else:
                 # BN Buffers
-                if clean:
+                if clean and getattr(self.config, "bn_mode", "default") != "local_bn":
                     total_clean_samples = sum(r["num_samples"] for r in clean)
                     buf_sum = sum((r["num_samples"] / total_clean_samples) * r["state_dict"][k].to(self.device) 
                                   for r in clean)

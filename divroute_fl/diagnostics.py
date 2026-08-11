@@ -327,9 +327,9 @@ def print_routing_quality(rnd: int, corrs: Dict[str, float]) -> None:
         return
     print(f"\n  [ROUTING-QUALITY] round={rnd}")
     pairs = [
-        ("div↔acc",  "pearson_div_acc",  "spearman_div_acc"),
-        ("div↔loss", "pearson_div_loss", "spearman_div_loss"),
-        ("div↔norm", "pearson_div_norm", "spearman_div_norm"),
+        ("div<->acc",  "pearson_div_acc",  "spearman_div_acc"),
+        ("div<->loss", "pearson_div_loss", "spearman_div_loss"),
+        ("div<->norm", "pearson_div_norm", "spearman_div_norm"),
     ]
     for label, pk, sk in pairs:
         pv = corrs.get(pk, float("nan"))

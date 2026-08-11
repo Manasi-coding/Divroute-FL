@@ -1,0 +1,3722 @@
+[
+  {
+    "round": 0,
+    "test_accuracy": 0.01,
+    "total_bytes_transmitted": 1256654720,
+    "total_upload_bytes": 1256654720,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 77,
+        "divergence_score": 0.5580247345093201,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05391754486393617,
+        "local_train_acc": 0.024,
+        "local_val_acc": 0.01818181818181818,
+        "grad_diag": {
+          "update_l2_norm": 22.50631332397461,
+          "relative_update_norm": 0.20120465073388485,
+          "compression_error": 1779.4244384765625,
+          "retention_ratio": 0.09072640107844608,
+          "compressed_cosine": 0.004618131089955568
+        }
+      },
+      {
+        "client_id": 43,
+        "divergence_score": 0.5575534154133066,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05227792704958331,
+        "local_train_acc": 0.032989690721649485,
+        "local_val_acc": 0.03773584905660377,
+        "grad_diag": {
+          "update_l2_norm": 16.57919692993164,
+          "relative_update_norm": 0.14821670167462542,
+          "compression_error": 1424.3189697265625,
+          "retention_ratio": 0.11722583658345662,
+          "compressed_cosine": 0.005412352737039328
+        }
+      },
+      {
+        "client_id": 85,
+        "divergence_score": 0.4864878661774413,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04782588734642501,
+        "local_train_acc": 0.035789473684210524,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 18.55340003967285,
+          "relative_update_norm": 0.16586592042739629,
+          "compression_error": 2038.0833740234375,
+          "retention_ratio": 0.08928708868045487,
+          "compressed_cosine": 0.0031406045891344547
+        }
+      },
+      {
+        "client_id": 69,
+        "divergence_score": 0.5117240022919802,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04977351792935251,
+        "local_train_acc": 0.03319502074688797,
+        "local_val_acc": 0.03773584905660377,
+        "grad_diag": {
+          "update_l2_norm": 20.744829177856445,
+          "relative_update_norm": 0.1854571225940611,
+          "compression_error": 1157.4190673828125,
+          "retention_ratio": 0.15213994109651835,
+          "compressed_cosine": 0.008966141380369663
+        }
+      },
+      {
+        "client_id": 9,
+        "divergence_score": 0.4967679861859644,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04893902250402269,
+        "local_train_acc": 0.031185031185031187,
+        "local_val_acc": 0.018867924528301886,
+        "grad_diag": {
+          "update_l2_norm": 21.44869041442871,
+          "relative_update_norm": 0.19174958605669243,
+          "compression_error": 1257.561767578125,
+          "retention_ratio": 0.14217295894844106,
+          "compressed_cosine": 0.008471352979540825
+        }
+      },
+      {
+        "client_id": 97,
+        "divergence_score": 0.5581282304854183,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05855988346476254,
+        "local_train_acc": 0.06813996316758748,
+        "local_val_acc": 0.06666666666666667,
+        "grad_diag": {
+          "update_l2_norm": 22.07268524169922,
+          "relative_update_norm": 0.19732805017355745,
+          "compression_error": 1851.4857177734375,
+          "retention_ratio": 0.08022469905196826,
+          "compressed_cosine": 0.003922817762941122
+        }
+      },
+      {
+        "client_id": 76,
+        "divergence_score": 0.49040192030290897,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04387319158877388,
+        "local_train_acc": 0.052995391705069124,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 16.638212203979492,
+          "relative_update_norm": 0.14874429352993446,
+          "compression_error": 966.3549194335938,
+          "retention_ratio": 0.20855733779365215,
+          "compressed_cosine": 0.012076386250555515
+        }
+      },
+      {
+        "client_id": 78,
+        "divergence_score": 0.5595070067919281,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05766036674386971,
+        "local_train_acc": 0.05056179775280899,
+        "local_val_acc": 0.0847457627118644,
+        "grad_diag": {
+          "update_l2_norm": 18.184555053710938,
+          "relative_update_norm": 0.16256847559460103,
+          "compression_error": 1577.96435546875,
+          "retention_ratio": 0.09571446583077606,
+          "compressed_cosine": 0.005395908374339342
+        }
+      },
+      {
+        "client_id": 12,
+        "divergence_score": 0.5599999999999999,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04947580506846124,
+        "local_train_acc": 0.028384279475982533,
+        "local_val_acc": 0.02,
+        "grad_diag": {
+          "update_l2_norm": 18.302715301513672,
+          "relative_update_norm": 0.16362481881028232,
+          "compression_error": 1378.485595703125,
+          "retention_ratio": 0.1281237545758261,
+          "compressed_cosine": 0.006666410248726606
+        }
+      },
+      {
+        "client_id": 45,
+        "divergence_score": 0.43999999999999995,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.0361952508389506,
+        "local_train_acc": 0.023809523809523808,
+        "local_val_acc": 0.023809523809523808,
+        "grad_diag": {
+          "update_l2_norm": 16.550567626953125,
+          "relative_update_norm": 0.1479607579834652,
+          "compression_error": 1180.457763671875,
+          "retention_ratio": 0.20706619712162042,
+          "compressed_cosine": 0.0080220066010952
+        }
+      },
+      {
+        "client_id": 37,
+        "divergence_score": 0.5296497537095239,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04717089571127474,
+        "local_train_acc": 0.0334075723830735,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 21.725399017333984,
+          "relative_update_norm": 0.194223338954432,
+          "compression_error": 1429.77099609375,
+          "retention_ratio": 0.12951307536771073,
+          "compressed_cosine": 0.00676193181425333
+        }
+      },
+      {
+        "client_id": 92,
+        "divergence_score": 0.5494340962016085,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04879283245614864,
+        "local_train_acc": 0.04824561403508772,
+        "local_val_acc": 0.08,
+        "grad_diag": {
+          "update_l2_norm": 22.057069778442383,
+          "relative_update_norm": 0.19718844917425507,
+          "compression_error": 2612.97607421875,
+          "retention_ratio": 0.06815933734807282,
+          "compressed_cosine": 0.0030927597545087337
+        }
+      },
+      {
+        "client_id": 64,
+        "divergence_score": 0.5509774446487674,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05046859335372482,
+        "local_train_acc": 0.021231422505307854,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 21.56584358215332,
+          "relative_update_norm": 0.19279692605658877,
+          "compression_error": 1709.2623291015625,
+          "retention_ratio": 0.10097839223698324,
+          "compressed_cosine": 0.005741790868341923
+        }
+      },
+      {
+        "client_id": 82,
+        "divergence_score": 0.556967331698782,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.055805628159578485,
+        "local_train_acc": 0.03474903474903475,
+        "local_val_acc": 0.07017543859649122,
+        "grad_diag": {
+          "update_l2_norm": 24.314451217651367,
+          "relative_update_norm": 0.217369259665566,
+          "compression_error": 2710.110107421875,
+          "retention_ratio": 0.057438054091725144,
+          "compressed_cosine": 0.0021203206852078438
+        }
+      },
+      {
+        "client_id": 44,
+        "divergence_score": 0.5400396734203307,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05548146379103691,
+        "local_train_acc": 0.03824091778202677,
+        "local_val_acc": 0.05172413793103448,
+        "grad_diag": {
+          "update_l2_norm": 20.819076538085938,
+          "relative_update_norm": 0.18612088808811802,
+          "compression_error": 1476.3868408203125,
+          "retention_ratio": 0.1064338136040238,
+          "compressed_cosine": 0.005833151284605265
+        }
+      },
+      {
+        "client_id": 22,
+        "divergence_score": 0.4910773028088876,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.0434987527145886,
+        "local_train_acc": 0.06279069767441861,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 16.635948181152344,
+          "relative_update_norm": 0.1487240533459633,
+          "compression_error": 1143.2777099609375,
+          "retention_ratio": 0.1768688174563849,
+          "compressed_cosine": 0.008999445475637913
+        }
+      },
+      {
+        "client_id": 55,
+        "divergence_score": 0.48639987441245147,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04399583702921377,
+        "local_train_acc": 0.029748283752860413,
+        "local_val_acc": 0.020833333333333332,
+        "grad_diag": {
+          "update_l2_norm": 18.957727432250977,
+          "relative_update_norm": 0.1694805751527068,
+          "compression_error": 1474.320068359375,
+          "retention_ratio": 0.13474113569932633,
+          "compressed_cosine": 0.008168758824467659
+        }
+      },
+      {
+        "client_id": 6,
+        "divergence_score": 0.5563247982696099,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05663479513552576,
+        "local_train_acc": 0.045627376425855515,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 18.211393356323242,
+          "relative_update_norm": 0.16280840788496181,
+          "compression_error": 1790.3177490234375,
+          "retention_ratio": 0.08581229929088963,
+          "compressed_cosine": 0.004683630540966988
+        }
+      },
+      {
+        "client_id": 63,
+        "divergence_score": 0.5350807341622666,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.05469817148847668,
+        "local_train_acc": 0.05405405405405406,
+        "local_val_acc": 0.03508771929824561,
+        "grad_diag": {
+          "update_l2_norm": 18.054218292236328,
+          "relative_update_norm": 0.16140327531533763,
+          "compression_error": 1516.4503173828125,
+          "retention_ratio": 0.10508310558173543,
+          "compressed_cosine": 0.0054830084554851055
+        }
+      },
+      {
+        "client_id": 73,
+        "divergence_score": 0.5445744151205267,
+        "tier": 1,
+        "upload_bytes": 62832736,
+        "download_bytes": 44880528,
+        "bytes_received": 62832736,
+        "aggregation_weight": 0.04495463276229387,
+        "local_train_acc": 0.04265402843601896,
+        "local_val_acc": 0.021739130434782608,
+        "grad_diag": {
+          "update_l2_norm": 18.296701431274414,
+          "relative_update_norm": 0.16357105528874813,
+          "compression_error": 1281.26025390625,
+          "retention_ratio": 0.15208899979299667,
+          "compressed_cosine": 0.009320353157818317
+        }
+      }
+    ],
+    "agg_update_norm": 8.68181037902832,
+    "global_update_norm": 110.34620666503906
+  },
+  {
+    "round": 1,
+    "test_accuracy": 0.0147,
+    "total_bytes_transmitted": 1186840480,
+    "total_upload_bytes": 1186840480,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 35,
+        "divergence_score": 0.8900439002264744,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.04629008553505441,
+        "local_train_acc": 0.04358974358974359,
+        "local_val_acc": 0.023255813953488372,
+        "grad_diag": {
+          "update_l2_norm": 3.0084421634674072,
+          "relative_update_norm": 0.02726366636779523,
+          "compression_error": 959.6507568359375,
+          "retention_ratio": 0.18847846960346282,
+          "compressed_cosine": 0.017291707918047905
+        }
+      },
+      {
+        "client_id": 97,
+        "divergence_score": 0.7253240486629665,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.058181321302032976,
+        "local_train_acc": 0.06261510128913444,
+        "local_val_acc": 0.08333333333333333,
+        "grad_diag": {
+          "update_l2_norm": 3.7969276905059814,
+          "relative_update_norm": 0.03440922715206449,
+          "compression_error": 845.9207153320312,
+          "retention_ratio": 0.16953508434478068,
+          "compressed_cosine": 0.02035921812057495
+        }
+      },
+      {
+        "client_id": 89,
+        "divergence_score": 0.9303779906725491,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.05266681987483023,
+        "local_train_acc": 0.03225806451612903,
+        "local_val_acc": 0.020833333333333332,
+        "grad_diag": {
+          "update_l2_norm": 3.6112465858459473,
+          "relative_update_norm": 0.03272651317147721,
+          "compression_error": 853.2374267578125,
+          "retention_ratio": 0.1861882252178495,
+          "compressed_cosine": 0.020252395421266556
+        }
+      },
+      {
+        "client_id": 77,
+        "divergence_score": 0.7510499672644926,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.054515766542811685,
+        "local_train_acc": 0.052,
+        "local_val_acc": 0.03636363636363636,
+        "grad_diag": {
+          "update_l2_norm": 3.8628125190734863,
+          "relative_update_norm": 0.035006300948787754,
+          "compression_error": 779.7684326171875,
+          "retention_ratio": 0.19710434025774828,
+          "compressed_cosine": 0.022568602114915848
+        }
+      },
+      {
+        "client_id": 19,
+        "divergence_score": 0.8053874495675835,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.04380783999053915,
+        "local_train_acc": 0.04639175257731959,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 3.392752170562744,
+          "relative_update_norm": 0.03074643227982995,
+          "compression_error": 816.5787353515625,
+          "retention_ratio": 0.2359685439798295,
+          "compressed_cosine": 0.02158903144299984
+        }
+      },
+      {
+        "client_id": 46,
+        "divergence_score": 0.8473938177130607,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.05257946612091211,
+        "local_train_acc": 0.05726872246696035,
+        "local_val_acc": 0.02,
+        "grad_diag": {
+          "update_l2_norm": 4.087512493133545,
+          "relative_update_norm": 0.03704261901400358,
+          "compression_error": 884.318359375,
+          "retention_ratio": 0.17976880259053488,
+          "compressed_cosine": 0.019416121765971184
+        }
+      },
+      {
+        "client_id": 4,
+        "divergence_score": 0.7583983200584516,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.042401121789305135,
+        "local_train_acc": 0.03617571059431524,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 4.215169906616211,
+          "relative_update_norm": 0.03819949986510684,
+          "compression_error": 953.3970947265625,
+          "retention_ratio": 0.20783790422407733,
+          "compressed_cosine": 0.017572477459907532
+        }
+      },
+      {
+        "client_id": 15,
+        "divergence_score": 0.9340791239957237,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.05155554008362496,
+        "local_train_acc": 0.0660377358490566,
+        "local_val_acc": 0.02127659574468085,
+        "grad_diag": {
+          "update_l2_norm": 3.8318300247192383,
+          "relative_update_norm": 0.03472552560280511,
+          "compression_error": 922.8712768554688,
+          "retention_ratio": 0.17560526767852788,
+          "compressed_cosine": 0.018352285027503967
+        }
+      },
+      {
+        "client_id": 68,
+        "divergence_score": 0.9524284853519146,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.0570935158146552,
+        "local_train_acc": 0.053763440860215055,
+        "local_val_acc": 0.11764705882352941,
+        "grad_diag": {
+          "update_l2_norm": 3.5919904708862305,
+          "relative_update_norm": 0.03255200681061816,
+          "compression_error": 900.5865478515625,
+          "retention_ratio": 0.16215358856807446,
+          "compressed_cosine": 0.018834678456187248
+        }
+      },
+      {
+        "client_id": 74,
+        "divergence_score": 0.9916237799215919,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.04698101250153948,
+        "local_train_acc": 0.050666666666666665,
+        "local_val_acc": 0.07317073170731707,
+        "grad_diag": {
+          "update_l2_norm": 3.1777894496917725,
+          "relative_update_norm": 0.028798356968790937,
+          "compression_error": 901.2171630859375,
+          "retention_ratio": 0.1980162595842264,
+          "compressed_cosine": 0.019003398716449738
+        }
+      },
+      {
+        "client_id": 96,
+        "divergence_score": 0.8916021958646266,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.053814762565261104,
+        "local_train_acc": 0.06181015452538632,
+        "local_val_acc": 0.06,
+        "grad_diag": {
+          "update_l2_norm": 4.085585594177246,
+          "relative_update_norm": 0.03702515671045428,
+          "compression_error": 901.5113525390625,
+          "retention_ratio": 0.17211280377345828,
+          "compressed_cosine": 0.018909957259893417
+        }
+      },
+      {
+        "client_id": 32,
+        "divergence_score": 0.9056665402619335,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.055075652539584824,
+        "local_train_acc": 0.03695652173913044,
+        "local_val_acc": 0.058823529411764705,
+        "grad_diag": {
+          "update_l2_norm": 3.4481139183044434,
+          "relative_update_norm": 0.031248141848422124,
+          "compression_error": 855.292236328125,
+          "retention_ratio": 0.177353098251629,
+          "compressed_cosine": 0.020316781476140022
+        }
+      },
+      {
+        "client_id": 37,
+        "divergence_score": 0.3846033838498696,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.035032472809390716,
+        "local_train_acc": 0.026726057906458798,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 8.738316535949707,
+          "relative_update_norm": 0.07919000389814274,
+          "compression_error": 836.5462646484375,
+          "retention_ratio": 0.2917693266980883,
+          "compressed_cosine": 0.021329214796423912
+        }
+      },
+      {
+        "client_id": 18,
+        "divergence_score": 0.8322274625306014,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.05554999970643039,
+        "local_train_acc": 0.03512396694214876,
+        "local_val_acc": 0.03773584905660377,
+        "grad_diag": {
+          "update_l2_norm": 4.748459815979004,
+          "relative_update_norm": 0.0430323792678544,
+          "compression_error": 851.8626098632812,
+          "retention_ratio": 0.17650628733395682,
+          "compressed_cosine": 0.021074095740914345
+        }
+      },
+      {
+        "client_id": 12,
+        "divergence_score": 0.7519885198094733,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.04996763401114978,
+        "local_train_acc": 0.05458515283842795,
+        "local_val_acc": 0.02,
+        "grad_diag": {
+          "update_l2_norm": 3.3770411014556885,
+          "relative_update_norm": 0.030604052495495842,
+          "compression_error": 833.8638305664062,
+          "retention_ratio": 0.2012665945598951,
+          "compressed_cosine": 0.021074872463941574
+        }
+      },
+      {
+        "client_id": 47,
+        "divergence_score": 0.929107794857992,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.05020547095241624,
+        "local_train_acc": 0.06763285024154589,
+        "local_val_acc": 0.06521739130434782,
+        "grad_diag": {
+          "update_l2_norm": 3.0208942890167236,
+          "relative_update_norm": 0.02737651234524795,
+          "compression_error": 951.8880004882812,
+          "retention_ratio": 0.17483320467515664,
+          "compressed_cosine": 0.01740928180515766
+        }
+      },
+      {
+        "client_id": 22,
+        "divergence_score": 0.7638293820616462,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.04728074754522634,
+        "local_train_acc": 0.07209302325581396,
+        "local_val_acc": 0.0425531914893617,
+        "grad_diag": {
+          "update_l2_norm": 5.099448204040527,
+          "relative_update_norm": 0.046213171781429106,
+          "compression_error": 818.9314575195312,
+          "retention_ratio": 0.21719127231536167,
+          "compressed_cosine": 0.021675342693924904
+        }
+      },
+      {
+        "client_id": 66,
+        "divergence_score": 0.9647986702670439,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.048565575834144135,
+        "local_train_acc": 0.05343511450381679,
+        "local_val_acc": 0.06976744186046512,
+        "grad_diag": {
+          "update_l2_norm": 3.4743497371673584,
+          "relative_update_norm": 0.031485900985376916,
+          "compression_error": 972.4475708007812,
+          "retention_ratio": 0.17698612584415327,
+          "compressed_cosine": 0.017021112143993378
+        }
+      },
+      {
+        "client_id": 43,
+        "divergence_score": 0.749509435749909,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.052826032521878744,
+        "local_train_acc": 0.049484536082474224,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 4.694684028625488,
+          "relative_update_norm": 0.042545042285652965,
+          "compression_error": 869.48876953125,
+          "retention_ratio": 0.1820170101494522,
+          "compressed_cosine": 0.019852863624691963
+        }
+      },
+      {
+        "client_id": 83,
+        "divergence_score": 0.9651974475524023,
+        "tier": 1,
+        "upload_bytes": 59342024,
+        "download_bytes": 44880528,
+        "bytes_received": 59342024,
+        "aggregation_weight": 0.04560916195921227,
+        "local_train_acc": 0.032520325203252036,
+        "local_val_acc": 0.025,
+        "grad_diag": {
+          "update_l2_norm": 3.1846983432769775,
+          "relative_update_norm": 0.0288609680343999,
+          "compression_error": 892.8536376953125,
+          "retention_ratio": 0.20615661729464463,
+          "compressed_cosine": 0.019461575895547867
+        }
+      }
+    ],
+    "agg_update_norm": 8.257959365844727,
+    "global_update_norm": 108.44142150878906
+  },
+  {
+    "round": 2,
+    "test_accuracy": 0.0157,
+    "total_bytes_transmitted": 1117026400,
+    "total_upload_bytes": 1117026400,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 70,
+        "divergence_score": 0.8975386168046589,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.05009625755099221,
+        "local_train_acc": 0.06930693069306931,
+        "local_val_acc": 0.06818181818181818,
+        "grad_diag": {
+          "update_l2_norm": 2.0888376235961914,
+          "relative_update_norm": 0.01926235929530759,
+          "compression_error": 2770.40625,
+          "retention_ratio": 0.05556425333299223,
+          "compressed_cosine": 0.004368738736957312
+        }
+      },
+      {
+        "client_id": 31,
+        "divergence_score": 0.8393588781809487,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.05384154915818632,
+        "local_train_acc": 0.022271714922048998,
+        "local_val_acc": 0.061224489795918366,
+        "grad_diag": {
+          "update_l2_norm": 7.4740729331970215,
+          "relative_update_norm": 0.06892267575624925,
+          "compression_error": 2108.560546875,
+          "retention_ratio": 0.06795533406641242,
+          "compressed_cosine": 0.00768631137907505
+        }
+      },
+      {
+        "client_id": 83,
+        "divergence_score": 0.8210639585951021,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.043763518153961324,
+        "local_train_acc": 0.06775067750677506,
+        "local_val_acc": 0.075,
+        "grad_diag": {
+          "update_l2_norm": 1.8266528844833374,
+          "relative_update_norm": 0.016844604755898458,
+          "compression_error": 2659.40087890625,
+          "retention_ratio": 0.06627650947060038,
+          "compressed_cosine": 0.004676239565014839
+        }
+      },
+      {
+        "client_id": 80,
+        "divergence_score": 0.7759608931538475,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.047502286431355664,
+        "local_train_acc": 0.05825242718446602,
+        "local_val_acc": 0.022222222222222223,
+        "grad_diag": {
+          "update_l2_norm": 1.8709543943405151,
+          "relative_update_norm": 0.01725313416505589,
+          "compression_error": 2831.0361328125,
+          "retention_ratio": 0.057344977332391266,
+          "compressed_cosine": 0.004178394563496113
+        }
+      },
+      {
+        "client_id": 38,
+        "divergence_score": 0.8579263147288926,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.05164543625589839,
+        "local_train_acc": 0.06572769953051644,
+        "local_val_acc": 0.02127659574468085,
+        "grad_diag": {
+          "update_l2_norm": 2.243255853652954,
+          "relative_update_norm": 0.02068633758615144,
+          "compression_error": 2749.9580078125,
+          "retention_ratio": 0.054294838014225744,
+          "compressed_cosine": 0.004489193670451641
+        }
+      },
+      {
+        "client_id": 28,
+        "divergence_score": 0.7968248649443597,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.046968302708484164,
+        "local_train_acc": 0.06218905472636816,
+        "local_val_acc": 0.06818181818181818,
+        "grad_diag": {
+          "update_l2_norm": 1.9072210788726807,
+          "relative_update_norm": 0.017587569881847245,
+          "compression_error": 2701.652099609375,
+          "retention_ratio": 0.060782662438947324,
+          "compressed_cosine": 0.004616795107722282
+        }
+      },
+      {
+        "client_id": 68,
+        "divergence_score": 0.6771939235166471,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.050084909662148985,
+        "local_train_acc": 0.060215053763440864,
+        "local_val_acc": 0.0784313725490196,
+        "grad_diag": {
+          "update_l2_norm": 2.138131856918335,
+          "relative_update_norm": 0.019716929446051586,
+          "compression_error": 2645.625732421875,
+          "retention_ratio": 0.05820348854719376,
+          "compressed_cosine": 0.004956419579684734
+        }
+      },
+      {
+        "client_id": 13,
+        "divergence_score": 0.809966892847245,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.06949971375283794,
+        "local_train_acc": 0.061016949152542375,
+        "local_val_acc": 0.07692307692307693,
+        "grad_diag": {
+          "update_l2_norm": 2.8174734115600586,
+          "relative_update_norm": 0.02598152414787098,
+          "compression_error": 2738.244873046875,
+          "retention_ratio": 0.04049950201668746,
+          "compressed_cosine": 0.004636307712644339
+        }
+      },
+      {
+        "client_id": 19,
+        "divergence_score": 0.902220498785726,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.0482375693327524,
+        "local_train_acc": 0.04639175257731959,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 2.3203370571136475,
+          "relative_update_norm": 0.021397147186286068,
+          "compression_error": 2469.010498046875,
+          "retention_ratio": 0.06477035607403907,
+          "compressed_cosine": 0.005616046953946352
+        }
+      },
+      {
+        "client_id": 0,
+        "divergence_score": 0.8151114531647632,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.05223097536959893,
+        "local_train_acc": 0.04524886877828054,
+        "local_val_acc": 0.04081632653061224,
+        "grad_diag": {
+          "update_l2_norm": 2.097529649734497,
+          "relative_update_norm": 0.019342513410011825,
+          "compression_error": 2598.7021484375,
+          "retention_ratio": 0.056814890749825216,
+          "compressed_cosine": 0.00522764865309
+        }
+      },
+      {
+        "client_id": 78,
+        "divergence_score": 0.6130226365816522,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.0547238892644734,
+        "local_train_acc": 0.056179775280898875,
+        "local_val_acc": 0.05084745762711865,
+        "grad_diag": {
+          "update_l2_norm": 2.5834999084472656,
+          "relative_update_norm": 0.023823921454569606,
+          "compression_error": 2732.889404296875,
+          "retention_ratio": 0.051553437072021806,
+          "compressed_cosine": 0.004512735642492771
+        }
+      },
+      {
+        "client_id": 66,
+        "divergence_score": 0.7392740193620106,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.0442275279157381,
+        "local_train_acc": 0.05597964376590331,
+        "local_val_acc": 0.023255813953488372,
+        "grad_diag": {
+          "update_l2_norm": 1.9125319719314575,
+          "relative_update_norm": 0.017636544646147494,
+          "compression_error": 2728.0947265625,
+          "retention_ratio": 0.06392271429226905,
+          "compressed_cosine": 0.004612375050783157
+        }
+      },
+      {
+        "client_id": 45,
+        "divergence_score": 0.6767300020293399,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.04070023633586669,
+        "local_train_acc": 0.06084656084656084,
+        "local_val_acc": 0.07142857142857142,
+        "grad_diag": {
+          "update_l2_norm": 1.8618332147598267,
+          "relative_update_norm": 0.017169022582472576,
+          "compression_error": 2721.017822265625,
+          "retention_ratio": 0.06966963508937174,
+          "compressed_cosine": 0.004626712761819363
+        }
+      },
+      {
+        "client_id": 56,
+        "divergence_score": 0.8678618126912179,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.05145589003266566,
+        "local_train_acc": 0.07109004739336493,
+        "local_val_acc": 0.06521739130434782,
+        "grad_diag": {
+          "update_l2_norm": 2.2349729537963867,
+          "relative_update_norm": 0.020609956257491926,
+          "compression_error": 2675.589111328125,
+          "retention_ratio": 0.05601344993162089,
+          "compressed_cosine": 0.004684870131313801
+        }
+      },
+      {
+        "client_id": 11,
+        "divergence_score": 0.7684793089058027,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.048305387297350046,
+        "local_train_acc": 0.052256532066508314,
+        "local_val_acc": 0.043478260869565216,
+        "grad_diag": {
+          "update_l2_norm": 2.1203935146331787,
+          "relative_update_norm": 0.01955335410704961,
+          "compression_error": 2805.7724609375,
+          "retention_ratio": 0.05689849137762075,
+          "compressed_cosine": 0.004350508563220501
+        }
+      },
+      {
+        "client_id": 47,
+        "divergence_score": 0.7454902771487336,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.046786302432107796,
+        "local_train_acc": 0.05555555555555555,
+        "local_val_acc": 0.06521739130434782,
+        "grad_diag": {
+          "update_l2_norm": 1.9122388362884521,
+          "relative_update_norm": 0.017633841475726757,
+          "compression_error": 2723.435791015625,
+          "retention_ratio": 0.06053029527187841,
+          "compressed_cosine": 0.0045845662243664265
+        }
+      },
+      {
+        "client_id": 57,
+        "divergence_score": 0.807123103072181,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.046447715275991765,
+        "local_train_acc": 0.06835443037974684,
+        "local_val_acc": 0.023255813953488372,
+        "grad_diag": {
+          "update_l2_norm": 2.0908267498016357,
+          "relative_update_norm": 0.019280702158927125,
+          "compression_error": 2610.76416015625,
+          "retention_ratio": 0.06361055100887697,
+          "compressed_cosine": 0.004995504394173622
+        }
+      },
+      {
+        "client_id": 77,
+        "divergence_score": 0.7001930803139851,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.05476162393425385,
+        "local_train_acc": 0.046,
+        "local_val_acc": 0.05454545454545454,
+        "grad_diag": {
+          "update_l2_norm": 2.4623289108276367,
+          "relative_update_norm": 0.022706534796097886,
+          "compression_error": 2444.5966796875,
+          "retention_ratio": 0.057604083197575,
+          "compressed_cosine": 0.005819579586386681
+        }
+      },
+      {
+        "client_id": 63,
+        "divergence_score": 0.607477002327504,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.05284356701677399,
+        "local_train_acc": 0.07915057915057915,
+        "local_val_acc": 0.05263157894736842,
+        "grad_diag": {
+          "update_l2_norm": 2.5378963947296143,
+          "relative_update_norm": 0.023403385527585696,
+          "compression_error": 2763.523681640625,
+          "retention_ratio": 0.052799190325608175,
+          "compressed_cosine": 0.0045820241793990135
+        }
+      },
+      {
+        "client_id": 55,
+        "divergence_score": 0.6433373503188726,
+        "tier": 1,
+        "upload_bytes": 55851320,
+        "download_bytes": 44880528,
+        "bytes_received": 55851320,
+        "aggregation_weight": 0.045877342118562245,
+        "local_train_acc": 0.057208237986270026,
+        "local_val_acc": 0.0625,
+        "grad_diag": {
+          "update_l2_norm": 2.062422513961792,
+          "relative_update_norm": 0.019018770551570415,
+          "compression_error": 2652.788818359375,
+          "retention_ratio": 0.0633803633820441,
+          "compressed_cosine": 0.004888805560767651
+        }
+      }
+    ],
+    "agg_update_norm": 7.707066535949707,
+    "global_update_norm": 106.24385070800781
+  },
+  {
+    "round": 3,
+    "test_accuracy": 0.0167,
+    "total_bytes_transmitted": 1047212320,
+    "total_upload_bytes": 1047212320,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 55,
+        "divergence_score": 0.5407066380429104,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.04232684869106365,
+        "local_train_acc": 0.05034324942791762,
+        "local_val_acc": 0.041666666666666664,
+        "grad_diag": {
+          "update_l2_norm": 1.74569571018219,
+          "relative_update_norm": 0.016431028229388276,
+          "compression_error": 5021.072265625,
+          "retention_ratio": 0.03371417237303713,
+          "compressed_cosine": 0.0016447915695607662
+        }
+      },
+      {
+        "client_id": 30,
+        "divergence_score": 0.8277323278925919,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.051171290361639546,
+        "local_train_acc": 0.08899297423887588,
+        "local_val_acc": 0.10638297872340426,
+        "grad_diag": {
+          "update_l2_norm": 2.0372331142425537,
+          "relative_update_norm": 0.019175068492589976,
+          "compression_error": 5007.2978515625,
+          "retention_ratio": 0.027964689949841335,
+          "compressed_cosine": 0.001592753455042839
+        }
+      },
+      {
+        "client_id": 3,
+        "divergence_score": 0.8350216350940807,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.05247940301277951,
+        "local_train_acc": 0.09403669724770643,
+        "local_val_acc": 0.0625,
+        "grad_diag": {
+          "update_l2_norm": 2.093755006790161,
+          "relative_update_norm": 0.019707070035935272,
+          "compression_error": 5040.14501953125,
+          "retention_ratio": 0.027088746034440888,
+          "compressed_cosine": 0.0014959685504436493
+        }
+      },
+      {
+        "client_id": 43,
+        "divergence_score": 0.6713406786615757,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.05234398800186333,
+        "local_train_acc": 0.04536082474226804,
+        "local_val_acc": 0.03773584905660377,
+        "grad_diag": {
+          "update_l2_norm": 2.016400098800659,
+          "relative_update_norm": 0.018978981704478818,
+          "compression_error": 5065.83837890625,
+          "retention_ratio": 0.027021171847273907,
+          "compressed_cosine": 0.0015402003191411495
+        }
+      },
+      {
+        "client_id": 21,
+        "divergence_score": 0.7308720726873498,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.06013336486190098,
+        "local_train_acc": 0.06367041198501873,
+        "local_val_acc": 0.0847457627118644,
+        "grad_diag": {
+          "update_l2_norm": 2.333246946334839,
+          "relative_update_norm": 0.021961242281657786,
+          "compression_error": 4965.212890625,
+          "retention_ratio": 0.0239935089413522,
+          "compressed_cosine": 0.001615164102986455
+        }
+      },
+      {
+        "client_id": 40,
+        "divergence_score": 0.8273874080052419,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.04313308182223468,
+        "local_train_acc": 0.09444444444444444,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 1.6586859226226807,
+          "relative_update_norm": 0.015612065183718554,
+          "compression_error": 4859.46923828125,
+          "retention_ratio": 0.03418702862263142,
+          "compressed_cosine": 0.001824408071115613
+        }
+      },
+      {
+        "client_id": 85,
+        "divergence_score": 0.6822829923489357,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.051680828305546336,
+        "local_train_acc": 0.07789473684210527,
+        "local_val_acc": 0.038461538461538464,
+        "grad_diag": {
+          "update_l2_norm": 2.249002456665039,
+          "relative_update_norm": 0.021168307075446837,
+          "compression_error": 4891.70068359375,
+          "retention_ratio": 0.028343252192210178,
+          "compressed_cosine": 0.0017396877519786358
+        }
+      },
+      {
+        "client_id": 23,
+        "divergence_score": 0.8237943114003463,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.048419238342887146,
+        "local_train_acc": 0.05185185185185185,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 1.7917273044586182,
+          "relative_update_norm": 0.016864291839184743,
+          "compression_error": 4996.60302734375,
+          "retention_ratio": 0.0296190106544053,
+          "compressed_cosine": 0.0016620485112071037
+        }
+      },
+      {
+        "client_id": 5,
+        "divergence_score": 0.7588848458031128,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.04899698663134687,
+        "local_train_acc": 0.05152224824355972,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 1.7966691255569458,
+          "relative_update_norm": 0.016910805788607652,
+          "compression_error": 4915.6865234375,
+          "retention_ratio": 0.029751313816611172,
+          "compressed_cosine": 0.0018025136087089777
+        }
+      },
+      {
+        "client_id": 28,
+        "divergence_score": 0.6206077194351709,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.04171461584446717,
+        "local_train_acc": 0.05721393034825871,
+        "local_val_acc": 0.06818181818181818,
+        "grad_diag": {
+          "update_l2_norm": 1.7001867294311523,
+          "relative_update_norm": 0.01600268361981543,
+          "compression_error": 5041.525390625,
+          "retention_ratio": 0.0340690255743094,
+          "compressed_cosine": 0.0016096928156912327
+        }
+      },
+      {
+        "client_id": 29,
+        "divergence_score": 0.7381902668466732,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.060207327848698186,
+        "local_train_acc": 0.07142857142857142,
+        "local_val_acc": 0.0847457627118644,
+        "grad_diag": {
+          "update_l2_norm": 2.440598487854004,
+          "relative_update_norm": 0.022971668210347077,
+          "compression_error": 4909.1376953125,
+          "retention_ratio": 0.024237998130282892,
+          "compressed_cosine": 0.0016853194683790207
+        }
+      },
+      {
+        "client_id": 66,
+        "divergence_score": 0.5035376416390445,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.036733489879341163,
+        "local_train_acc": 0.05343511450381679,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 1.606995940208435,
+          "relative_update_norm": 0.015125543073781987,
+          "compression_error": 4926.91845703125,
+          "retention_ratio": 0.03960180570323425,
+          "compressed_cosine": 0.0018075441475957632
+        }
+      },
+      {
+        "client_id": 78,
+        "divergence_score": 0.4959835247053005,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.049536869355010185,
+        "local_train_acc": 0.0599250936329588,
+        "local_val_acc": 0.05084745762711865,
+        "grad_diag": {
+          "update_l2_norm": 2.252533197402954,
+          "relative_update_norm": 0.021201539499859038,
+          "compression_error": 4856.82373046875,
+          "retention_ratio": 0.029783658647258054,
+          "compressed_cosine": 0.0016788893844932318
+        }
+      },
+      {
+        "client_id": 81,
+        "divergence_score": 0.8019997623024988,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.05438029855446034,
+        "local_train_acc": 0.06290672451193059,
+        "local_val_acc": 0.0392156862745098,
+        "grad_diag": {
+          "update_l2_norm": 2.0856850147247314,
+          "relative_update_norm": 0.01963111277335818,
+          "compression_error": 5085.54736328125,
+          "retention_ratio": 0.02590657698530527,
+          "compressed_cosine": 0.0013939416967332363
+        }
+      },
+      {
+        "client_id": 16,
+        "divergence_score": 0.877963813769314,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.05726770902946239,
+        "local_train_acc": 0.0625,
+        "local_val_acc": 0.0196078431372549,
+        "grad_diag": {
+          "update_l2_norm": 2.205765962600708,
+          "relative_update_norm": 0.020761351813789776,
+          "compression_error": 4811.94580078125,
+          "retention_ratio": 0.025996958395457816,
+          "compressed_cosine": 0.0019275115337222815
+        }
+      },
+      {
+        "client_id": 2,
+        "divergence_score": 0.8219309289147276,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.05517129444119625,
+        "local_train_acc": 0.0735930735930736,
+        "local_val_acc": 0.058823529411764705,
+        "grad_diag": {
+          "update_l2_norm": 2.1783320903778076,
+          "relative_update_norm": 0.02050313571902211,
+          "compression_error": 4998.48681640625,
+          "retention_ratio": 0.02597921669992202,
+          "compressed_cosine": 0.0017064108978956938
+        }
+      },
+      {
+        "client_id": 9,
+        "divergence_score": 0.6327594494279576,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.05039854511065275,
+        "local_train_acc": 0.037422037422037424,
+        "local_val_acc": 0.018867924528301886,
+        "grad_diag": {
+          "update_l2_norm": 2.218106985092163,
+          "relative_update_norm": 0.020877509336406044,
+          "compression_error": 4796.0068359375,
+          "retention_ratio": 0.02964526043021366,
+          "compressed_cosine": 0.001956670545041561
+        }
+      },
+      {
+        "client_id": 73,
+        "divergence_score": 0.6859871147874509,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.046038801766568375,
+        "local_train_acc": 0.061611374407582936,
+        "local_val_acc": 0.10869565217391304,
+        "grad_diag": {
+          "update_l2_norm": 1.9476921558380127,
+          "relative_update_norm": 0.018332281283656552,
+          "compression_error": 5045.86181640625,
+          "retention_ratio": 0.030845929698743335,
+          "compressed_cosine": 0.0016286256723105907
+        }
+      },
+      {
+        "client_id": 50,
+        "divergence_score": 0.6391895863985153,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.04454601033568712,
+        "local_train_acc": 0.05200945626477541,
+        "local_val_acc": 0.043478260869565216,
+        "grad_diag": {
+          "update_l2_norm": 1.7858319282531738,
+          "relative_update_norm": 0.01680880273401623,
+          "compression_error": 4839.13232421875,
+          "retention_ratio": 0.033242048851117416,
+          "compressed_cosine": 0.0018852343782782555
+        }
+      },
+      {
+        "client_id": 18,
+        "divergence_score": 0.6994916455888692,
+        "tier": 1,
+        "upload_bytes": 52360616,
+        "download_bytes": 44880528,
+        "bytes_received": 52360616,
+        "aggregation_weight": 0.05332000780319419,
+        "local_train_acc": 0.05165289256198347,
+        "local_val_acc": 0.03773584905660377,
+        "grad_diag": {
+          "update_l2_norm": 2.1634438037872314,
+          "relative_update_norm": 0.020363002558454597,
+          "compression_error": 4656.353515625,
+          "retention_ratio": 0.02885915278702295,
+          "compressed_cosine": 0.00225387723185122
+        }
+      }
+    ],
+    "agg_update_norm": 7.1667280197143555,
+    "global_update_norm": 103.8375244140625
+  },
+  {
+    "round": 4,
+    "test_accuracy": 0.0176,
+    "total_bytes_transmitted": 893621088,
+    "total_upload_bytes": 893621088,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 50,
+        "divergence_score": 0.43905338779856307,
+        "tier": 2,
+        "upload_bytes": 20944240,
+        "download_bytes": 44880528,
+        "bytes_received": 20944240,
+        "aggregation_weight": 0.03835146607236276,
+        "local_train_acc": 0.04018912529550828,
+        "local_val_acc": 0.043478260869565216,
+        "grad_diag": {
+          "update_l2_norm": 1.3937647342681885,
+          "relative_update_norm": 0.01342255357235225,
+          "compression_error": 6820.7353515625,
+          "retention_ratio": 0.025533289296084265,
+          "compressed_cosine": 0.0007141802925616503
+        }
+      },
+      {
+        "client_id": 15,
+        "divergence_score": 0.865907459159494,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.053986397131909704,
+        "local_train_acc": 0.08254716981132075,
+        "local_val_acc": 0.0425531914893617,
+        "grad_diag": {
+          "update_l2_norm": 1.6328678131103516,
+          "relative_update_norm": 0.015725219012340162,
+          "compression_error": 6686.3955078125,
+          "retention_ratio": 0.018501164704239473,
+          "compressed_cosine": 0.0007672833744436502
+        }
+      },
+      {
+        "client_id": 69,
+        "divergence_score": 0.5583181269397416,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.049280007475680745,
+        "local_train_acc": 0.026970954356846474,
+        "local_val_acc": 0.018867924528301886,
+        "grad_diag": {
+          "update_l2_norm": 1.6867096424102783,
+          "relative_update_norm": 0.0162437389751739,
+          "compression_error": 6553.0361328125,
+          "retention_ratio": 0.020683959142560302,
+          "compressed_cosine": 0.0008833953179419041
+        }
+      },
+      {
+        "client_id": 44,
+        "divergence_score": 0.5415465650464504,
+        "tier": 2,
+        "upload_bytes": 20944240,
+        "download_bytes": 44880528,
+        "bytes_received": 20944240,
+        "aggregation_weight": 0.05266262017466406,
+        "local_train_acc": 0.05162523900573614,
+        "local_val_acc": 0.034482758620689655,
+        "grad_diag": {
+          "update_l2_norm": 1.8994948863983154,
+          "relative_update_norm": 0.018292952351443684,
+          "compression_error": 6825.2275390625,
+          "retention_ratio": 0.01858118716795214,
+          "compressed_cosine": 0.0006618695333600044
+        }
+      },
+      {
+        "client_id": 38,
+        "divergence_score": 0.6237170722589889,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.046034798468667926,
+        "local_train_acc": 0.07276995305164319,
+        "local_val_acc": 0.0425531914893617,
+        "grad_diag": {
+          "update_l2_norm": 1.5906031131744385,
+          "relative_update_norm": 0.015318191782305497,
+          "compression_error": 6777.79052734375,
+          "retention_ratio": 0.021408630097701938,
+          "compressed_cosine": 0.0006239218637347221
+        }
+      },
+      {
+        "client_id": 30,
+        "divergence_score": 0.7431890774237293,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.050368650979273503,
+        "local_train_acc": 0.09133489461358314,
+        "local_val_acc": 0.10638297872340426,
+        "grad_diag": {
+          "update_l2_norm": 1.654495358467102,
+          "relative_update_norm": 0.015933501571836754,
+          "compression_error": 7057.11474609375,
+          "retention_ratio": 0.018790404906100698,
+          "compressed_cosine": 0.00044239312410354614
+        }
+      },
+      {
+        "client_id": 63,
+        "divergence_score": 0.551150828543092,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.05261963829678913,
+        "local_train_acc": 0.07528957528957529,
+        "local_val_acc": 0.03508771929824561,
+        "grad_diag": {
+          "update_l2_norm": 1.8803411722183228,
+          "relative_update_norm": 0.01810849384968265,
+          "compression_error": 6578.56689453125,
+          "retention_ratio": 0.0192937613981306,
+          "compressed_cosine": 0.0008824223186820745
+        }
+      },
+      {
+        "client_id": 36,
+        "divergence_score": 0.7549980075319602,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.04660599143257637,
+        "local_train_acc": 0.06377551020408163,
+        "local_val_acc": 0.06976744186046512,
+        "grad_diag": {
+          "update_l2_norm": 1.3507217168807983,
+          "relative_update_norm": 0.01300803081066013,
+          "compression_error": 7078.5703125,
+          "retention_ratio": 0.02024728927854584,
+          "compressed_cosine": 0.0005094856023788452
+        }
+      },
+      {
+        "client_id": 8,
+        "divergence_score": 0.7392071186468334,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.06164489877616285,
+        "local_train_acc": 0.05916030534351145,
+        "local_val_acc": 0.08620689655172414,
+        "grad_diag": {
+          "update_l2_norm": 1.8948132991790771,
+          "relative_update_norm": 0.018247866653901722,
+          "compression_error": 6857.90087890625,
+          "retention_ratio": 0.01579893554840067,
+          "compressed_cosine": 0.0006998949684202671
+        }
+      },
+      {
+        "client_id": 11,
+        "divergence_score": 0.5772784638775603,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.04376809322244629,
+        "local_train_acc": 0.047505938242280284,
+        "local_val_acc": 0.043478260869565216,
+        "grad_diag": {
+          "update_l2_norm": 1.3898414373397827,
+          "relative_update_norm": 0.01338477053630103,
+          "compression_error": 6958.0068359375,
+          "retention_ratio": 0.021933742535976183,
+          "compressed_cosine": 0.000583224231377244
+        }
+      },
+      {
+        "client_id": 96,
+        "divergence_score": 0.7096888768849189,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.05221737047997759,
+        "local_train_acc": 0.07505518763796909,
+        "local_val_acc": 0.04,
+        "grad_diag": {
+          "update_l2_norm": 1.6242882013320923,
+          "relative_update_norm": 0.01564259366252879,
+          "compression_error": 6868.658203125,
+          "retention_ratio": 0.018621425506846003,
+          "compressed_cosine": 0.0006270853336900473
+        }
+      },
+      {
+        "client_id": 90,
+        "divergence_score": 0.5872233061209856,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.04907161407511607,
+        "local_train_acc": 0.049145299145299144,
+        "local_val_acc": 0.0196078431372549,
+        "grad_diag": {
+          "update_l2_norm": 1.5191295146942139,
+          "relative_update_norm": 0.014629870302344009,
+          "compression_error": 6864.82958984375,
+          "retention_ratio": 0.019828263852301683,
+          "compressed_cosine": 0.000568966381251812
+        }
+      },
+      {
+        "client_id": 26,
+        "divergence_score": 0.6387398931970698,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.05063208788515148,
+        "local_train_acc": 0.06911447084233262,
+        "local_val_acc": 0.058823529411764705,
+        "grad_diag": {
+          "update_l2_norm": 1.4966391324996948,
+          "relative_update_norm": 0.014413278253164982,
+          "compression_error": 6805.45068359375,
+          "retention_ratio": 0.019383781698503307,
+          "compressed_cosine": 0.0007269340567290783
+        }
+      },
+      {
+        "client_id": 77,
+        "divergence_score": 0.690839820389634,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.056864534662375815,
+        "local_train_acc": 0.05,
+        "local_val_acc": 0.05454545454545454,
+        "grad_diag": {
+          "update_l2_norm": 1.7614216804504395,
+          "relative_update_norm": 0.016963248020307135,
+          "compression_error": 6938.291015625,
+          "retention_ratio": 0.016926319657768946,
+          "compressed_cosine": 0.0005251397378742695
+        }
+      },
+      {
+        "client_id": 71,
+        "divergence_score": 0.6889569609773535,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.04917753398796112,
+        "local_train_acc": 0.10392609699769054,
+        "local_val_acc": 0.08333333333333333,
+        "grad_diag": {
+          "update_l2_norm": 1.56599760055542,
+          "relative_update_norm": 0.0150812301178411,
+          "compression_error": 7109.890625,
+          "retention_ratio": 0.019103451948815884,
+          "compressed_cosine": 0.0003473288379609585
+        }
+      },
+      {
+        "client_id": 27,
+        "divergence_score": 0.735495486583823,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.052454205932757944,
+        "local_train_acc": 0.042505592841163314,
+        "local_val_acc": 0.02040816326530612,
+        "grad_diag": {
+          "update_l2_norm": 1.4753172397613525,
+          "relative_update_norm": 0.014207939259784138,
+          "compression_error": 7034.9111328125,
+          "retention_ratio": 0.018098997462026718,
+          "compressed_cosine": 0.0005143170710653067
+        }
+      },
+      {
+        "client_id": 9,
+        "divergence_score": 0.7422563904776014,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.056702843026072654,
+        "local_train_acc": 0.029106029106029108,
+        "local_val_acc": 0.05660377358490566,
+        "grad_diag": {
+          "update_l2_norm": 2.040647506713867,
+          "relative_update_norm": 0.019652312766785363,
+          "compression_error": 6646.77685546875,
+          "retention_ratio": 0.01771898471755042,
+          "compressed_cosine": 0.0008283008355647326
+        }
+      },
+      {
+        "client_id": 89,
+        "divergence_score": 0.7568323835652709,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.051662136598121494,
+        "local_train_acc": 0.07834101382488479,
+        "local_val_acc": 0.0625,
+        "grad_diag": {
+          "update_l2_norm": 1.5821443796157837,
+          "relative_update_norm": 0.015236730541714621,
+          "compression_error": 7001.9296875,
+          "retention_ratio": 0.018463630892790663,
+          "compressed_cosine": 0.0005240209866315126
+        }
+      },
+      {
+        "client_id": 47,
+        "divergence_score": 0.531469894134359,
+        "tier": 2,
+        "upload_bytes": 20944240,
+        "download_bytes": 44880528,
+        "bytes_received": 20944240,
+        "aggregation_weight": 0.04129738499398767,
+        "local_train_acc": 0.07246376811594203,
+        "local_val_acc": 0.06521739130434782,
+        "grad_diag": {
+          "update_l2_norm": 1.235987663269043,
+          "relative_update_norm": 0.011903092550053666,
+          "compression_error": 7192.21240234375,
+          "retention_ratio": 0.022487965169330822,
+          "compressed_cosine": 0.000385757302865386
+        }
+      },
+      {
+        "client_id": 20,
+        "divergence_score": 0.6774378318218739,
+        "tier": 1,
+        "upload_bytes": 48869904,
+        "download_bytes": 44880528,
+        "bytes_received": 48869904,
+        "aggregation_weight": 0.04459772632794486,
+        "local_train_acc": 0.05303030303030303,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 1.3551397323608398,
+          "relative_update_norm": 0.013050578199043775,
+          "compression_error": 6964.44384765625,
+          "retention_ratio": 0.021506209388929567,
+          "compressed_cosine": 0.00047114817425608635
+        }
+      }
+    ],
+    "agg_update_norm": 6.681681156158447,
+    "global_update_norm": 101.40559387207031
+  },
+  {
+    "round": 5,
+    "test_accuracy": 0.0186,
+    "total_bytes_transmitted": 777929120,
+    "total_upload_bytes": 777929120,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 30,
+        "divergence_score": 0.6316115487013717,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.04778560422098082,
+        "local_train_acc": 0.0936768149882904,
+        "local_val_acc": 0.10638297872340426,
+        "grad_diag": {
+          "update_l2_norm": 2.0577704906463623,
+          "relative_update_norm": 0.02029247511968987,
+          "compression_error": 8330.775390625,
+          "retention_ratio": 0.015647857075363533,
+          "compressed_cosine": 0.0011106280144304037
+        }
+      },
+      {
+        "client_id": 57,
+        "divergence_score": 0.6491242695060879,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.044813120582018674,
+        "local_train_acc": 0.08607594936708861,
+        "local_val_acc": 0.023255813953488372,
+        "grad_diag": {
+          "update_l2_norm": 1.7646480798721313,
+          "relative_update_norm": 0.017401881025403278,
+          "compression_error": 8511.4921875,
+          "retention_ratio": 0.016332089923451604,
+          "compressed_cosine": 0.0010398593731224537
+        }
+      },
+      {
+        "client_id": 17,
+        "divergence_score": 0.762227244163327,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.05605975598945296,
+        "local_train_acc": 0.05701754385964912,
+        "local_val_acc": 0.04,
+        "grad_diag": {
+          "update_l2_norm": 2.1798360347747803,
+          "relative_update_norm": 0.02149621092426897,
+          "compression_error": 8379.1826171875,
+          "retention_ratio": 0.013260119783229829,
+          "compressed_cosine": 0.0011290386319160461
+        }
+      },
+      {
+        "client_id": 85,
+        "divergence_score": 0.6710488605552349,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.05479170823252327,
+        "local_train_acc": 0.07368421052631578,
+        "local_val_acc": 0.038461538461538464,
+        "grad_diag": {
+          "update_l2_norm": 2.266680955886841,
+          "relative_update_norm": 0.02235262246722212,
+          "compression_error": 8281.802734375,
+          "retention_ratio": 0.013725802398638952,
+          "compressed_cosine": 0.0011165353935211897
+        }
+      },
+      {
+        "client_id": 75,
+        "divergence_score": 0.6394858688856359,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.04875818654695828,
+        "local_train_acc": 0.06466512702078522,
+        "local_val_acc": 0.0625,
+        "grad_diag": {
+          "update_l2_norm": 1.8175876140594482,
+          "relative_update_norm": 0.017923938361353635,
+          "compression_error": 8370.791015625,
+          "retention_ratio": 0.015261945346623394,
+          "compressed_cosine": 0.0011019110679626465
+        }
+      },
+      {
+        "client_id": 71,
+        "divergence_score": 0.6036545882422096,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.047372503600234185,
+        "local_train_acc": 0.10392609699769054,
+        "local_val_acc": 0.08333333333333333,
+        "grad_diag": {
+          "update_l2_norm": 1.9341293573379517,
+          "relative_update_norm": 0.01907320181742617,
+          "compression_error": 8304.6845703125,
+          "retention_ratio": 0.015834125609712497,
+          "compressed_cosine": 0.0011954763904213905
+        }
+      },
+      {
+        "client_id": 43,
+        "divergence_score": 0.654973254613101,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.055271046491138655,
+        "local_train_acc": 0.05567010309278351,
+        "local_val_acc": 0.03773584905660377,
+        "grad_diag": {
+          "update_l2_norm": 2.126549005508423,
+          "relative_update_norm": 0.020970726804195844,
+          "compression_error": 8429.4755859375,
+          "retention_ratio": 0.013368750811014034,
+          "compressed_cosine": 0.0010891812853515148
+        }
+      },
+      {
+        "client_id": 62,
+        "divergence_score": 0.6999462875809859,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.04971517316266034,
+        "local_train_acc": 0.054502369668246446,
+        "local_val_acc": 0.043478260869565216,
+        "grad_diag": {
+          "update_l2_norm": 1.8606268167495728,
+          "relative_update_norm": 0.01834836467795725,
+          "compression_error": 8264.7353515625,
+          "retention_ratio": 0.015159724620920634,
+          "compressed_cosine": 0.0011975099332630634
+        }
+      },
+      {
+        "client_id": 58,
+        "divergence_score": 0.6539881942541925,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.04839695640339158,
+        "local_train_acc": 0.06352941176470588,
+        "local_val_acc": 0.02127659574468085,
+        "grad_diag": {
+          "update_l2_norm": 1.7261937856674194,
+          "relative_update_norm": 0.017022668274544343,
+          "compression_error": 8595.5361328125,
+          "retention_ratio": 0.014973961662122328,
+          "compressed_cosine": 0.0010301100555807352
+        }
+      },
+      {
+        "client_id": 64,
+        "divergence_score": 0.7117293499165207,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.05595288558911282,
+        "local_train_acc": 0.08280254777070063,
+        "local_val_acc": 0.038461538461538464,
+        "grad_diag": {
+          "update_l2_norm": 2.1211326122283936,
+          "relative_update_norm": 0.020917313643509045,
+          "compression_error": 8652.7822265625,
+          "retention_ratio": 0.012865322928854133,
+          "compressed_cosine": 0.0009543742053210735
+        }
+      },
+      {
+        "client_id": 8,
+        "divergence_score": 0.5860659322564569,
+        "tier": 2,
+        "upload_bytes": 19448224,
+        "download_bytes": 44880528,
+        "bytes_received": 19448224,
+        "aggregation_weight": 0.0564870275313013,
+        "local_train_acc": 0.05725190839694656,
+        "local_val_acc": 0.08620689655172414,
+        "grad_diag": {
+          "update_l2_norm": 2.3418021202087402,
+          "relative_update_norm": 0.023093421484845052,
+          "compression_error": 8372.65625,
+          "retention_ratio": 0.013169987220650948,
+          "compressed_cosine": 0.0011456485372036695
+        }
+      },
+      {
+        "client_id": 41,
+        "divergence_score": 0.6762330826754649,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.047707820885711814,
+        "local_train_acc": 0.055825242718446605,
+        "local_val_acc": 0.044444444444444446,
+        "grad_diag": {
+          "update_l2_norm": 1.5866082906723022,
+          "relative_update_norm": 0.015646161420581103,
+          "compression_error": 8389.248046875,
+          "retention_ratio": 0.01556414830901531,
+          "compressed_cosine": 0.0010963277891278267
+        }
+      },
+      {
+        "client_id": 4,
+        "divergence_score": 0.5800041620872318,
+        "tier": 2,
+        "upload_bytes": 19448224,
+        "download_bytes": 44880528,
+        "bytes_received": 19448224,
+        "aggregation_weight": 0.04150216182460904,
+        "local_train_acc": 0.05167958656330749,
+        "local_val_acc": 0.07142857142857142,
+        "grad_diag": {
+          "update_l2_norm": 1.5700736045837402,
+          "relative_update_norm": 0.01548310645036495,
+          "compression_error": 8237.7197265625,
+          "retention_ratio": 0.018220978761447643,
+          "compressed_cosine": 0.0011933543719351292
+        }
+      },
+      {
+        "client_id": 49,
+        "divergence_score": 0.7249419369952254,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.05431176958344188,
+        "local_train_acc": 0.06181015452538632,
+        "local_val_acc": 0.1,
+        "grad_diag": {
+          "update_l2_norm": 1.9916505813598633,
+          "relative_update_norm": 0.019640440978753684,
+          "compression_error": 8947.01171875,
+          "retention_ratio": 0.012817097487948249,
+          "compressed_cosine": 0.0007765856571495533
+        }
+      },
+      {
+        "client_id": 32,
+        "divergence_score": 0.6239708321614038,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.05116631675115331,
+        "local_train_acc": 0.05217391304347826,
+        "local_val_acc": 0.0392156862745098,
+        "grad_diag": {
+          "update_l2_norm": 1.9033294916152954,
+          "relative_update_norm": 0.018769472362801486,
+          "compression_error": 8545.5791015625,
+          "retention_ratio": 0.01424492405094322,
+          "compressed_cosine": 0.0010436258744448423
+        }
+      },
+      {
+        "client_id": 14,
+        "divergence_score": 0.8638716639040855,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.053267598798089046,
+        "local_train_acc": 0.09582309582309582,
+        "local_val_acc": 0.08888888888888889,
+        "grad_diag": {
+          "update_l2_norm": 2.0090858936309814,
+          "relative_update_norm": 0.01981237737402902,
+          "compression_error": 8246.990234375,
+          "retention_ratio": 0.014177501620628271,
+          "compressed_cosine": 0.0011774604208767414
+        }
+      },
+      {
+        "client_id": 10,
+        "divergence_score": 0.5399437736990191,
+        "tier": 2,
+        "upload_bytes": 19448224,
+        "download_bytes": 44880528,
+        "bytes_received": 19448224,
+        "aggregation_weight": 0.049355649110462384,
+        "local_train_acc": 0.050314465408805034,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 1.8741798400878906,
+          "relative_update_norm": 0.01848201631216015,
+          "compression_error": 8569.9033203125,
+          "retention_ratio": 0.014726522662187344,
+          "compressed_cosine": 0.001006387872621417
+        }
+      },
+      {
+        "client_id": 92,
+        "divergence_score": 0.5801007228442627,
+        "tier": 2,
+        "upload_bytes": 19448224,
+        "download_bytes": 44880528,
+        "bytes_received": 19448224,
+        "aggregation_weight": 0.04890584255131423,
+        "local_train_acc": 0.06140350877192982,
+        "local_val_acc": 0.06,
+        "grad_diag": {
+          "update_l2_norm": 1.938557505607605,
+          "relative_update_norm": 0.019116869509715806,
+          "compression_error": 8684.013671875,
+          "retention_ratio": 0.014666899388878211,
+          "compressed_cosine": 0.0009836067911237478
+        }
+      },
+      {
+        "client_id": 59,
+        "divergence_score": 0.5536903459144222,
+        "tier": 2,
+        "upload_bytes": 19448224,
+        "download_bytes": 44880528,
+        "bytes_received": 19448224,
+        "aggregation_weight": 0.04505532679093063,
+        "local_train_acc": 0.06511627906976744,
+        "local_val_acc": 0.06382978723404255,
+        "grad_diag": {
+          "update_l2_norm": 1.6923480033874512,
+          "relative_update_norm": 0.01668890185212521,
+          "compression_error": 8889.125,
+          "retention_ratio": 0.015554066293156754,
+          "compressed_cosine": 0.0007786194328218699
+        }
+      },
+      {
+        "client_id": 35,
+        "divergence_score": 0.6223438551933604,
+        "tier": 1,
+        "upload_bytes": 45379200,
+        "download_bytes": 44880528,
+        "bytes_received": 45379200,
+        "aggregation_weight": 0.04332354535451506,
+        "local_train_acc": 0.05641025641025641,
+        "local_val_acc": 0.06976744186046512,
+        "grad_diag": {
+          "update_l2_norm": 1.5458765029907227,
+          "relative_update_norm": 0.01524448942078033,
+          "compression_error": 8369.080078125,
+          "retention_ratio": 0.017181454934150794,
+          "compressed_cosine": 0.0010699587874114513
+        }
+      }
+    ],
+    "agg_update_norm": 6.2317423820495605,
+    "global_update_norm": 98.80926513671875
+  },
+  {
+    "round": 6,
+    "test_accuracy": 0.0166,
+    "total_bytes_transmitted": 718088360,
+    "total_upload_bytes": 718088360,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 59,
+        "divergence_score": 0.44449468811473225,
+        "tier": 2,
+        "upload_bytes": 17952208,
+        "download_bytes": 44880528,
+        "bytes_received": 17952208,
+        "aggregation_weight": 0.0376341087001081,
+        "local_train_acc": 0.06744186046511629,
+        "local_val_acc": 0.06382978723404255,
+        "grad_diag": {
+          "update_l2_norm": 1.341245174407959,
+          "relative_update_norm": 0.013574083083728306,
+          "compression_error": 9458.6923828125,
+          "retention_ratio": 0.016630779037915332,
+          "compressed_cosine": 0.0007764664478600025
+        }
+      },
+      {
+        "client_id": 2,
+        "divergence_score": 0.7993218738760031,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.054222876194651444,
+        "local_train_acc": 0.08008658008658008,
+        "local_val_acc": 0.058823529411764705,
+        "grad_diag": {
+          "update_l2_norm": 1.9241435527801514,
+          "relative_update_norm": 0.01947331103128623,
+          "compression_error": 9273.7705078125,
+          "retention_ratio": 0.01177238312035834,
+          "compressed_cosine": 0.0008908398449420929
+        }
+      },
+      {
+        "client_id": 95,
+        "divergence_score": 0.8144515109540619,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.05852471225793739,
+        "local_train_acc": 0.05668016194331984,
+        "local_val_acc": 0.037037037037037035,
+        "grad_diag": {
+          "update_l2_norm": 1.8816218376159668,
+          "relative_update_norm": 0.019042969654843964,
+          "compression_error": 9033.76171875,
+          "retention_ratio": 0.011198107036518364,
+          "compressed_cosine": 0.0009493422694504261
+        }
+      },
+      {
+        "client_id": 48,
+        "divergence_score": 0.7649318512114535,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.047877025895383576,
+        "local_train_acc": 0.07673860911270983,
+        "local_val_acc": 0.13043478260869565,
+        "grad_diag": {
+          "update_l2_norm": 1.5389366149902344,
+          "relative_update_norm": 0.015574820973122959,
+          "compression_error": 8794.353515625,
+          "retention_ratio": 0.014060219775786824,
+          "compressed_cosine": 0.0011866986751556396
+        }
+      },
+      {
+        "client_id": 78,
+        "divergence_score": 0.5841542411099523,
+        "tier": 2,
+        "upload_bytes": 17952208,
+        "download_bytes": 44880528,
+        "bytes_received": 17952208,
+        "aggregation_weight": 0.05357779455869747,
+        "local_train_acc": 0.06179775280898876,
+        "local_val_acc": 0.0847457627118644,
+        "grad_diag": {
+          "update_l2_norm": 1.734415054321289,
+          "relative_update_norm": 0.017553162164716463,
+          "compression_error": 9747.541015625,
+          "retention_ratio": 0.011335133562744222,
+          "compressed_cosine": 0.000634173396974802
+        }
+      },
+      {
+        "client_id": 8,
+        "divergence_score": 0.5284052757387658,
+        "tier": 2,
+        "upload_bytes": 17952208,
+        "download_bytes": 44880528,
+        "bytes_received": 17952208,
+        "aggregation_weight": 0.05000284296075096,
+        "local_train_acc": 0.06297709923664122,
+        "local_val_acc": 0.10344827586206896,
+        "grad_diag": {
+          "update_l2_norm": 1.890702724456787,
+          "relative_update_norm": 0.01913487284659684,
+          "compression_error": 9588.71484375,
+          "retention_ratio": 0.012346146214639721,
+          "compressed_cosine": 0.0007322344463318586
+        }
+      },
+      {
+        "client_id": 49,
+        "divergence_score": 0.736219144779277,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.05102482240912974,
+        "local_train_acc": 0.06622516556291391,
+        "local_val_acc": 0.1,
+        "grad_diag": {
+          "update_l2_norm": 1.7350422143936157,
+          "relative_update_norm": 0.017559509343510464,
+          "compression_error": 9526.8486328125,
+          "retention_ratio": 0.012176961601676368,
+          "compressed_cosine": 0.0007820222526788712
+        }
+      },
+      {
+        "client_id": 93,
+        "divergence_score": 0.8701523457933183,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.061839893312184424,
+        "local_train_acc": 0.07326732673267326,
+        "local_val_acc": 0.05357142857142857,
+        "grad_diag": {
+          "update_l2_norm": 1.8745405673980713,
+          "relative_update_norm": 0.01897130359996442,
+          "compression_error": 9734.037109375,
+          "retention_ratio": 0.009835239335565918,
+          "compressed_cosine": 0.0006579901091754436
+        }
+      },
+      {
+        "client_id": 57,
+        "divergence_score": 0.6051578949084812,
+        "tier": 2,
+        "upload_bytes": 17952208,
+        "download_bytes": 44880528,
+        "bytes_received": 17952208,
+        "aggregation_weight": 0.04033771061075481,
+        "local_train_acc": 0.09367088607594937,
+        "local_val_acc": 0.023255813953488372,
+        "grad_diag": {
+          "update_l2_norm": 1.4183052778244019,
+          "relative_update_norm": 0.014353970509364126,
+          "compression_error": 9855.439453125,
+          "retention_ratio": 0.014892794828219919,
+          "compressed_cosine": 0.0006323694251477718
+        }
+      },
+      {
+        "client_id": 47,
+        "divergence_score": 0.6214032572698341,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.04284171966399722,
+        "local_train_acc": 0.07729468599033816,
+        "local_val_acc": 0.06521739130434782,
+        "grad_diag": {
+          "update_l2_norm": 1.246616005897522,
+          "relative_update_norm": 0.01261638778683988,
+          "compression_error": 10048.2861328125,
+          "retention_ratio": 0.013753085442107552,
+          "compressed_cosine": 0.0005347735714167356
+        }
+      },
+      {
+        "client_id": 26,
+        "divergence_score": 0.6511667030651412,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.049046369096300405,
+        "local_train_acc": 0.06479481641468683,
+        "local_val_acc": 0.058823529411764705,
+        "grad_diag": {
+          "update_l2_norm": 1.5040515661239624,
+          "relative_update_norm": 0.015221766542265662,
+          "compression_error": 9381.1376953125,
+          "retention_ratio": 0.01286590879243369,
+          "compressed_cosine": 0.0007982510142028332
+        }
+      },
+      {
+        "client_id": 33,
+        "divergence_score": 0.7181548346694189,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.04705753397022653,
+        "local_train_acc": 0.03546099290780142,
+        "local_val_acc": 0.0425531914893617,
+        "grad_diag": {
+          "update_l2_norm": 1.4802113771438599,
+          "relative_update_norm": 0.014980491708907518,
+          "compression_error": 9495.0966796875,
+          "retention_ratio": 0.013249637964703999,
+          "compressed_cosine": 0.0008221701718866825
+        }
+      },
+      {
+        "client_id": 52,
+        "divergence_score": 0.8507081060269107,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.054848934922379154,
+        "local_train_acc": 0.07947019867549669,
+        "local_val_acc": 0.12,
+        "grad_diag": {
+          "update_l2_norm": 1.754925012588501,
+          "relative_update_norm": 0.017760733370097183,
+          "compression_error": 9024.4990234375,
+          "retention_ratio": 0.011959462289233188,
+          "compressed_cosine": 0.0009682788513600826
+        }
+      },
+      {
+        "client_id": 43,
+        "divergence_score": 0.6461741635486866,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.05117953242156028,
+        "local_train_acc": 0.05567010309278351,
+        "local_val_acc": 0.05660377358490566,
+        "grad_diag": {
+          "update_l2_norm": 1.7326719760894775,
+          "relative_update_norm": 0.017535521326790995,
+          "compression_error": 9529.0888671875,
+          "retention_ratio": 0.012137255753268383,
+          "compressed_cosine": 0.0008153156377375126
+        }
+      },
+      {
+        "client_id": 82,
+        "divergence_score": 0.7065041058665082,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.05715666254176193,
+        "local_train_acc": 0.0694980694980695,
+        "local_val_acc": 0.07017543859649122,
+        "grad_diag": {
+          "update_l2_norm": 1.8758211135864258,
+          "relative_update_norm": 0.01898426337844858,
+          "compression_error": 9206.595703125,
+          "retention_ratio": 0.011250810234651274,
+          "compressed_cosine": 0.0009078674484044313
+        }
+      },
+      {
+        "client_id": 89,
+        "divergence_score": 0.7836259138032025,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.05043405120822923,
+        "local_train_acc": 0.08294930875576037,
+        "local_val_acc": 0.0625,
+        "grad_diag": {
+          "update_l2_norm": 1.6806230545043945,
+          "relative_update_norm": 0.017008759777526715,
+          "compression_error": 9518.7041015625,
+          "retention_ratio": 0.012330394689132886,
+          "compressed_cosine": 0.0008251040708273649
+        }
+      },
+      {
+        "client_id": 14,
+        "divergence_score": 0.8140127116165078,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.04820473773182464,
+        "local_train_acc": 0.08353808353808354,
+        "local_val_acc": 0.1111111111111111,
+        "grad_diag": {
+          "update_l2_norm": 1.670330286026001,
+          "relative_update_norm": 0.016904591727454163,
+          "compression_error": 9321.78515625,
+          "retention_ratio": 0.013174284273978097,
+          "compressed_cosine": 0.0008503838907927275
+        }
+      },
+      {
+        "client_id": 55,
+        "divergence_score": 0.6462570818326245,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.04611730022489037,
+        "local_train_acc": 0.05491990846681922,
+        "local_val_acc": 0.0625,
+        "grad_diag": {
+          "update_l2_norm": 1.4485204219818115,
+          "relative_update_norm": 0.014659763130284867,
+          "compression_error": 9489.74609375,
+          "retention_ratio": 0.013527876082856709,
+          "compressed_cosine": 0.0007344062905758619
+        }
+      },
+      {
+        "client_id": 10,
+        "divergence_score": 0.5772712744859403,
+        "tier": 2,
+        "upload_bytes": 17952208,
+        "download_bytes": 44880528,
+        "bytes_received": 17952208,
+        "aggregation_weight": 0.04757602618671434,
+        "local_train_acc": 0.05660377358490566,
+        "local_val_acc": 0.03773584905660377,
+        "grad_diag": {
+          "update_l2_norm": 1.4949067831039429,
+          "relative_update_norm": 0.015129216688693062,
+          "compression_error": 9689.1962890625,
+          "retention_ratio": 0.012842479485548664,
+          "compressed_cosine": 0.0006607959512621164
+        }
+      },
+      {
+        "client_id": 68,
+        "divergence_score": 0.6842853677018497,
+        "tier": 1,
+        "upload_bytes": 41888488,
+        "download_bytes": 44880528,
+        "bytes_received": 41888488,
+        "aggregation_weight": 0.05049534513251795,
+        "local_train_acc": 0.07741935483870968,
+        "local_val_acc": 0.1568627450980392,
+        "grad_diag": {
+          "update_l2_norm": 1.4893008470535278,
+          "relative_update_norm": 0.015072481765680951,
+          "compression_error": 9137.75,
+          "retention_ratio": 0.01282888514871157,
+          "compressed_cosine": 0.0009628282859921455
+        }
+      }
+    ],
+    "agg_update_norm": 5.922992706298828,
+    "global_update_norm": 96.28282928466797
+  },
+  {
+    "round": 7,
+    "test_accuracy": 0.0194,
+    "total_bytes_transmitted": 614364536,
+    "total_upload_bytes": 614364536,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 28,
+        "divergence_score": 0.682751253530738,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.04361063824053261,
+        "local_train_acc": 0.07213930348258707,
+        "local_val_acc": 0.06818181818181818,
+        "grad_diag": {
+          "update_l2_norm": 0.9975039958953857,
+          "relative_update_norm": 0.01036014420542405,
+          "compression_error": 9771.5,
+          "retention_ratio": 0.01293366046351666,
+          "compressed_cosine": 0.00031953630968928337
+        }
+      },
+      {
+        "client_id": 65,
+        "divergence_score": 0.834977552870588,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.05182701940279224,
+        "local_train_acc": 0.0625,
+        "local_val_acc": 0.0851063829787234,
+        "grad_diag": {
+          "update_l2_norm": 1.1605144739151,
+          "relative_update_norm": 0.012053182094223106,
+          "compression_error": 10024.015625,
+          "retention_ratio": 0.0106080915018349,
+          "compressed_cosine": 0.00022010761313140392
+        }
+      },
+      {
+        "client_id": 72,
+        "divergence_score": 0.8701459630188899,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.05156003779974657,
+        "local_train_acc": 0.06413301662707839,
+        "local_val_acc": 0.08695652173913043,
+        "grad_diag": {
+          "update_l2_norm": 1.1663517951965332,
+          "relative_update_norm": 0.012113808909251305,
+          "compression_error": 9480.4501953125,
+          "retention_ratio": 0.011274335624136874,
+          "compressed_cosine": 0.0004935513716191053
+        }
+      },
+      {
+        "client_id": 76,
+        "divergence_score": 0.6310809768007479,
+        "tier": 2,
+        "upload_bytes": 16456192,
+        "download_bytes": 44880528,
+        "bytes_received": 16456192,
+        "aggregation_weight": 0.04526551142892934,
+        "local_train_acc": 0.08064516129032258,
+        "local_val_acc": 0.0625,
+        "grad_diag": {
+          "update_l2_norm": 1.1905008554458618,
+          "relative_update_norm": 0.012364622688081275,
+          "compression_error": 9818.2919921875,
+          "retention_ratio": 0.012400507377807273,
+          "compressed_cosine": 0.00034275022335350513
+        }
+      },
+      {
+        "client_id": 10,
+        "divergence_score": 0.5198454601928486,
+        "tier": 2,
+        "upload_bytes": 16456192,
+        "download_bytes": 44880528,
+        "bytes_received": 16456192,
+        "aggregation_weight": 0.04515342726892593,
+        "local_train_acc": 0.06079664570230608,
+        "local_val_acc": 0.03773584905660377,
+        "grad_diag": {
+          "update_l2_norm": 1.1277203559875488,
+          "relative_update_norm": 0.011712580159577077,
+          "compression_error": 10489.6767578125,
+          "retention_ratio": 0.011635632757483224,
+          "compressed_cosine": 9.583774954080582e-06
+        }
+      },
+      {
+        "client_id": 91,
+        "divergence_score": 0.8140810261058187,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.055675838507976784,
+        "local_train_acc": 0.0574468085106383,
+        "local_val_acc": 0.11538461538461539,
+        "grad_diag": {
+          "update_l2_norm": 1.1363853216171265,
+          "relative_update_norm": 0.011802575080727129,
+          "compression_error": 9589.0234375,
+          "retention_ratio": 0.010323725220961429,
+          "compressed_cosine": 0.00043470761738717556
+        }
+      },
+      {
+        "client_id": 23,
+        "divergence_score": 0.8150564338191322,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.04800472156794506,
+        "local_train_acc": 0.05925925925925926,
+        "local_val_acc": 0.022727272727272728,
+        "grad_diag": {
+          "update_l2_norm": 1.0237061977386475,
+          "relative_update_norm": 0.010632282052202447,
+          "compression_error": 9935.578125,
+          "retention_ratio": 0.011553682170561685,
+          "compressed_cosine": 0.0002812272869050503
+        }
+      },
+      {
+        "client_id": 3,
+        "divergence_score": 0.7390047585946705,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.04920907740568508,
+        "local_train_acc": 0.10550458715596331,
+        "local_val_acc": 0.08333333333333333,
+        "grad_diag": {
+          "update_l2_norm": 1.4198455810546875,
+          "relative_update_norm": 0.01474661257467621,
+          "compression_error": 9875.701171875,
+          "retention_ratio": 0.01133980500747073,
+          "compressed_cosine": 0.00030548847280442715
+        }
+      },
+      {
+        "client_id": 55,
+        "divergence_score": 0.5810288588412885,
+        "tier": 2,
+        "upload_bytes": 16456192,
+        "download_bytes": 44880528,
+        "bytes_received": 16456192,
+        "aggregation_weight": 0.0437336242642742,
+        "local_train_acc": 0.05034324942791762,
+        "local_val_acc": 0.0625,
+        "grad_diag": {
+          "update_l2_norm": 1.097577452659607,
+          "relative_update_norm": 0.011399513919709718,
+          "compression_error": 10049.85546875,
+          "retention_ratio": 0.012539987301922182,
+          "compressed_cosine": 0.00021222629584372044
+        }
+      },
+      {
+        "client_id": 37,
+        "divergence_score": 0.5820282499036928,
+        "tier": 2,
+        "upload_bytes": 16456192,
+        "download_bytes": 44880528,
+        "bytes_received": 16456192,
+        "aggregation_weight": 0.044973175470518656,
+        "local_train_acc": 0.0801781737193764,
+        "local_val_acc": 0.10204081632653061,
+        "grad_diag": {
+          "update_l2_norm": 1.2759732007980347,
+          "relative_update_norm": 0.013252344268213357,
+          "compression_error": 9216.0576171875,
+          "retention_ratio": 0.013296969297571676,
+          "compressed_cosine": 0.000608513131737709
+        }
+      },
+      {
+        "client_id": 82,
+        "divergence_score": 0.6020836965987015,
+        "tier": 2,
+        "upload_bytes": 16456192,
+        "download_bytes": 44880528,
+        "bytes_received": 16456192,
+        "aggregation_weight": 0.052770761834210984,
+        "local_train_acc": 0.07915057915057915,
+        "local_val_acc": 0.07017543859649122,
+        "grad_diag": {
+          "update_l2_norm": 1.3858879804611206,
+          "relative_update_norm": 0.01439392663009134,
+          "compression_error": 9794.8046875,
+          "retention_ratio": 0.010662652054847378,
+          "compressed_cosine": 0.00034114299342036247
+        }
+      },
+      {
+        "client_id": 80,
+        "divergence_score": 0.8018421600655067,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.04843694632335487,
+        "local_train_acc": 0.04854368932038835,
+        "local_val_acc": 0.044444444444444446,
+        "grad_diag": {
+          "update_l2_norm": 1.0370936393737793,
+          "relative_update_norm": 0.010771324929677004,
+          "compression_error": 10083.048828125,
+          "retention_ratio": 0.011283181497385136,
+          "compressed_cosine": 0.00017663277685642242
+        }
+      },
+      {
+        "client_id": 31,
+        "divergence_score": 0.7635520372095976,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.051511093451192855,
+        "local_train_acc": 0.060133630289532294,
+        "local_val_acc": 0.08163265306122448,
+        "grad_diag": {
+          "update_l2_norm": 1.1701489686965942,
+          "relative_update_norm": 0.012153246610950269,
+          "compression_error": 8810.40625,
+          "retention_ratio": 0.012143351305515401,
+          "compressed_cosine": 0.0007754594553261995
+        }
+      },
+      {
+        "client_id": 95,
+        "divergence_score": 0.6201174245687564,
+        "tier": 2,
+        "upload_bytes": 16456192,
+        "download_bytes": 44880528,
+        "bytes_received": 16456192,
+        "aggregation_weight": 0.05107390667766276,
+        "local_train_acc": 0.05668016194331984,
+        "local_val_acc": 0.037037037037037035,
+        "grad_diag": {
+          "update_l2_norm": 1.4271482229232788,
+          "relative_update_norm": 0.014822458308779022,
+          "compression_error": 9850.041015625,
+          "retention_ratio": 0.010954540687529565,
+          "compressed_cosine": 0.0002193632535636425
+        }
+      },
+      {
+        "client_id": 29,
+        "divergence_score": 0.7132737227218626,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.05898952100770714,
+        "local_train_acc": 0.06954887218045112,
+        "local_val_acc": 0.06779661016949153,
+        "grad_diag": {
+          "update_l2_norm": 1.4689626693725586,
+          "relative_update_norm": 0.015256745987692694,
+          "compression_error": 9859.357421875,
+          "retention_ratio": 0.009476706980484265,
+          "compressed_cosine": 0.00029118452221155167
+        }
+      },
+      {
+        "client_id": 51,
+        "divergence_score": 0.7663254112310757,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.04942084605557967,
+        "local_train_acc": 0.1,
+        "local_val_acc": 0.10638297872340426,
+        "grad_diag": {
+          "update_l2_norm": 1.2143985033035278,
+          "relative_update_norm": 0.012612825280747208,
+          "compression_error": 10132.0263671875,
+          "retention_ratio": 0.011005676475705363,
+          "compressed_cosine": 0.00020889309234917164
+        }
+      },
+      {
+        "client_id": 25,
+        "divergence_score": 0.8642742224638961,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.0566342089231722,
+        "local_train_acc": 0.08620689655172414,
+        "local_val_acc": 0.11764705882352941,
+        "grad_diag": {
+          "update_l2_norm": 1.3035540580749512,
+          "relative_update_norm": 0.013538800923899818,
+          "compression_error": 9495.57421875,
+          "retention_ratio": 0.01024891662178169,
+          "compressed_cosine": 0.00046384730376303196
+        }
+      },
+      {
+        "client_id": 93,
+        "divergence_score": 0.7350623445689097,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.05684451733423905,
+        "local_train_acc": 0.08514851485148515,
+        "local_val_acc": 0.05357142857142857,
+        "grad_diag": {
+          "update_l2_norm": 1.4091739654541016,
+          "relative_update_norm": 0.014635776450728975,
+          "compression_error": 9851.9267578125,
+          "retention_ratio": 0.00984162463782152,
+          "compressed_cosine": 0.00032410258427262306
+        }
+      },
+      {
+        "client_id": 16,
+        "divergence_score": 0.8154142349571629,
+        "tier": 1,
+        "upload_bytes": 38397784,
+        "download_bytes": 44880528,
+        "bytes_received": 38397784,
+        "aggregation_weight": 0.05501007242602423,
+        "local_train_acc": 0.06896551724137931,
+        "local_val_acc": 0.0196078431372549,
+        "grad_diag": {
+          "update_l2_norm": 1.30012047290802,
+          "relative_update_norm": 0.013503139475306741,
+          "compression_error": 9469.57421875,
+          "retention_ratio": 0.010580550367039759,
+          "compressed_cosine": 0.0005537411198019981
+        }
+      },
+      {
+        "client_id": 4,
+        "divergence_score": 0.6289429457367681,
+        "tier": 2,
+        "upload_bytes": 16456192,
+        "download_bytes": 44880528,
+        "bytes_received": 16456192,
+        "aggregation_weight": 0.040295054609529826,
+        "local_train_acc": 0.06459948320413436,
+        "local_val_acc": 0.09523809523809523,
+        "grad_diag": {
+          "update_l2_norm": 1.0377984046936035,
+          "relative_update_norm": 0.010778644670123565,
+          "compression_error": 9840.6474609375,
+          "retention_ratio": 0.013900124325042649,
+          "compressed_cosine": 0.0003651625011116266
+        }
+      }
+    ],
+    "agg_update_norm": 5.51438570022583,
+    "global_update_norm": 94.03436279296875
+  },
+  {
+    "round": 8,
+    "test_accuracy": 0.0222,
+    "total_bytes_transmitted": 558513168,
+    "total_upload_bytes": 558513168,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 43,
+        "divergence_score": 0.6565942635247136,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.0528416763907146,
+        "local_train_acc": 0.049484536082474224,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 0.8618265986442566,
+          "relative_update_norm": 0.009165017691901648,
+          "compression_error": 10651.28125,
+          "retention_ratio": 0.00899229276746848,
+          "compressed_cosine": -0.0003070693928748369
+        }
+      },
+      {
+        "client_id": 99,
+        "divergence_score": 0.8763487427276697,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.055508987761873095,
+        "local_train_acc": 0.05668934240362812,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 0.8293599486351013,
+          "relative_update_norm": 0.008819754013339422,
+          "compression_error": 11004.6708984375,
+          "retention_ratio": 0.00828527163828035,
+          "compressed_cosine": -0.0005534035153687
+        }
+      },
+      {
+        "client_id": 89,
+        "divergence_score": 0.6121609454684009,
+        "tier": 2,
+        "upload_bytes": 14960176,
+        "download_bytes": 44880528,
+        "bytes_received": 14960176,
+        "aggregation_weight": 0.04565715693956737,
+        "local_train_acc": 0.07373271889400922,
+        "local_val_acc": 0.0625,
+        "grad_diag": {
+          "update_l2_norm": 0.8105348944664001,
+          "relative_update_norm": 0.008619560662636897,
+          "compression_error": 10623.314453125,
+          "retention_ratio": 0.010433212155172398,
+          "compressed_cosine": -0.0003296376671642065
+        }
+      },
+      {
+        "client_id": 74,
+        "divergence_score": 0.7550715291898848,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.04381386698885453,
+        "local_train_acc": 0.072,
+        "local_val_acc": 0.024390243902439025,
+        "grad_diag": {
+          "update_l2_norm": 0.6688636541366577,
+          "relative_update_norm": 0.0071129705595949526,
+          "compression_error": 10791.1689453125,
+          "retention_ratio": 0.0107024964450967,
+          "compressed_cosine": -0.0003982249181717634
+        }
+      },
+      {
+        "client_id": 51,
+        "divergence_score": 0.6374581603678969,
+        "tier": 2,
+        "upload_bytes": 14960176,
+        "download_bytes": 44880528,
+        "bytes_received": 14960176,
+        "aggregation_weight": 0.046161574393144944,
+        "local_train_acc": 0.09534883720930233,
+        "local_val_acc": 0.10638297872340426,
+        "grad_diag": {
+          "update_l2_norm": 0.8428024649620056,
+          "relative_update_norm": 0.008962707247961749,
+          "compression_error": 10923.00390625,
+          "retention_ratio": 0.010036455857359215,
+          "compressed_cosine": -0.00046700588427484035
+        }
+      },
+      {
+        "client_id": 31,
+        "divergence_score": 0.7188754857431688,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.05118697451853858,
+        "local_train_acc": 0.026726057906458798,
+        "local_val_acc": 0.02040816326530612,
+        "grad_diag": {
+          "update_l2_norm": 0.8841592073440552,
+          "relative_update_norm": 0.009402511816777755,
+          "compression_error": 9768.5927734375,
+          "retention_ratio": 0.010121749903849335,
+          "compressed_cosine": -0.00010105990804731846
+        }
+      },
+      {
+        "client_id": 77,
+        "divergence_score": 0.810536883577548,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.060526094042209204,
+        "local_train_acc": 0.054,
+        "local_val_acc": 0.03636363636363636,
+        "grad_diag": {
+          "update_l2_norm": 0.9040069580078125,
+          "relative_update_norm": 0.009613580941661978,
+          "compression_error": 10591.720703125,
+          "retention_ratio": 0.007893410319860692,
+          "compressed_cosine": -0.00034403265453875065
+        }
+      },
+      {
+        "client_id": 66,
+        "divergence_score": 0.6968950647073526,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.044112587774206874,
+        "local_train_acc": 0.05343511450381679,
+        "local_val_acc": 0.046511627906976744,
+        "grad_diag": {
+          "update_l2_norm": 0.7571858763694763,
+          "relative_update_norm": 0.00805222531295861,
+          "compression_error": 10281.6796875,
+          "retention_ratio": 0.011156585655858113,
+          "compressed_cosine": -0.000285811023786664
+        }
+      },
+      {
+        "client_id": 37,
+        "divergence_score": 0.557445623585298,
+        "tier": 2,
+        "upload_bytes": 14960176,
+        "download_bytes": 44880528,
+        "bytes_received": 14960176,
+        "aggregation_weight": 0.04507481451332833,
+        "local_train_acc": 0.0779510022271715,
+        "local_val_acc": 0.12244897959183673,
+        "grad_diag": {
+          "update_l2_norm": 0.8848201036453247,
+          "relative_update_norm": 0.009409540059237638,
+          "compression_error": 9914.0634765625,
+          "retention_ratio": 0.01132364177863489,
+          "compressed_cosine": -3.483425825834274e-05
+        }
+      },
+      {
+        "client_id": 9,
+        "divergence_score": 0.6997657575145145,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.05410130105815053,
+        "local_train_acc": 0.02702702702702703,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 0.8121769428253174,
+          "relative_update_norm": 0.008637022878683733,
+          "compression_error": 9757.7099609375,
+          "retention_ratio": 0.009587303713130296,
+          "compressed_cosine": -1.4292774721980095e-05
+        }
+      },
+      {
+        "client_id": 26,
+        "divergence_score": 0.5530850948211692,
+        "tier": 2,
+        "upload_bytes": 14960176,
+        "download_bytes": 44880528,
+        "bytes_received": 14960176,
+        "aggregation_weight": 0.04629811643544251,
+        "local_train_acc": 0.07127429805615551,
+        "local_val_acc": 0.0392156862745098,
+        "grad_diag": {
+          "update_l2_norm": 0.8115966320037842,
+          "relative_update_norm": 0.008630851615282811,
+          "compression_error": 10755.1748046875,
+          "retention_ratio": 0.010163026826311842,
+          "compressed_cosine": -0.0004220851697027683
+        }
+      },
+      {
+        "client_id": 93,
+        "divergence_score": 0.5426514024937713,
+        "tier": 2,
+        "upload_bytes": 14960176,
+        "download_bytes": 44880528,
+        "bytes_received": 14960176,
+        "aggregation_weight": 0.05001936833821828,
+        "local_train_acc": 0.08712871287128712,
+        "local_val_acc": 0.05357142857142857,
+        "grad_diag": {
+          "update_l2_norm": 0.9568802118301392,
+          "relative_update_norm": 0.01017585681881909,
+          "compression_error": 10758.1005859375,
+          "retention_ratio": 0.009405566656547851,
+          "compressed_cosine": -0.00041070859879255295
+        }
+      },
+      {
+        "client_id": 24,
+        "divergence_score": 0.8312680880458199,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.05663680899788823,
+        "local_train_acc": 0.08225108225108226,
+        "local_val_acc": 0.0,
+        "grad_diag": {
+          "update_l2_norm": 0.9297448396682739,
+          "relative_update_norm": 0.00988728813652145,
+          "compression_error": 10290.12109375,
+          "retention_ratio": 0.008683842525415314,
+          "compressed_cosine": -0.00020915293134748936
+        }
+      },
+      {
+        "client_id": 12,
+        "divergence_score": 0.688112625016168,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.05108360463872281,
+        "local_train_acc": 0.06986899563318777,
+        "local_val_acc": 0.08,
+        "grad_diag": {
+          "update_l2_norm": 0.8608359098434448,
+          "relative_update_norm": 0.009154482300674581,
+          "compression_error": 10006.4306640625,
+          "retention_ratio": 0.009901186194006508,
+          "compressed_cosine": -0.00015297671779990196
+        }
+      },
+      {
+        "client_id": 83,
+        "divergence_score": 0.8088837748038193,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.04462268323098323,
+        "local_train_acc": 0.07046070460704607,
+        "local_val_acc": 0.1,
+        "grad_diag": {
+          "update_l2_norm": 0.7550330758094788,
+          "relative_update_norm": 0.008029331548423434,
+          "compression_error": 10753.1240234375,
+          "retention_ratio": 0.010545518989634158,
+          "compressed_cosine": -0.00039200764149427414
+        }
+      },
+      {
+        "client_id": 15,
+        "divergence_score": 0.8870626813046363,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.05369443076084695,
+        "local_train_acc": 0.08726415094339622,
+        "local_val_acc": 0.06382978723404255,
+        "grad_diag": {
+          "update_l2_norm": 0.8819383382797241,
+          "relative_update_norm": 0.009378894183836268,
+          "compression_error": 10523.28515625,
+          "retention_ratio": 0.008957170351550707,
+          "compressed_cosine": -0.00039730011485517025
+        }
+      },
+      {
+        "client_id": 17,
+        "divergence_score": 0.6758989676854785,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.05040713718991255,
+        "local_train_acc": 0.07017543859649122,
+        "local_val_acc": 0.02,
+        "grad_diag": {
+          "update_l2_norm": 0.9993624687194824,
+          "relative_update_norm": 0.01062763057074927,
+          "compression_error": 10192.84375,
+          "retention_ratio": 0.009850718669585652,
+          "compressed_cosine": -0.00017946376465260983
+        }
+      },
+      {
+        "client_id": 59,
+        "divergence_score": 0.599857661418436,
+        "tier": 2,
+        "upload_bytes": 14960176,
+        "download_bytes": 44880528,
+        "bytes_received": 14960176,
+        "aggregation_weight": 0.04477946409493921,
+        "local_train_acc": 0.05116279069767442,
+        "local_val_acc": 0.0425531914893617,
+        "grad_diag": {
+          "update_l2_norm": 0.7263002991676331,
+          "relative_update_norm": 0.0077237754114067424,
+          "compression_error": 10880.6552734375,
+          "retention_ratio": 0.010385518382029552,
+          "compressed_cosine": -0.00041794171556830406
+        }
+      },
+      {
+        "client_id": 86,
+        "divergence_score": 0.6217503236073597,
+        "tier": 2,
+        "upload_bytes": 14960176,
+        "download_bytes": 44880528,
+        "bytes_received": 14960176,
+        "aggregation_weight": 0.055979401863345477,
+        "local_train_acc": 0.05303030303030303,
+        "local_val_acc": 0.06896551724137931,
+        "grad_diag": {
+          "update_l2_norm": 0.9284113049507141,
+          "relative_update_norm": 0.009873106781132296,
+          "compression_error": 10342.3623046875,
+          "retention_ratio": 0.00874165273232408,
+          "compressed_cosine": -0.0002758463378995657
+        }
+      },
+      {
+        "client_id": 20,
+        "divergence_score": 0.7956346641213103,
+        "tier": 1,
+        "upload_bytes": 34907072,
+        "download_bytes": 44880528,
+        "bytes_received": 34907072,
+        "aggregation_weight": 0.0474939500691127,
+        "local_train_acc": 0.07828282828282829,
+        "local_val_acc": 0.06818181818181818,
+        "grad_diag": {
+          "update_l2_norm": 0.8283507227897644,
+          "relative_update_norm": 0.008809021491574386,
+          "compression_error": 10466.62890625,
+          "retention_ratio": 0.010180063076989827,
+          "compressed_cosine": -0.0003804159350693226
+        }
+      }
+    ],
+    "agg_update_norm": 5.063938617706299,
+    "global_update_norm": 92.11817932128906
+  },
+  {
+    "round": 9,
+    "test_accuracy": 0.0205,
+    "total_bytes_transmitted": 538566280,
+    "total_upload_bytes": 538566280,
+    "total_download_bytes": 897610560,
+    "delta_numel": 11220132,
+    "clients": [
+      {
+        "client_id": 31,
+        "divergence_score": 0.5728288632312201,
+        "tier": 2,
+        "upload_bytes": 13464152,
+        "download_bytes": 44880528,
+        "bytes_received": 13464152,
+        "aggregation_weight": 0.043980470082778986,
+        "local_train_acc": 0.031180400890868598,
+        "local_val_acc": 0.061224489795918366,
+        "grad_diag": {
+          "update_l2_norm": 0.7401086688041687,
+          "relative_update_norm": 0.008034338870537415,
+          "compression_error": 10040.4326171875,
+          "retention_ratio": 0.010397336356222748,
+          "compressed_cosine": -0.00035419873893260956
+        }
+      },
+      {
+        "client_id": 77,
+        "divergence_score": 0.8770751403098885,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.0606023373542527,
+        "local_train_acc": 0.05,
+        "local_val_acc": 0.03636363636363636,
+        "grad_diag": {
+          "update_l2_norm": 0.8093611001968384,
+          "relative_update_norm": 0.008786116987548734,
+          "compression_error": 10837.8037109375,
+          "retention_ratio": 0.006990030724082265,
+          "compressed_cosine": -0.0005975236417725682
+        }
+      },
+      {
+        "client_id": 97,
+        "divergence_score": 0.7202676374401282,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.05964139569446765,
+        "local_train_acc": 0.06629834254143646,
+        "local_val_acc": 0.1,
+        "grad_diag": {
+          "update_l2_norm": 0.7903675436973572,
+          "relative_update_norm": 0.008579930145392035,
+          "compression_error": 10600.279296875,
+          "retention_ratio": 0.007261936257183655,
+          "compressed_cosine": -0.000525858486071229
+        }
+      },
+      {
+        "client_id": 50,
+        "divergence_score": 0.7306585076331038,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.04679490866977081,
+        "local_train_acc": 0.06382978723404255,
+        "local_val_acc": 0.043478260869565216,
+        "grad_diag": {
+          "update_l2_norm": 0.7810918688774109,
+          "relative_update_norm": 0.00847923693924871,
+          "compression_error": 10466.6728515625,
+          "retention_ratio": 0.009374835255680851,
+          "compressed_cosine": -0.0004908700939267874
+        }
+      },
+      {
+        "client_id": 14,
+        "divergence_score": 0.7484149861433382,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.04556870163304801,
+        "local_train_acc": 0.08353808353808354,
+        "local_val_acc": 0.06666666666666667,
+        "grad_diag": {
+          "update_l2_norm": 0.7044371366500854,
+          "relative_update_norm": 0.007647102253217089,
+          "compression_error": 10911.5771484375,
+          "retention_ratio": 0.009234821439119887,
+          "compressed_cosine": -0.0005903993733227253
+        }
+      },
+      {
+        "client_id": 1,
+        "divergence_score": 0.8544831342734971,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.05156202834980628,
+        "local_train_acc": 0.04640371229698376,
+        "local_val_acc": 0.0425531914893617,
+        "grad_diag": {
+          "update_l2_norm": 0.6705606579780579,
+          "relative_update_norm": 0.00727935205535578,
+          "compression_error": 11009.97265625,
+          "retention_ratio": 0.00808799439779041,
+          "compressed_cosine": -0.0006703553954139352
+        }
+      },
+      {
+        "client_id": 22,
+        "divergence_score": 0.8466479427032298,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.05120600120212532,
+        "local_train_acc": 0.08139534883720931,
+        "local_val_acc": 0.0425531914893617,
+        "grad_diag": {
+          "update_l2_norm": 0.8179149031639099,
+          "relative_update_norm": 0.008878973826775199,
+          "compression_error": 11156.95703125,
+          "retention_ratio": 0.008037039764944302,
+          "compressed_cosine": -0.0007654402870684862
+        }
+      },
+      {
+        "client_id": 13,
+        "divergence_score": 0.7942578638960505,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.06805088326187654,
+        "local_train_acc": 0.06440677966101695,
+        "local_val_acc": 0.07692307692307693,
+        "grad_diag": {
+          "update_l2_norm": 0.8450930118560791,
+          "relative_update_norm": 0.00917400906186574,
+          "compression_error": 10760.88671875,
+          "retention_ratio": 0.006270220601247752,
+          "compressed_cosine": -0.0006018909625709057
+        }
+      },
+      {
+        "client_id": 67,
+        "divergence_score": 0.8360475490193837,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.05644621801508928,
+        "local_train_acc": 0.05450733752620545,
+        "local_val_acc": 0.11538461538461539,
+        "grad_diag": {
+          "update_l2_norm": 0.791964590549469,
+          "relative_update_norm": 0.008597267080011005,
+          "compression_error": 10964.6787109375,
+          "retention_ratio": 0.007417352181850117,
+          "compressed_cosine": -0.0006362526910379529
+        }
+      },
+      {
+        "client_id": 12,
+        "divergence_score": 0.5235679011605354,
+        "tier": 2,
+        "upload_bytes": 13464152,
+        "download_bytes": 44880528,
+        "bytes_received": 13464152,
+        "aggregation_weight": 0.042889708100150976,
+        "local_train_acc": 0.07423580786026202,
+        "local_val_acc": 0.08,
+        "grad_diag": {
+          "update_l2_norm": 0.7041016817092896,
+          "relative_update_norm": 0.007643460681669893,
+          "compression_error": 10796.3408203125,
+          "retention_ratio": 0.00991489576274797,
+          "compressed_cosine": -0.0005260745529085398
+        }
+      },
+      {
+        "client_id": 69,
+        "divergence_score": 0.6563571092052104,
+        "tier": 2,
+        "upload_bytes": 13464152,
+        "download_bytes": 44880528,
+        "bytes_received": 13464152,
+        "aggregation_weight": 0.050538014640974425,
+        "local_train_acc": 0.03734439834024896,
+        "local_val_acc": 0.05660377358490566,
+        "grad_diag": {
+          "update_l2_norm": 0.8201678395271301,
+          "relative_update_norm": 0.00890343084904615,
+          "compression_error": 10538.0654296875,
+          "retention_ratio": 0.008621663230318892,
+          "compressed_cosine": -0.0004617278464138508
+        }
+      },
+      {
+        "client_id": 58,
+        "divergence_score": 0.7190646603393693,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.046641651600308844,
+        "local_train_acc": 0.04941176470588235,
+        "local_val_acc": 0.02127659574468085,
+        "grad_diag": {
+          "update_l2_norm": 0.670199453830719,
+          "relative_update_norm": 0.007275430960193021,
+          "compression_error": 10831.794921875,
+          "retention_ratio": 0.00908860576796071,
+          "compressed_cosine": -0.0005569558124989271
+        }
+      },
+      {
+        "client_id": 19,
+        "divergence_score": 0.7626566821347165,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.043852793971292256,
+        "local_train_acc": 0.059278350515463915,
+        "local_val_acc": 0.023255813953488372,
+        "grad_diag": {
+          "update_l2_norm": 0.595951497554779,
+          "relative_update_norm": 0.006469423320626258,
+          "compression_error": 10824.224609375,
+          "retention_ratio": 0.009672435476763596,
+          "compressed_cosine": -0.0005812587914988399
+        }
+      },
+      {
+        "client_id": 80,
+        "divergence_score": 0.7075001066047373,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.04484990143767824,
+        "local_train_acc": 0.04854368932038835,
+        "local_val_acc": 0.044444444444444446,
+        "grad_diag": {
+          "update_l2_norm": 0.637994110584259,
+          "relative_update_norm": 0.006925821974390833,
+          "compression_error": 10855.244140625,
+          "retention_ratio": 0.009431136523368074,
+          "compressed_cosine": -0.0005908317398279905
+        }
+      },
+      {
+        "client_id": 71,
+        "divergence_score": 0.7703741092668113,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.04918579963019027,
+        "local_train_acc": 0.09930715935334873,
+        "local_val_acc": 0.08333333333333333,
+        "grad_diag": {
+          "update_l2_norm": 0.7735057473182678,
+          "relative_update_norm": 0.008396884882195083,
+          "compression_error": 11104.0390625,
+          "retention_ratio": 0.008407159350962088,
+          "compressed_cosine": -0.0006994584109634161
+        }
+      },
+      {
+        "client_id": 73,
+        "divergence_score": 0.5612482899297415,
+        "tier": 2,
+        "upload_bytes": 13464152,
+        "download_bytes": 44880528,
+        "bytes_received": 13464152,
+        "aggregation_weight": 0.040915800449795,
+        "local_train_acc": 0.04976303317535545,
+        "local_val_acc": 0.06521739130434782,
+        "grad_diag": {
+          "update_l2_norm": 0.7751439213752747,
+          "relative_update_norm": 0.008414668278144466,
+          "compression_error": 11513.109375,
+          "retention_ratio": 0.00974549036709061,
+          "compressed_cosine": -0.0008105895249173045
+        }
+      },
+      {
+        "client_id": 92,
+        "divergence_score": 0.6545562463402902,
+        "tier": 2,
+        "upload_bytes": 13464152,
+        "download_bytes": 44880528,
+        "bytes_received": 13464152,
+        "aggregation_weight": 0.04774626136706717,
+        "local_train_acc": 0.05263157894736842,
+        "local_val_acc": 0.06,
+        "grad_diag": {
+          "update_l2_norm": 0.7633334398269653,
+          "relative_update_norm": 0.008286458172003346,
+          "compression_error": 11205.578125,
+          "retention_ratio": 0.008582156486379099,
+          "compressed_cosine": -0.0006654150784015656
+        }
+      },
+      {
+        "client_id": 39,
+        "divergence_score": 0.7831797357304788,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.056579442829431295,
+        "local_train_acc": 0.08704453441295547,
+        "local_val_acc": 0.05555555555555555,
+        "grad_diag": {
+          "update_l2_norm": 0.8500732779502869,
+          "relative_update_norm": 0.009228072940797147,
+          "compression_error": 10706.4453125,
+          "retention_ratio": 0.00757833627853868,
+          "compressed_cosine": -0.0005333286244422197
+        }
+      },
+      {
+        "client_id": 30,
+        "divergence_score": 0.7027309913259767,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.04632585594374887,
+        "local_train_acc": 0.08665105386416862,
+        "local_val_acc": 0.10638297872340426,
+        "grad_diag": {
+          "update_l2_norm": 0.814847469329834,
+          "relative_update_norm": 0.008845674929025849,
+          "compression_error": 11076.537109375,
+          "retention_ratio": 0.00894841781930009,
+          "compressed_cosine": -0.0007281829603016376
+        }
+      },
+      {
+        "client_id": 47,
+        "divergence_score": 0.7571394267982623,
+        "tier": 1,
+        "upload_bytes": 31416368,
+        "download_bytes": 44880528,
+        "bytes_received": 31416368,
+        "aggregation_weight": 0.04662182576614724,
+        "local_train_acc": 0.05314009661835749,
+        "local_val_acc": 0.08695652173913043,
+        "grad_diag": {
+          "update_l2_norm": 0.6652116775512695,
+          "relative_update_norm": 0.007221285553540409,
+          "compression_error": 11384.3916015625,
+          "retention_ratio": 0.008651101140394342,
+          "compressed_cosine": -0.0007351349340751767
+        }
+      }
+    ],
+    "agg_update_norm": 4.594194412231445,
+    "global_update_norm": 90.50215148925781
+  }
+]

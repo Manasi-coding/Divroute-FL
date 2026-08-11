@@ -11,7 +11,8 @@ from .model import get_model
 from .client import FLClient
 from .server import FLServer
 from .logger import FLLogger
-from .mechanism import update_ema, compute_adaptive_taus
+from .mechanism import update_ema, compute_adaptive_taus, compute_percentile_taus
+from . import mechanism as _mech
 from .compression import get_adaptive_k_ratios
 from . import diagnostics as _diag
 
@@ -115,17 +116,26 @@ def run(config: Config | None = None) -> None:
           f"mean: {np.mean(shard_sizes):.0f}")
 
     num_classes  = 10 if config.dataset_name.lower() == "cifar10" else 100
-    global_model = get_model(config.model_name, num_classes)
+    global_model = get_model(config.model_name, num_classes, getattr(config, "bn_mode", "default"))
     server = FLServer(global_model, config, device)
 
     clients = [
         FLClient(i, client_datasets[i], config.local_epochs, config.local_lr,
                  config.batch_size, device, config.model_name, num_classes,
-                 val_dataset=val_datasets[i])
+                 val_dataset=val_datasets[i], bn_mode=getattr(config, "bn_mode", "default"))
         for i in range(config.num_clients)
     ]
 
-    logger = FLLogger(config.log_path)
+    logger_meta = {
+        "alpha": config.alpha,
+        "dataset": config.dataset_name,
+        "model": config.model_name,
+        "seed": config.seed,
+        "local_epochs": config.local_epochs,
+        "clients_per_round": config.clients_per_round,
+        "num_clients": config.num_clients,
+    }
+    logger = FLLogger(config.log_path, metadata=logger_meta)
     all_ids = list(range(config.num_clients))
 
     ema_scores: dict = {}
@@ -133,6 +143,18 @@ def run(config: Config | None = None) -> None:
     error_buffers: dict = {}
 
     _baseline_bpr: dict | None = None   # FedAvg bytes-per-round (set once after round 0)
+
+    # ── [Phase-5] Directional divergence state ───────────────────────────────
+    # Stores the aggregated server update from the previous round so that
+    # directional divergence can compare client deltas against the direction
+    # the server last moved.  None on round 0 → safe fallback activates.
+    _previous_global_delta: torch.Tensor | None = None
+
+    # Rolling window of routing scores per client for smoothed adaptive tau.
+    # Key: round index (int), Value: list of routing scores that round.
+    # Only the most recent `config.tau_window` entries are kept.
+    _tau_score_history: list = []   # list of per-round score lists
+    # ─────────────────────────────────────────────────────────────────────────
 
     # ── [DIAG] Routing-dynamics tracking ─────────────────────────────────────
     _diag_prev_tiers: dict = {}
@@ -169,6 +191,16 @@ def run(config: Config | None = None) -> None:
           f"k_ratio: tier1={config.k_ratio_tier1:.2f} tier2={config.k_ratio_tier2:.2f} | "
           f"include-tier3: {config.include_tier3_in_aggregation} | "
           f"uniform-top5: {config.uniform_top5_mode}")
+    # ── [Phase-5] Revised-routing banner ────────────────────────────────────
+    _use_dir_div  = getattr(config, "use_directional_divergence", False)
+    _use_div_ema  = getattr(config, "use_divergence_ema", False)
+    _tau_win      = getattr(config, "tau_window", 1)
+    _tau_smooth   = getattr(config, "tau_smoothing", 0.0)
+    _ema_beta_val = getattr(config, "ema_beta", 0.6)
+    print(f"[train] directional-div: {_use_dir_div} | "
+          f"div-ema-routing: {_use_div_ema} (beta={_ema_beta_val}) | "
+          f"tau-window: {_tau_win} | tau-smoothing: {_tau_smooth:.2f}")
+    # ────────────────────────────────────────────────────────────────────────
           
     print("\n[Transmission Precision]")
     print(f"  Upload   : {'FP16' if getattr(config, 'use_fp16_upload', False) else 'FP32'}")
@@ -182,6 +214,10 @@ def run(config: Config | None = None) -> None:
     # ── Checkpoint and Resume System ─────────────────────────────────────────
     import os
     def _get_method_name(cfg: Config) -> str:
+        # run_label (if set) fully overrides the auto-derived name so each
+        # ablation experiment writes to its own isolated checkpoint directory.
+        if getattr(cfg, "run_label", ""):
+            return cfg.run_label
         if cfg.fedavg_baseline_mode:
             if getattr(cfg, "fedzip_actual_mode", False):
                 return "fedzip"
@@ -191,6 +227,30 @@ def run(config: Config | None = None) -> None:
         if getattr(cfg, "uniform_top5_mode", False):
             return "uniform"
         return "divroute"
+
+    # ── [ABLATION] Apply startup-time overrides (Exp B and C) ──────────────────
+    # These overrides run ONCE before training begins so the startup banner and
+    # every downstream call sees the correct configuration.  No algorithm logic
+    # is modified — only the compression knobs that sit outside the core path.
+    if getattr(config, "ablation_routing_no_compression", False):
+        # Experiment B: full update for every tier — routing+weighting still active.
+        config.k_ratio_tier1 = 1.0
+        config.k_ratio_tier2 = 1.0
+        print("[init] *** ABLATION B — ROUTING ON / COMPRESSION OFF "
+              "(k=1.0 for all tiers) ***")
+
+    elif getattr(config, "ablation_uniform_compression", False):
+        # Experiment C: uniform k for every client; divergence weighting OFF.
+        uk = getattr(config, "ablation_uniform_k_ratio", 0.05)
+        config.k_ratio_tier1 = uk
+        config.k_ratio_tier2 = uk
+        config.use_divergence_weighting = False
+        print(f"[init] *** ABLATION C — UNIFORM COMPRESSION k={uk:.3f} / "
+              "ROUTING OFF ***")
+
+    elif getattr(config, "ablation_per_client_logging", False):
+        print("[init] *** ABLATION D — FULL DIVROUTE + PER-CLIENT FORENSIC LOGGING ***")
+    # ─────────────────────────────────────────────────────────────────────────
 
     method_name = _get_method_name(config)
     save_checkpoint_dir = os.path.join("checkpoints", f"{method_name}_{config.dataset_name}_seed{config.seed}")
@@ -309,6 +369,14 @@ def run(config: Config | None = None) -> None:
         cumulative_upload = checkpoint["main_loop_state"]["cumulative_upload"]
         cumulative_baseline_upload = checkpoint["main_loop_state"]["cumulative_baseline_upload"]
         
+        # Restore Phase-5 revised state if present (for backwards compatibility with old checkpoints)
+        _prev_delta_ckpt = checkpoint["main_loop_state"].get("_previous_global_delta", None)
+        if _prev_delta_ckpt is not None:
+            _previous_global_delta = _prev_delta_ckpt.to(device)
+        else:
+            _previous_global_delta = None
+        _tau_score_history = checkpoint["main_loop_state"].get("_tau_score_history", [])
+        
         # Restore logger history
         logger.history = checkpoint["logger_history"]
         logger._flush()
@@ -316,6 +384,8 @@ def run(config: Config | None = None) -> None:
         start_round = checkpoint["round_num"] + 1
         print(f"Resuming from round {start_round}/{config.num_rounds}")
     # ─────────────────────────────────────────────────────────────────────────
+
+    acc: float | None = None   # set each round; guards summary when 0 rounds run
 
     for rnd in range(start_round, config.num_rounds):
         selected = server.select_clients(all_ids)
@@ -354,18 +424,38 @@ def run(config: Config | None = None) -> None:
                 r["divergence_score"] = 0.0
                 r["tier"] = 2          # Tier-2 path → k_ratio_tier2=0.05
         else:
-            # -- divergence: EMA-smoothed distance (metric is configurable) ------
-            # Default: "cosine" reproduces the original implementation exactly.
-            # Alternative metrics (l2, relative_l2, layerwise_cosine) are used
-            # when config.divergence_metric != "cosine".
+            # ── Divergence computation ─────────────────────────────────────────────
+            # Two modes controlled by config.use_directional_divergence:
+            #
+            # MODE A (legacy, use_directional_divergence=False):
+            #   cosine or other metric between client weights and global weights.
+            #   Historically correlated ~1.0 with update norm.
+            #
+            # MODE B (Phase-5, use_directional_divergence=True):
+            #   delta-space cosine distance: 1 - cos(client_delta, prev_global_delta)
+            #   Decouples the signal from raw update magnitude.
+            #   Round-1 safe: prev_global_delta is None → uniform score 0.5.
+            # ──────────────────────────────────────────────────────────────────────
             param_names = [n for n, _ in server.global_model.named_parameters()]
             global_flat = torch.cat([
                 global_sd[k].flatten().float().cpu() for k in param_names
             ])
 
-            # Build layer_slices once per run if layerwise_cosine is requested
+            _use_directional = getattr(config, "use_directional_divergence", False)
+
+            # Flatten the stored previous global delta (for directional mode)
+            # Using CPU float32 to match client_flat.
+            _prev_delta_flat: torch.Tensor | None = None
+            if _use_directional and _previous_global_delta is not None:
+                _prev_delta_flat = _previous_global_delta.float().cpu()
+                _prev_delta_norm = _prev_delta_flat.norm(p=2).item()
+            else:
+                _prev_delta_norm = 0.0
+
+            # Build layer_slices once per run if layerwise_cosine is requested (legacy)
             _div_layer_slices = None
-            if getattr(config, "divergence_metric", "cosine") == "layerwise_cosine":
+            if (not _use_directional
+                    and getattr(config, "divergence_metric", "cosine") == "layerwise_cosine"):
                 offset = 0
                 _div_layer_slices = []
                 for k in param_names:
@@ -376,6 +466,36 @@ def run(config: Config | None = None) -> None:
             # [DIAG] per-client raw d captured BEFORE EMA update this round
             _diag_raw_per_client: dict = {}
             _diag_norm_per_client: dict = {}
+
+            # Global model eval loss (needed for loss-improvement hybrid score).
+            # Computed once per round, shared across all clients this round.
+            # Only computed when directional_divergence AND val splits are active.
+            _global_val_loss_per_client: dict = {}  # {cid: float}
+            _need_global_val_loss = (
+                _use_directional
+                and getattr(config, "local_val_fraction", 0.0) > 0.0
+                and getattr(config, "loss_improvement_weight", 0.0) > 0.0
+            )
+            if _need_global_val_loss:
+                # Evaluate the *current* global model on every selected client's val set
+                _global_model_eval = server.global_model
+                _global_model_eval.eval()
+                _global_ce = torch.nn.CrossEntropyLoss()
+                with torch.no_grad():
+                    for r in results:
+                        _cid = r["client_id"]
+                        _val_loader = clients[_cid]._val_loader
+                        if _val_loader is None:
+                            continue
+                        _gloss_sum, _gloss_n = 0.0, 0
+                        for _imgs, _lbls in _val_loader:
+                            _imgs, _lbls = _imgs.to(device), _lbls.to(device)
+                            _logits = _global_model_eval(_imgs)
+                            _gloss_sum += _global_ce(_logits, _lbls).item() * _lbls.size(0)
+                            _gloss_n   += _lbls.size(0)
+                        if _gloss_n > 0:
+                            _global_val_loss_per_client[_cid] = _gloss_sum / _gloss_n
+
             for r in results:
                 # Skip divergence update for clients with invalid updates.
                 # Writing NaN into ema_scores would permanently poison all future rounds.
@@ -391,59 +511,199 @@ def run(config: Config | None = None) -> None:
                 client_flat = torch.cat([
                     p.flatten().float().cpu() for n, p in local_model.named_parameters()
                 ])
+                client_delta = client_flat - global_flat  # w_local - w_global
 
-                # ── PART 2: divergence metric dispatch ─────────────────────────────
-                # When divergence_metric=="cosine" the path is identical to the
-                # original implementation.  Other metrics are computed by
-                # _diag.compute_divergence_metric() which has no side-effects.
-                _div_metric = getattr(config, "divergence_metric", "cosine")
-                if _div_metric == "cosine":
-                    # Preserve original FP64 cosine path exactly
-                    cos = F.cosine_similarity(
-                        client_flat.double().unsqueeze(0),
-                        global_flat.double().unsqueeze(0),
-                        dim=1, eps=1e-8,
-                    ).item()
-                    d_raw = max(0.0, 1.0 - cos)
+                if _use_directional:
+                    # ── Phase-5 directional divergence ──────────────────────────
+                    # d_dir = 1 - cos(client_delta, prev_global_delta)
+                    # Round-1 safe: if prev_global_delta is None, assign a neutral
+                    # score of 0.5 (middle of [0, 1]) so all clients start as Tier-2.
+                    if _prev_delta_flat is None or _prev_delta_norm < 1e-12:
+                        d_dir = 0.5   # safe fallback for round 1 / near-zero global update
+                        if rnd == 0:
+                            r["_round1_fallback"] = True
+                    else:
+                        _delta_norm = client_delta.norm(p=2).item()
+                        if _delta_norm < 1e-12:
+                            d_dir = 0.0  # zero-norm client delta → no divergence
+                        else:
+                            _cos_dir = float(F.cosine_similarity(
+                                client_delta.double().unsqueeze(0),
+                                _prev_delta_flat.double().unsqueeze(0),
+                                dim=1, eps=1e-8,
+                            ).item())
+                            d_dir = max(0.0, min(1.0, 1.0 - _cos_dir))
+                    d_raw = d_dir  # d_raw is the directional score
+                    r["d_dir"] = d_dir
+                    # ── Hybrid routing score ─────────────────────────────────────
+                    # Only computed when val data is available AND hybrid is requested.
+                    _cid = r["client_id"]
+                    _local_val_loss = r.get("local_val_loss")  # from client.train()
+                    _global_val_loss = _global_val_loss_per_client.get(_cid)
+                    _has_val = (_local_val_loss is not None and _global_val_loss is not None)
+                    r["_has_val_for_hybrid"] = _has_val
+                    if _has_val:
+                        # loss improvement: positive when local model is better
+                        _loss_improv_raw = _global_val_loss - _local_val_loss
+                        r["_loss_improv_raw"] = _loss_improv_raw
+                    else:
+                        r["_loss_improv_raw"] = None
+                    # Defer hybrid normalisation until all clients are scored
+                    # so we can normalise across the cohort.  Store raw dir score.
+                    r["_d_dir_raw_unnorm"] = d_dir
                 else:
-                    d_raw = _diag.compute_divergence_metric(
-                        client_flat, global_flat,
-                        metric=_div_metric,
-                        layer_slices=_div_layer_slices,
-                    )
-                # ─────────────────────────────────────────────────────────────────────
+                    # ── Legacy divergence (unchanged) ───────────────────────────
+                    _div_metric = getattr(config, "divergence_metric", "cosine")
+                    if _div_metric == "cosine":
+                        cos = F.cosine_similarity(
+                            client_flat.double().unsqueeze(0),
+                            global_flat.double().unsqueeze(0),
+                            dim=1, eps=1e-8,
+                        ).item()
+                        d_raw = max(0.0, 1.0 - cos)
+                    else:
+                        d_raw = _diag.compute_divergence_metric(
+                            client_flat, global_flat,
+                            metric=_div_metric,
+                            layer_slices=_div_layer_slices,
+                        )
 
                 # ── PART 1: gradient quality diagnostics (pre-compression) ───────
-                # Compression error fields are filled after server.aggregate()
-                # has computed the compressed delta.
                 if getattr(config, "enable_gradient_diagnostics", False):
                     _grad_diags[r["client_id"]] = _diag.compute_gradient_diagnostics(
                         client_flat, global_flat, compressed_flat=None
                     )
-                # ─────────────────────────────────────────────────────────────────────
+                # ─────────────────────────────────────────────────────────────────
 
                 if getattr(config, "enable_routing_diagnostics", False):
                     _diag_raw_per_client[r["client_id"]] = d_raw
-                    _diag_norm_per_client[r["client_id"]] = float(torch.norm(client_flat - global_flat).item())
-                    
+                    _diag_norm_per_client[r["client_id"]] = float(client_delta.norm(p=2).item())
+
                 d_ema = update_ema(ema_scores, r["client_id"], d_raw, config.ema_beta)
-                r["divergence_score"] = d_ema   # d_ema — always used for aggregation weighting
-                r["d_raw"] = d_raw              # stored for tier routing when routing_score="raw"
-                raw_d_scores.append(d_raw)      # tau estimation uses raw divergence, not EMA
+                r["d_raw"] = d_raw
+                r["d_ema"] = d_ema
+                raw_d_scores.append(d_raw)
 
                 # -- Memory Optimisation (Change 1) --
-                # Release the client's GPU model cache immediately to prevent OOM
-                # across rounds.
                 clients[r["client_id"]]._local_model = None
                 del local_model
                 del client_flat
+                del client_delta
 
-            # -- adaptive tau (Phase 6.1) ------------------------------------------
-            if config.use_adaptive_tau and len(raw_d_scores) >= 3:
-                config.tau_low, config.tau_high, _mu, _sigma = compute_adaptive_taus(
-                    raw_d_scores, config.tau_alpha, config.tau_beta)
-            else:
+            # ── Phase-5: compute hybrid routing score (across-cohort normalised) ─
+            if _use_directional:
+                _dir_vals = [r.get("_d_dir_raw_unnorm") for r in results
+                             if r.get("_d_dir_raw_unnorm") is not None]
+                _improv_vals = [r.get("_loss_improv_raw") for r in results
+                                if r.get("_loss_improv_raw") is not None]
+
+                # Normalise directional divergence to [0, 1] over cohort
+                _dir_min = min(_dir_vals) if _dir_vals else 0.0
+                _dir_max = max(_dir_vals) if _dir_vals else 1.0
+                _dir_range = _dir_max - _dir_min
+
+                # Normalise loss improvement to [0, 1] over cohort
+                _has_any_improv = len(_improv_vals) >= 2
+                if _has_any_improv:
+                    _imp_min = min(_improv_vals)
+                    _imp_max = max(_improv_vals)
+                    _imp_range = _imp_max - _imp_min
+                else:
+                    _imp_min = _imp_max = _imp_range = 0.0
+
+                _dw = getattr(config, "directional_div_weight",   0.70)
+                _lw = getattr(config, "loss_improvement_weight",  0.30)
+
+                _n_hybrid_fallback = 0
+                for r in results:
+                    _udir = r.get("_d_dir_raw_unnorm")
+                    if _udir is None:
+                        # NaN-guarded client — skip hybrid
+                        continue
+                    # Normalise directional component
+                    _dir_norm = (_udir - _dir_min) / _dir_range if _dir_range > 1e-12 else 0.5
+                    # Normalise loss-improvement component
+                    _uimp = r.get("_loss_improv_raw")
+                    if _uimp is not None and _has_any_improv and _imp_range > 1e-12:
+                        _imp_norm = (_uimp - _imp_min) / _imp_range
+                        _hybrid = _dw * _dir_norm + _lw * _imp_norm
+                    else:
+                        # Fallback: use directional only (full weight)
+                        _hybrid = _dir_norm
+                        _n_hybrid_fallback += 1
+                    r["routing_score_hybrid"] = _hybrid
+                    # Overwrite d_raw so tau/tier path uses hybrid score
+                    r["d_raw"] = _hybrid
+                    raw_d_scores.append(_hybrid)  # raw_d_scores already has d_dir; re-collect
+
+                # raw_d_scores will have been double-appended for directional clients;
+                # rebuild cleanly from final d_raw values.
+                raw_d_scores = [r["d_raw"] for r in results
+                                if r.get("d_raw") is not None and not np.isnan(r["d_raw"])]
+
+                if _n_hybrid_fallback > 0 and rnd < 5:
+                    print(f"  [Phase-5] {_n_hybrid_fallback} clients used directional-only fallback "
+                          f"(no val loss available) — set local_val_fraction>0 to enable hybrid score")
+
+                # Recompute EMA from hybrid d_raw
+                for r in results:
+                    _cid = r["client_id"]
+                    _hr = r.get("d_raw")
+                    if _hr is not None and not np.isnan(_hr):
+                        d_ema = update_ema(ema_scores, _cid, _hr, config.ema_beta)
+                        r["d_ema"] = d_ema
+
+            # ── Set divergence_score (used by aggregation weighting) ─────────────
+            # When use_divergence_ema=True → use EMA-smoothed score for BOTH
+            #   tier assignment AND aggregation weighting.
+            # When False → use d_raw for tier assignment (legacy routing_score="raw"),
+            #   d_ema for aggregation weighting (original behaviour).
+            _use_ema_routing = getattr(config, "use_divergence_ema", False)
+            for r in results:
+                _cid = r["client_id"]
+                _d_raw_r = r.get("d_raw")
+                _d_ema_r = r.get("d_ema", ema_scores.get(_cid, 0.0))
+                if _d_raw_r is None:
+                    # NaN-guarded: already has divergence_score set
+                    continue
+                if _use_ema_routing:
+                    # EMA score used for BOTH agg weighting and tier assignment
+                    r["divergence_score"] = _d_ema_r
+                else:
+                    # Legacy: EMA for agg, raw stored separately
+                    r["divergence_score"] = _d_ema_r  # agg weighting always uses EMA
+
+            # -- adaptive/percentile tau (Phase-5) ---------------------------------
+            _tau_win    = getattr(config, "tau_window",    1)
+            _tau_smooth = getattr(config, "tau_smoothing", 0.0)
+            _t_mode     = getattr(config, "threshold_mode", "adaptive_tau")
+            
+            if _t_mode == "percentile" and raw_d_scores:
+                _p33, _p67 = _mech.compute_percentile_taus(raw_d_scores)
+                # We store these purely for logging consistency, though they have flipped semantics
+                config.tau_low = _p33
+                config.tau_high = _p67
                 _mu, _sigma = 0.0, 0.0
+            else:
+                # Rolling window logic for adaptive_tau
+                if raw_d_scores:
+                    _tau_score_history.append(list(raw_d_scores))
+                    if len(_tau_score_history) > _tau_win:
+                        _tau_score_history = _tau_score_history[-_tau_win:]
+                _rolled_scores = [s for rnd_scores in _tau_score_history for s in rnd_scores]
+                if _t_mode == "adaptive_tau" and len(_rolled_scores) >= 3:
+                    _cand_low, _cand_high, _mu, _sigma = _mech.compute_adaptive_taus(
+                        _rolled_scores, config.tau_alpha, config.tau_beta)
+                    if _tau_smooth > 0.0:
+                        _new_low  = _tau_smooth * config.tau_low  + (1.0 - _tau_smooth) * _cand_low
+                        _new_high = _tau_smooth * config.tau_high + (1.0 - _tau_smooth) * _cand_high
+                        config.tau_low  = min(_new_low, _new_high)
+                        config.tau_high = max(_new_low, _new_high)
+                    else:
+                        config.tau_low  = _cand_low
+                        config.tau_high = _cand_high
+                else:
+                    _mu, _sigma = 0.0, 0.0
 
             # ── PART 6: adaptive tau diagnostics ────────────────────────────────────
             if getattr(config, "enable_tau_diagnostics", False) and raw_d_scores:
@@ -456,18 +716,28 @@ def run(config: Config | None = None) -> None:
             # ──────────────────────────────────────────────────────────────────────
 
             # -- tier assignment ---------------------------------------------------
-            # routing_score="raw": compare d_raw against tau (consistent, since tau
-            #   is derived from the raw distribution via compute_adaptive_taus).
-            # routing_score="ema": compare d_ema against tau (legacy, smooth but biased
-            #   upward during convergence because EMA lags behind declining d_raw).
-            # Aggregation weighting uses r["divergence_score"] (d_ema) in both modes.
+            _use_ema_routing = getattr(config, "use_divergence_ema", False)
             for r in results:
-                d_for_tier = (
-                    r.get("d_raw", r["divergence_score"])   # fall back for NaN clients
-                    if config.routing_score == "raw"
-                    else r["divergence_score"]
-                )
-                tier = server.assign_tier(d_for_tier)
+                if _use_ema_routing:
+                    d_for_tier = r.get("d_ema", r["divergence_score"])
+                elif config.routing_score == "raw":
+                    d_for_tier = r.get("d_raw", r["divergence_score"])
+                else:
+                    d_for_tier = r["divergence_score"]
+                
+                # Apply specific percentile tiering logic
+                if _t_mode == "percentile":
+                    if np.isnan(d_for_tier) or np.isinf(d_for_tier):
+                        tier = 1 # Bottom tier safely
+                    elif d_for_tier <= config.tau_low:
+                        tier = 1
+                    elif d_for_tier <= config.tau_high:
+                        tier = 2
+                    else:
+                        tier = 3
+                else:
+                    tier = server.assign_tier(d_for_tier)
+                    
                 r["natural_tier"] = tier
                 # Tier-3 warm-up period (first 15 rounds)
                 if rnd < 15 and tier == 3:
@@ -638,8 +908,8 @@ def run(config: Config | None = None) -> None:
                 if not np.isnan(_rve_spearman): _diag_hist["ema_spearman"].append(_rve_spearman)
                 _diag_hist["tier_changes"].append(_tier_changes)
 
-                print("  [DIAG] 2. Ranking stability (within-round raw\u2194EMA)")
-                print(f"  raw\u2194ema spearman={_rve_spearman:.4f}  rank_changes(raw\u2260ema)={_rank_changes}  tier_changes_vs_prev={_tier_changes}")
+                print("  [DIAG] 2. Ranking stability (within-round raw<->EMA)")
+                print(f"  raw<->ema spearman={_rve_spearman:.4f}  rank_changes(raw!=ema)={_rank_changes}  tier_changes_vs_prev={_tier_changes}")
                 print(f"  retention: T1={_t1_ret:.2f} T2={_t2_ret:.2f} T3={_t3_ret:.2f}")
                 
                 print("  [DIAG] 3. Optimisation correlation")
@@ -696,18 +966,18 @@ def run(config: Config | None = None) -> None:
                 _t3_set = set(_t3_ids)
                 _all_selected_ids = {r["client_id"] for r in results}
                 if _t1_curr_set & _t2_set:
-                    print(f"  [DIAG WARNING] T1\u2229T2 not empty: {_t1_curr_set & _t2_set}")
+                    print(f"  [DIAG WARNING] T1 intersect T2 not empty: {_t1_curr_set & _t2_set}")
                 if _t1_curr_set & _t3_set:
-                    print(f"  [DIAG WARNING] T1\u2229T3 not empty: {_t1_curr_set & _t3_set}")
+                    print(f"  [DIAG WARNING] T1 intersect T3 not empty: {_t1_curr_set & _t3_set}")
                 if _t2_set & _t3_set:
-                    print(f"  [DIAG WARNING] T2\u2229T3 not empty: {_t2_set & _t3_set}")
+                    print(f"  [DIAG WARNING] T2 intersect T3 not empty: {_t2_set & _t3_set}")
                 if _t1_curr_set | _t2_set | _t3_set != _all_selected_ids:
                     _missing = _all_selected_ids - (_t1_curr_set | _t2_set | _t3_set)
-                    print(f"  [DIAG WARNING] T1\u222aT2\u222aT3 \u2260 selected clients. Missing: {_missing}")
+                    print(f"  [DIAG WARNING] T1 union T2 union T3 != selected clients. Missing: {_missing}")
                 if _t1_entered & _t1_left:
-                    print(f"  [DIAG WARNING] T1 entering\u2229leaving not empty: {_t1_entered & _t1_left}")
+                    print(f"  [DIAG WARNING] T1 entering intersect leaving not empty: {_t1_entered & _t1_left}")
                 if len(_raw_arr) != len(_ema_arr):
-                    print(f"  [DIAG WARNING] raw_arr length ({len(_raw_arr)}) \u2260 ema_arr length ({len(_ema_arr)})")
+                    print(f"  [DIAG WARNING] raw_arr length ({len(_raw_arr)}) != ema_arr length ({len(_ema_arr)})")
                 
                 _diag_prev_raw_ranks = _cur_raw_ranks
                 _diag_prev_ema_ranks = _cur_ema_ranks
@@ -739,6 +1009,23 @@ def run(config: Config | None = None) -> None:
         k1, k2 = get_adaptive_k_ratios(config, rnd)
         config.active_k_ratio_tier1, config.active_k_ratio_tier2 = k1, k2
 
+        # ── [ABLATION B] Re-apply k=1.0 after get_adaptive_k_ratios so that
+        # use_adaptive_k (if somehow True) cannot silently restore compression.
+        if getattr(config, "ablation_routing_no_compression", False):
+            config.active_k_ratio_tier1 = 1.0
+            config.active_k_ratio_tier2 = 1.0
+
+        # ── [ABLATION C] For uniform compression, also force every client to the
+        # Tier-1 path so apply_tiered_compression uses active_k_ratio_tier1.
+        # Divergence scores are still computed above for diagnostic logging.
+        elif getattr(config, "ablation_uniform_compression", False):
+            uk = getattr(config, "ablation_uniform_k_ratio", 0.05)
+            config.active_k_ratio_tier1 = uk
+            config.active_k_ratio_tier2 = uk
+            for r in results:
+                r["tier"] = 1   # route all clients through Tier-1 path
+        # ─────────────────────────────────────────────────────────────────────
+
         # -- initialise bytes; aggregate() overwrites these for Tier-1/2 clients.
         #    Tier-3 clients send 0 upload bytes and receive no server-side payload
         #    here (heartbeat is counted separately below if tier3_sync is active).
@@ -748,6 +1035,15 @@ def run(config: Config | None = None) -> None:
             r["download_bytes"] = 0    # full-model download — set by server.aggregate()
 
         server.aggregate(results, error_buffers, round_num=rnd + 1)
+
+        # ── [Phase-5] Capture global delta for next-round directional divergence ─
+        # Store a CPU copy of the aggregated update (before momentum) so that
+        # directional divergence can compare each client delta against the
+        # direction the server just moved.  Uses server.global_delta which is
+        # set unconditionally at the end of server.aggregate().
+        if getattr(config, "use_directional_divergence", False) and server.global_delta is not None:
+            _previous_global_delta = server.global_delta.detach().cpu().clone()
+        # ─────────────────────────────────────────────────────────────────────────
 
         # ── PART 1 (post-compression) + PARTS 4+5: capture per-client deltas ───────
         # global_delta is the weighted agg update; we need per-client compressed
@@ -884,51 +1180,101 @@ def run(config: Config | None = None) -> None:
         if _baseline_bpr is None:
             _baseline_bpr = _fedavg_bytes_per_round(config.clients_per_round, delta_numel)
 
+        t1 = sum(1 for r in results if r["tier"] == 1)
+        t2 = sum(1 for r in results if r["tier"] == 2)
+        t3 = sum(1 for r in results if r["tier"] == 3)
+
+        # ── Phase-5 Detailed Diagnostics ───────────────────────────────────────────
+        _detailed_diag = {}
+        _dir_divs = [r.get("d_dir") for r in results if r.get("d_dir") is not None]
+        _loss_imps = [r.get("_loss_improv_raw") for r in results if r.get("_loss_improv_raw") is not None]
+        _scores = [r.get("routing_score_hybrid", r.get("d_raw")) for r in results if r.get("routing_score_hybrid", r.get("d_raw")) is not None]
+
+        def _stats(arr):
+            if not arr: return None
+            a = np.array(arr)
+            return {
+                "min": float(np.min(a)), "max": float(np.max(a)),
+                "mean": float(np.mean(a)), "median": float(np.median(a)), "std": float(np.std(a)),
+                "p10": float(np.percentile(a, 10)), "p25": float(np.percentile(a, 25)),
+                "p50": float(np.percentile(a, 50)), "p75": float(np.percentile(a, 75)), "p90": float(np.percentile(a, 90)),
+            }
+        _detailed_diag["dir_div"] = _stats(_dir_divs)
+        _detailed_diag["loss_improvement"] = _stats(_loss_imps)
+        _detailed_diag["routing_score"] = _stats(_scores)
+        _detailed_diag["tier_counts"] = {"1": t1, "2": t2, "3": t3}
+
+        # correlations
+        _update_norms = []
+        for r in results:
+            _cid = r.get("client_id")
+            if _cid is not None and _grad_diags and _cid in _grad_diags:
+                _update_norms.append(float(_grad_diags[_cid].get("update_l2_norm", np.nan)))
+            else:
+                _update_norms.append(None)
+        
+        import scipy.stats as stats
+        def _corr(xs, ys):
+            valid = [(x, y) for x, y in zip(xs, ys) if x is not None and y is not None and not np.isnan(x) and not np.isnan(y)]
+            if len(valid) < 2: return {"pearson": None, "spearman": None}
+            vx, vy = zip(*valid)
+            try:
+                p, _ = stats.pearsonr(vx, vy)
+                s, _ = stats.spearmanr(vx, vy)
+                return {"pearson": float(p) if not np.isnan(p) else None, "spearman": float(s) if not np.isnan(s) else None}
+            except Exception:
+                return {"pearson": None, "spearman": None}
+
+        _detailed_diag["corr_dir_div_norm"] = _corr(_dir_divs, _update_norms)
+        _detailed_diag["corr_score_norm"] = _corr(_scores, _update_norms)
+
         # -- evaluation + logging --------------------------------------------------
         acc = server.evaluate(test_loader)
+        
+        # Communication tracking for logging
+        bytes_per_param = 2 if getattr(config, "use_fp16_download", False) else 4
+        full_model_bytes = delta_numel * bytes_per_param
+        total_upload   = sum(r["upload_bytes"]   for r in results)
+        total_download = config.clients_per_round * full_model_bytes
+        total_bidir    = total_upload + total_download
+        
+        # Compute temporary cumulative values for accurate logging of current state
+        _temp_cumul_upload = cumulative_upload + total_upload
+        _temp_cumul_download = cumulative_divroute_download + total_download
+        _temp_cumul_total = _temp_cumul_upload + _temp_cumul_download
+        
+        baseline_bidir = _baseline_bpr["bidir"]
+        saving_pct = 100.0 * (1.0 - total_bidir / baseline_bidir) if baseline_bidir > 0 else 0.0
+
         logger.log(
             rnd, acc, results, delta_numel=delta_numel,
-            # ── PART 7: pass diagnostic payloads (None when disabled = no overhead) ──
             grad_diagnostics     = _grad_diags if _grad_diags else None,
             agg_update_norm      = _agg_norm_payload,
             global_update_norm   = _global_norm_payload,
             routing_correlations = _routing_corr_payload,
             tier_contributions   = _tier_contrib_payload,
             compression_analysis = _compress_analysis_payload,
-            tau_diagnostics      = _tau_diag_payload if not config.uniform_top5_mode else None,
+            tau_diagnostics      = _tau_diag_payload if not getattr(config, "uniform_top5_mode", False) else None,
+            detailed_routing_diagnostics = _detailed_diag,
+            upload_mb            = total_upload / 1e6,
+            download_mb          = total_download / 1e6,
+            total_mb             = total_bidir / 1e6,
+            cumulative_total_mb  = _temp_cumul_total / 1e6,
+            communication_savings= saving_pct,
         )
         server.update_selection_weights(results)
-
-        # -- communication accounting (corrected) ---------------------------------
-        # upload  = compressed bytes each client sent to the server (set in aggregate())
-        # download = full global model the server broadcast to every selected client
-        #            (Tier-3 clients receive the full model too, even if not aggregated)
-        bytes_per_param = 2 if getattr(config, "use_fp16_download", False) else 4
-        full_model_bytes = delta_numel * bytes_per_param   # bytes in the global parameter vector
-        total_upload   = sum(r["upload_bytes"]   for r in results)
-        total_download = config.clients_per_round * full_model_bytes
-
-        # Heartbeat (Tier-3 sync): counts as additional upload for those clients
-        # (already added to r["bytes_received"] below; not re-counted here)
-
+        
+        # Restore cumulative trackers
         cumulative_upload            += total_upload
         cumulative_baseline_upload   += _baseline_bpr["upload"]
         cumulative_divroute_download += total_download
         cumulative_baseline_download += _baseline_bpr["download"]
-
-        total_bidir    = total_upload + total_download
-        baseline_bidir = _baseline_bpr["bidir"]
-        saving_pct = 100.0 * (1.0 - total_bidir / baseline_bidir)
 
         cumulative_saving_pct = 100.0 * (
             1.0
             - (cumulative_upload + cumulative_divroute_download)
             / (cumulative_baseline_upload + cumulative_baseline_download)
         )
-
-        t1 = sum(1 for r in results if r["tier"] == 1)
-        t2 = sum(1 for r in results if r["tier"] == 2)
-        t3 = sum(1 for r in results if r["tier"] == 3)
 
         d_vals = [r["divergence_score"] for r in results]
         sync_note = f" | t3-sync: {tier3_sync_count}" if tier3_sync_count > 0 else ""
@@ -950,6 +1296,38 @@ def run(config: Config | None = None) -> None:
             print(f"    Client {r['client_id']:>3} | Local Train Acc: {_train_acc:.4f} | "
                   f"Local Val Acc: {_val_str} | "
                   f"Agg Weight: {r.get('aggregation_weight', 0.0):.4f} | Tier: {r.get('tier')}")
+
+        # ── [ABLATION D] Dense per-client forensic table ─────────────────────────
+        # Printed every round when ablation_per_client_logging=True.
+        # No algorithmic change — reads values already computed above.
+        if getattr(config, "ablation_per_client_logging", False):
+            _k1_active = getattr(config, "active_k_ratio_tier1", config.k_ratio_tier1)
+            _k2_active = getattr(config, "active_k_ratio_tier2", config.k_ratio_tier2)
+            print(f"\n  [ABLATION-D] round={rnd+1} per-client forensic log")
+            print(f"  {'CID':>4}  {'d_raw':>10}  {'d_ema':>10}  {'tier':>4}  "
+                  f"{'k_ratio':>7}  {'sel_w':>8}  {'agg_w':>8}  "
+                  f"{'loss':>8}  {'norm_before':>11}")
+            for _r in sorted(results, key=lambda x: x["client_id"]):
+                _cid   = _r["client_id"]
+                _draw  = _r.get("d_raw", float("nan"))
+                _dema  = _r.get("divergence_score", float("nan"))
+                _tier  = _r.get("tier", -1)
+                _kr    = _k1_active if _tier == 1 else _k2_active
+                _selw  = server.selection_weights[_cid]
+                _aggw  = _r.get("aggregation_weight", 0.0)
+                _loss  = _r.get("local_loss", float("nan"))
+                # update_l2_norm populated by gradient diagnostics when enabled
+                _norm  = (
+                    _grad_diags[_cid]["update_l2_norm"]
+                    if _cid in _grad_diags
+                    else float("nan")
+                )
+                _draw_str = f"{_draw:>10.6f}" if not np.isnan(_draw) else "       nan"
+                _norm_str = f"{_norm:>11.5f}" if not np.isnan(_norm) else "          nan"
+                print(f"  {_cid:>4}  {_draw_str}  {_dema:>10.6f}  {_tier:>4}  "
+                      f"{_kr:>7.4f}  {_selw:>8.4f}  {_aggw:>8.4f}  "
+                      f"{_loss:>8.4f}  {_norm_str}")
+        # ─────────────────────────────────────────────────────────────────────────
 
         # ── Checkpoint and Resume System: Save Checkpoint ───────────────────────
         completed_round = rnd + 1
@@ -992,6 +1370,9 @@ def run(config: Config | None = None) -> None:
                     "cumulative_baseline_download": cumulative_baseline_download,
                     "cumulative_upload": cumulative_upload,
                     "cumulative_baseline_upload": cumulative_baseline_upload,
+                    # Phase-5 revised state
+                    "_previous_global_delta": _previous_global_delta.cpu() if _previous_global_delta is not None else None,
+                    "_tau_score_history": _tau_score_history,
                 },
                 "logger_history": logger.history.copy(),
                 "rng_state": rng_state,
@@ -1014,7 +1395,7 @@ def run(config: Config | None = None) -> None:
         if _diag_hist["raw_sigma"] and _diag_hist["ema_sigma"]:
             print(f"Average raw/EMA ratio: {np.mean(np.array(_diag_hist['raw_sigma']) / np.array(_diag_hist['ema_sigma'])):.4f}")
         # Both 'raw_spearman' and 'ema_spearman' slots now store the within-round raw<->EMA Spearman
-        print(f"Average raw\u2194EMA Spearman (within-round): {np.mean(_diag_hist['raw_spearman']):.4f}" if _diag_hist["raw_spearman"] else "Average raw\u2194EMA Spearman: N/A")
+        print(f"Average raw<->EMA Spearman (within-round): {np.mean(_diag_hist['raw_spearman']):.4f}" if _diag_hist["raw_spearman"] else "Average raw<->EMA Spearman: N/A")
         print(f"Average div<->norm Pearson: {np.mean(_diag_hist['pearson_div_norm']):.4f}" if _diag_hist["pearson_div_norm"] else "Average div<->norm Pearson: N/A")
         print(f"Average div<->loss Pearson: {np.mean(_diag_hist['pearson_div_loss']):.4f}" if _diag_hist["pearson_div_loss"] else "Average div<->loss Pearson: N/A")
         print(f"Average tier changes/round: {np.mean(_diag_hist['tier_changes']):.2f}" if _diag_hist["tier_changes"] else "Average tier changes/round: N/A")
@@ -1025,12 +1406,20 @@ def run(config: Config | None = None) -> None:
     cumulative_download_total = cumulative_divroute_download
     cumulative_bidirectional  = cumulative_upload_total + cumulative_download_total
     cumulative_baseline_bidirectional = cumulative_baseline_upload + cumulative_baseline_download
-    bidir_saving = 100.0 * (1.0 - cumulative_bidirectional / cumulative_baseline_bidirectional)
-    # Upload-only saving (compression saving on client→server direction)
-    upload_saving = 100.0 * (1.0 - cumulative_upload_total / cumulative_baseline_upload)
+    if cumulative_baseline_upload > 0:
+        upload_saving = 100.0 * (1.0 - cumulative_upload_total / cumulative_baseline_upload)
+    else:
+        upload_saving = 0.0
+    if cumulative_baseline_bidirectional > 0:
+        bidir_saving = 100.0 * (1.0 - cumulative_bidirectional / cumulative_baseline_bidirectional)
+    else:
+        bidir_saving = 0.0
 
     print(f"\n[done] log written to {config.log_path}")
-    print(f"[summary] final acc     : {acc:.4f}")
+    if acc is None:
+        print("[summary] final acc     : N/A (no rounds ran — already at target)")
+    else:
+        print(f"[summary] final acc     : {acc:.4f}")
     print(f"[summary] upload (C->S) : {cumulative_upload_total/1e6:.2f} MB "
           f"(FedAvg: {cumulative_baseline_upload/1e6:.2f} MB, "
           f"saving {upload_saving:.1f}%)")

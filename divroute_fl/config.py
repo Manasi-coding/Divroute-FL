@@ -25,8 +25,35 @@ class Config:
     tau_alpha: float = 0.5       # tau_low = mu - alpha * sigma
     tau_beta: float = 1.0        # tau_high = mu + beta * sigma
 
+    # Rolling-window adaptive tau (Phase-5 revised).
+    # Uses scores from the most recent tau_window rounds for statistics,
+    # then applies exponential smoothing so thresholds do not jump.
+    # Only active when use_adaptive_tau=True.
+    tau_window: int = 5           # number of past rounds to keep in rolling window
+    tau_smoothing: float = 0.80  # EMA coefficient applied to candidate tau each round
+                                  # 0 = instant (no smoothing), 1 = frozen
+
     # EMA smoothing for divergence scores
     ema_beta: float = 0.6
+    # When True, the EMA-smoothed routing score is the actual signal used for
+    # tier assignment AND aggregation weighting (Phase-5 revised).
+    # When False, routing uses d_raw (legacy behaviour).
+    use_divergence_ema: bool = False
+
+    # Directional divergence (Phase-5 revised).
+    # When True, replaces the weight-space cosine divergence with a delta-space
+    # cosine distance: div = 1 - cos(client_delta, previous_global_delta).
+    # This decouples the routing signal from raw update magnitude.
+    # When False, the original implementation is preserved exactly.
+    use_directional_divergence: bool = False
+
+    # Hybrid routing score weights (Phase-5 revised).
+    # routing_score = dir_weight * normalised_directional_div
+    #               + loss_weight * normalised_loss_improvement
+    # Only active when use_directional_divergence=True AND local_val_fraction>0.
+    # Must sum to 1.0; enforced at runtime.
+    directional_div_weight:   float = 0.70
+    loss_improvement_weight:  float = 0.30
 
     # top-k compression ratios per tier
     k_ratio_tier1: float = 0.20
@@ -99,6 +126,45 @@ class Config:
     fedzip_z_ratio: float = 0.01
     fedzip_k_clusters: int = 3
 
+    # ── [ABLATION] Experiment isolation flags ────────────────────────────────────
+    # These flags implement the four ablation conditions (A–D) that isolate
+    # the source of the CIFAR-100 accuracy loss.  They are applied at startup
+    # in main.py and override routing/compression decisions ONLY — they do not
+    # modify divergence formulas, adaptive-tau logic, client training, aggregation
+    # mathematics, compression implementation, EMA behaviour, or checkpointing.
+    #
+    # Experiment A — FedAvg-equivalent sanity baseline
+    #   Use fedavg_baseline_mode=True (existing validated path).  No new flag needed.
+    #
+    # Experiment B — DivRoute routing ON, compression OFF
+    #   When True: tier assignment + divergence weighting run normally; however
+    #   k_ratio is forced to 1.0 for EVERY tier so no coordinates are discarded.
+    #   Purpose: isolate whether routing/weighting alone causes the accuracy drop.
+    ablation_routing_no_compression: bool = False
+
+    # Experiment C — Uniform compression, routing OFF
+    #   When True: divergence scoring still runs (for diagnostic logging), but
+    #   every selected client is assigned Tier-1 and the same k_ratio is used
+    #   for all (ablation_uniform_k_ratio).  Divergence weighting is disabled.
+    #   Purpose: test whether uniform compression at the same budget is safer
+    #   than DivRoute's adaptive routing.
+    ablation_uniform_compression: bool = False
+    ablation_uniform_k_ratio:     float = 0.05   # mirrors DivRoute's Tier-2 ratio
+
+    # Experiment D — Full DivRoute + dense per-client forensic logging
+    #   When True: no algorithmic change; adds a detailed per-client table every
+    #   round logging client_id, d_raw, d_ema, tier, k_ratio, selection weight,
+    #   aggregation weight, local_loss, and update norm (where available).
+    ablation_per_client_logging: bool = False
+
+    # run_label — optional suffix that overrides the checkpoint sub-folder name.
+    # When non-empty, main.py uses this label instead of the auto-derived method
+    # name so each ablation experiment writes to its own isolated directory.
+    # Example: "ablation_b_no_compression" → checkpoints/ablation_b_no_compression/
+    # Leave empty ("") for normal operation (no behavioural change).
+    run_label: str = ""
+    # ─────────────────────────────────────────────────────────────────────────────
+
 
 
     # Set True to suppress the interactive "Generate plots?" prompt.
@@ -140,8 +206,15 @@ class Config:
     # ─────────────────────────────────────────────────────────────────────────
     local_val_fraction: float = 0.0
 
-    # ── [DIAG] Routing Diagnostics ───────────────────────────────────────────
-    enable_routing_diagnostics: bool = True
+    # ── [Phase-5] Rolling-Window Adaptive Thresholds ─────────────────────────
+    # If True, triggers threshold_mode="adaptive_tau" logic (legacy compat).
+    use_adaptive_tau: bool = True
+    threshold_mode: str = "adaptive_tau" # "fixed", "adaptive_tau", "percentile"
+    # bn_mode controls BatchNormalization behaviour. 
+    # "default": Standard nn.BatchNorm2d, stats aggregated by server.
+    # "local_bn": nn.BatchNorm2d, but running stats are excluded from global model.
+    # "groupnorm": Replace nn.BatchNorm2d with nn.GroupNorm.
+    bn_mode: str = "default"
     # Routing score used for tier assignment.
     # "raw"  -> compare d_raw against tau (consistent: tau is also from d_raw)
     # "ema"  -> compare d_ema against tau (legacy behaviour: smooth but biased)

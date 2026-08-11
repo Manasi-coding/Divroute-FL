@@ -17,7 +17,10 @@ os.makedirs(PLOTS_DIR, exist_ok=True)
 
 def _load_log(log_path: str) -> list:
     with open(log_path, "r") as f:
-        return json.load(f)
+        data = json.load(f)
+    if isinstance(data, dict) and "history" in data:
+        return data["history"]
+    return data
 
 
 # -------------------------------------------------------------------------

@@ -193,7 +193,7 @@ def _cosine_lr(base_lr: float, round_num: int, total_rounds: int) -> float:
 
 class FLClient:
     def __init__(self, client_id, dataset, local_epochs, local_lr, batch_size, device, model_name, num_classes,
-                 val_dataset=None):
+                 val_dataset=None, bn_mode="default"):
         self.client_id = client_id
         self.dataset = dataset
         self.local_epochs = local_epochs
@@ -202,7 +202,11 @@ class FLClient:
         self.device = device
         self.model_name = model_name
         self.num_classes = num_classes
+        self.bn_mode = bn_mode
         self._local_model: nn.Module | None = None
+        
+        # Buffer for local_bn ablation
+        self._local_bn_stats = None
 
         # ── FedSparse Stage 3: IRW persistent buffer ─────────────────────────
         # Stores ‖w_j^local − w_j^global‖₂ for every named parameter after
@@ -267,8 +271,12 @@ class FLClient:
         """
         epochs = local_epochs or self.local_epochs
 
-        local_model = get_model(self.model_name, self.num_classes).to(self.device)
+        local_model = get_model(self.model_name, self.num_classes, self.bn_mode).to(self.device)
         local_model.load_state_dict(global_state_dict)   # fast, no deepcopy
+        
+        if self.bn_mode == "local_bn" and self._local_bn_stats is not None:
+            local_model.load_state_dict(self._local_bn_stats, strict=False)
+            
         local_model.train()
 
         # ── [DEBUG_BN] Log global BN state BEFORE local training ──────────────
@@ -379,7 +387,7 @@ class FLClient:
         # the same mixed inputs as the student so the NTD loss is computed
         # on the correct input distribution.
         if ntd_beta > 0:
-            teacher_model = get_model(self.model_name, self.num_classes).to(self.device)
+            teacher_model = get_model(self.model_name, self.num_classes, self.bn_mode).to(self.device)
             teacher_model.load_state_dict(global_state_dict)
             teacher_model.eval()
             for p in teacher_model.parameters():
@@ -512,15 +520,22 @@ class FLClient:
         # DivRoute logic — it is purely diagnostic.
         if self._val_loader is not None:
             val_correct, val_total = 0, 0
+            val_loss_sum = 0.0
+            val_criterion = nn.CrossEntropyLoss()   # no label smoothing for val
             with torch.no_grad():
                 for images, labels in self._val_loader:
                     images, labels = images.to(self.device), labels.to(self.device)
-                    preds = local_model(images).argmax(dim=1)
+                    logits = local_model(images)
+                    preds = logits.argmax(dim=1)
                     val_correct += (preds == labels).sum().item()
                     val_total   += labels.size(0)
-            local_val_acc: float | None = val_correct / val_total if val_total > 0 else None
+                    val_loss_sum += val_criterion(logits, labels).item() * labels.size(0)
+            local_val_acc: float | None  = val_correct / val_total if val_total > 0 else None
+            local_val_loss: float | None = val_loss_sum / val_total if val_total > 0 else None
         else:
-            local_val_acc = None
+            local_val_acc  = None
+            local_val_loss = None
+
         # ─────────────────────────────────────────────────────────────────────────
 
         # Keep the raw trained model for divergence scoring in main.py.
@@ -564,6 +579,13 @@ class FLClient:
                 print(f"[DEBUG_BN] Changed keys: {changed}")
         # ──────────────────────────────────────────────────────────────────────
 
+        if self.bn_mode == "local_bn":
+            self._local_bn_stats = {
+                k: v.cpu().clone()
+                for k, v in local_model.state_dict().items()
+                if "running" in k or "num_batches_tracked" in k
+            }
+
         return {
             "client_id": self.client_id,
             # Upload the raw locally-trained model, not the EMA shadow model.
@@ -578,11 +600,13 @@ class FLClient:
             "local_loss": loss.item() if 'loss' in locals() else 0.0,
             "local_train_acc": local_train_acc,
             "local_val_acc":   local_val_acc,
+            "local_val_loss":  local_val_loss,
             "divergence_score": None,
             "tier": None,
             "bytes_received": None,
             "upload_bytes": 0,  # placeholder; overwritten by server.aggregate()
         }
+
 
     def get_local_model(self) -> nn.Module | None:
         return self._local_model

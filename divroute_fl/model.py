@@ -30,7 +30,7 @@ class SimpleCNN(nn.Module):
         return x
 
 
-def get_model(model_name: str, num_classes: int) -> nn.Module:
+def get_model(model_name: str, num_classes: int, bn_mode: str = "default") -> nn.Module:
     """
     Model factory.  Returns an initialised (random-weight) model.
 
@@ -42,6 +42,7 @@ def get_model(model_name: str, num_classes: int) -> nn.Module:
     ----------
     model_name  : one of {"simplecnn", "resnet18"}
     num_classes : number of output classes (10 for CIFAR-10, 100 for CIFAR-100)
+    bn_mode     : "default", "local_bn", "groupnorm"
     """
     name = model_name.lower().strip()
     if name == "simplecnn":
@@ -58,6 +59,22 @@ def get_model(model_name: str, num_classes: int) -> nn.Module:
         model.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
         model.maxpool = nn.Identity()   # remove the stride-2 MaxPool
         model.fc = nn.Linear(model.fc.in_features, num_classes)
+        
+        # BN Ablation: Replace BatchNorm2d with GroupNorm if requested
+        # Default ResNet uses BatchNorm2d which can cause issues in non-IID FL
+        if bn_mode == "groupnorm":
+            def _replace_bn(module):
+                for name, child in module.named_children():
+                    if isinstance(child, nn.BatchNorm2d):
+                        num_features = child.num_features
+                        # 32 groups is standard, but must divide num_features. 
+                        # ResNet18 has 64, 128, 256, 512 channels, all divisible by 32.
+                        gn = nn.GroupNorm(32, num_features)
+                        setattr(module, name, gn)
+                    else:
+                        _replace_bn(child)
+            _replace_bn(model)
+            
         return model
     else:
         raise ValueError(

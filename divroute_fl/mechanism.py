@@ -106,6 +106,28 @@ def compute_adaptive_taus(all_d_scores: list, tau_alpha: float, tau_beta: float)
     return tau_low, tau_high, mu, sigma
 
 
+def compute_percentile_taus(all_d_scores: list):
+    """
+    Computes thresholds for percentile-based routing.
+    Returns (p33, p67).
+    """
+    arr = np.array(all_d_scores, dtype=np.float64)
+    # Filter out NaNs
+    arr = arr[~np.isnan(arr)]
+    if len(arr) < 3:
+        # Fallback if too few clients
+        return -np.inf, np.inf
+    
+    p33 = float(np.percentile(arr, 33.3333))
+    p67 = float(np.percentile(arr, 66.6667))
+    
+    # Handle ties where p33 == p67 by slightly separating them
+    if p33 == p67:
+        p67 += 1e-6
+        
+    return p33, p67
+
+
 def update_selection_weights(weights: np.ndarray, results: list, gamma: float) -> None:
     """
     Tier-3 (converged) clients have their selection probability decayed by gamma.
