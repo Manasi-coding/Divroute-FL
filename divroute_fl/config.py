@@ -34,7 +34,7 @@ class Config:
                                   # 0 = instant (no smoothing), 1 = frozen
 
     # EMA smoothing for divergence scores
-    ema_beta: float = 0.6
+    ema_beta: float = 0.85
     # When True, the EMA-smoothed routing score is the actual signal used for
     # tier assignment AND aggregation weighting (Phase-5 revised).
     # When False, routing uses d_raw (legacy behaviour).
@@ -52,8 +52,8 @@ class Config:
     #               + loss_weight * normalised_loss_improvement
     # Only active when use_directional_divergence=True AND local_val_fraction>0.
     # Must sum to 1.0; enforced at runtime.
-    directional_div_weight:   float = 0.70
-    loss_improvement_weight:  float = 0.30
+    directional_div_weight:   float = 0.50
+    loss_improvement_weight:  float = 0.50
 
     # top-k compression ratios per tier
     k_ratio_tier1: float = 0.20
@@ -208,8 +208,10 @@ class Config:
 
     # ── [Phase-5] Rolling-Window Adaptive Thresholds ─────────────────────────
     # If True, triggers threshold_mode="adaptive_tau" logic (legacy compat).
-    use_adaptive_tau: bool = True
-    threshold_mode: str = "adaptive_tau" # "fixed", "adaptive_tau", "percentile"
+    # Modes: "fixed", "adaptive_tau", "percentile", "rolling_percentile"
+    threshold_mode: str = "adaptive_tau"
+    rolling_window_size: int = 5
+    convergence_floor: float = 1e-4
     # bn_mode controls BatchNormalization behaviour. 
     # "default": Standard nn.BatchNorm2d, stats aggregated by server.
     # "local_bn": nn.BatchNorm2d, but running stats are excluded from global model.

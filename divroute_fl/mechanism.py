@@ -15,6 +15,21 @@ def compute_divergence(local_model: nn.Module, global_model: nn.Module) -> float
     return 1.0 - cos_sim
 
 
+def compute_decoupled_divergence(delta: torch.Tensor, reference_vector: torch.Tensor, eps: float = 1e-8) -> float:
+    """
+    Scale-independent angular divergence.
+    delta_hat = delta / (||delta|| + eps)
+    momentum_hat = momentum / (||momentum|| + eps)
+    d = 1 - cosine_similarity(delta_hat, momentum_hat)
+    """
+    delta_norm = delta.norm(p=2)
+    ref_norm = reference_vector.norm(p=2)
+    delta_hat = delta / (delta_norm + eps)
+    ref_hat = reference_vector / (ref_norm + eps)
+    cos_sim = F.cosine_similarity(delta_hat.unsqueeze(0), ref_hat.unsqueeze(0), eps=eps).item()
+    return max(0.0, min(1.0, 1.0 - cos_sim))
+
+
 def assign_tier(d: float, tau_low: float, tau_high: float) -> int:
     """
     Tier assignment from a divergence score and a pair of thresholds.
@@ -68,7 +83,10 @@ def compute_softmax_weights(d_scores: list, temperature: float = 50.0) -> list:
 
 def update_ema(ema_scores: dict, client_id: int, d_current: float, beta: float) -> float:
     """Exponential moving average of a client's divergence score across rounds."""
-    prev = ema_scores.get(client_id, d_current)
+    if client_id not in ema_scores:
+        ema_scores[client_id] = d_current
+        return d_current
+    prev = ema_scores[client_id]
     smoothed = beta * prev + (1 - beta) * d_current
     ema_scores[client_id] = smoothed
     return smoothed

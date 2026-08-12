@@ -27,6 +27,9 @@ def build_phase5_config(num_rounds: int, seed: int,
                         alpha: float = 0.9,
                         bn_mode: str = "default",
                         threshold_mode: str = "percentile",
+                        preset: str = "divroute",
+                        server_momentum: float = None,
+                        error_feedback: bool = None,
                         smoke_test: bool = False) -> Config:
     """Return the Phase-5 Config with every field set explicitly."""
     cfg = Config(
@@ -115,6 +118,38 @@ def build_phase5_config(num_rounds: int, seed: int,
         ablation_per_client_logging=True,
         diag_print_interval=25,      # full DIAG block every 25 rounds in full run
     )
+
+    # Apply presets
+    if preset.startswith("fedavg"):
+        cfg.fedavg_baseline_mode = True
+        cfg.ablation_routing_no_compression = False
+    elif preset == "uniform_topk":
+        cfg.ablation_uniform_compression = True
+        cfg.ablation_uniform_k_ratio = 0.20
+    elif preset == "divroute_nocomp":
+        cfg.ablation_routing_no_compression = True
+    elif preset.startswith("divroute"):
+        pass
+
+    if preset.endswith("localbn"):
+        cfg.bn_mode = "local_bn"
+    elif preset.endswith("gn"):
+        cfg.bn_mode = "groupnorm"
+
+    if preset.endswith("alpha03"):
+        cfg.alpha = 0.3
+
+    if preset == "divroute_ef":
+        cfg.use_error_feedback = True
+
+    # Explicit overrides if provided
+    if server_momentum is not None:
+        cfg.use_server_momentum = (server_momentum > 0.0)
+        cfg.server_momentum = server_momentum
+        
+    if error_feedback is not None:
+        cfg.use_error_feedback = error_feedback
+
     return cfg
 
 
@@ -125,9 +160,14 @@ def main() -> None:
     parser.add_argument("--num_rounds", type=int, default=300)
     parser.add_argument("--seed",       type=int, default=42)
     parser.add_argument("--dataset",    type=str, default="cifar100", choices=["cifar10", "cifar100"])
+    parser.add_argument("--preset",     type=str, default="divroute", 
+                        choices=["fedavg", "fedavg_localbn", "uniform_topk", "divroute_nocomp", "divroute", "divroute_ef", "fedavg_gn", "divroute_gn", "fedavg_alpha03", "divroute_alpha03"])
     parser.add_argument("--alpha",      type=float, default=0.9)
     parser.add_argument("--bn_mode",    type=str, default="default", choices=["default", "local_bn", "groupnorm"])
     parser.add_argument("--threshold_mode", type=str, default="percentile", choices=["fixed", "adaptive_tau", "percentile"])
+    parser.add_argument("--momentum",   type=float, default=None, choices=[0.0, 0.5, 0.9])
+    parser.add_argument("--error_feedback", action="store_true", default=None)
+    parser.add_argument("--no_error_feedback", action="store_false", dest="error_feedback", default=None)
     parser.add_argument("--smoke_test", action="store_true",
                         help="10-round sanity check; does NOT launch full training")
     parser.add_argument("--diag_every", type=int, default=None,
@@ -143,6 +183,9 @@ def main() -> None:
         alpha=args.alpha,
         bn_mode=args.bn_mode,
         threshold_mode=args.threshold_mode,
+        preset=args.preset,
+        server_momentum=args.momentum,
+        error_feedback=args.error_feedback,
         smoke_test=args.smoke_test,
     )
 
@@ -154,11 +197,11 @@ def main() -> None:
 
     suffix = "smoke" if args.smoke_test else "full"
     config.log_path = (
-        f"./logs/phase5_ablations_seed{args.seed}"
+        f"./logs/phase5_{args.preset}_seed{args.seed}"
         f"_{config.dataset_name}"
-        f"_alpha{args.alpha}"
-        f"_bn{args.bn_mode}"
-        f"_thresh{args.threshold_mode}"
+        f"_alpha{config.alpha}"
+        f"_bn{config.bn_mode}"
+        f"_thresh{config.threshold_mode}"
         f"_{suffix}.json"
     )
 

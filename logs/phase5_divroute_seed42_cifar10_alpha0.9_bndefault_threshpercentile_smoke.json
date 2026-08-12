@@ -1,0 +1,3501 @@
+{
+  "metadata": {
+    "alpha": 0.9,
+    "dataset": "cifar10",
+    "model": "simplecnn",
+    "seed": 42,
+    "local_epochs": 3,
+    "clients_per_round": 20,
+    "num_clients": 100
+  },
+  "history": [
+    {
+      "round": 0,
+      "test_accuracy": 0.1,
+      "total_bytes_transmitted": 2149120,
+      "total_upload_bytes": 2149120,
+      "total_download_bytes": 21492000,
+      "delta_numel": 268650,
+      "clients": [
+        {
+          "client_id": 77,
+          "divergence_score": 0.49753660695663526,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06252254070135169,
+          "local_train_acc": 0.2922794117647059,
+          "local_val_acc": 0.29508196721311475,
+          "grad_diag": {
+            "update_l2_norm": 7.89478874206543,
+            "relative_update_norm": 0.9999647886366951,
+            "compression_error": 61.940162658691406,
+            "retention_ratio": 8.848761853189433,
+            "compressed_cosine": -0.012823178432881832
+          }
+        },
+        {
+          "client_id": 43,
+          "divergence_score": 0.5075,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04486053195837154,
+          "local_train_acc": 0.3151041666666667,
+          "local_val_acc": 0.37209302325581395,
+          "grad_diag": {
+            "update_l2_norm": 5.649192810058594,
+            "relative_update_norm": 0.7155345226882275,
+            "compression_error": 86.85021209716797,
+            "retention_ratio": 17.050429059493542,
+            "compressed_cosine": -0.20961996912956238
+          }
+        },
+        {
+          "client_id": 85,
+          "divergence_score": 0.49425392777479693,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06265217911953744,
+          "local_train_acc": 0.2702205882352941,
+          "local_val_acc": 0.24193548387096775,
+          "grad_diag": {
+            "update_l2_norm": 6.370685577392578,
+            "relative_update_norm": 0.8069197878500262,
+            "compression_error": 62.963340759277344,
+            "retention_ratio": 10.188261223340179,
+            "compressed_cosine": -0.22529800236225128
+          }
+        },
+        {
+          "client_id": 69,
+          "divergence_score": 0.4991439805298914,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.030298037889271455,
+          "local_train_acc": 0.3828125,
+          "local_val_acc": 0.3103448275862069,
+          "grad_diag": {
+            "update_l2_norm": 4.8694305419921875,
+            "relative_update_norm": 0.6167687625078101,
+            "compression_error": 127.86139678955078,
+            "retention_ratio": 31.31534521699327,
+            "compressed_cosine": -0.2396399825811386
+          }
+        },
+        {
+          "client_id": 9,
+          "divergence_score": 0.49904359897689987,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.054958943071721375,
+          "local_train_acc": 0.4125,
+          "local_val_acc": 0.35185185185185186,
+          "grad_diag": {
+            "update_l2_norm": 4.136939525604248,
+            "relative_update_norm": 0.5239904440104596,
+            "compression_error": 71.91314697265625,
+            "retention_ratio": 16.974232751309014,
+            "compressed_cosine": -0.46183428168296814
+          }
+        },
+        {
+          "client_id": 97,
+          "divergence_score": 0.4966473856893348,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06898294875960255,
+          "local_train_acc": 0.31085526315789475,
+          "local_val_acc": 0.35294117647058826,
+          "grad_diag": {
+            "update_l2_norm": 11.410719871520996,
+            "relative_update_norm": 1.4452974559941005,
+            "compression_error": 55.631832122802734,
+            "retention_ratio": 5.373575929876704,
+            "compressed_cosine": 0.10001448541879654
+          }
+        },
+        {
+          "client_id": 76,
+          "divergence_score": 0.4925,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.02976007788770572,
+          "local_train_acc": 0.1796875,
+          "local_val_acc": 0.1724137931034483,
+          "grad_diag": {
+            "update_l2_norm": 2.7412631511688232,
+            "relative_update_norm": 0.34721215691947077,
+            "compression_error": 131.77496337890625,
+            "retention_ratio": 35.8836984048771,
+            "compressed_cosine": -0.730454683303833
+          }
+        },
+        {
+          "client_id": 78,
+          "divergence_score": 0.505907916806641,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06576775730436864,
+          "local_train_acc": 0.3576388888888889,
+          "local_val_acc": 0.46875,
+          "grad_diag": {
+            "update_l2_norm": 4.356350898742676,
+            "relative_update_norm": 0.551781389979136,
+            "compression_error": 60.34437942504883,
+            "retention_ratio": 13.77233507487388,
+            "compressed_cosine": -0.4228783845901489
+          }
+        },
+        {
+          "client_id": 12,
+          "divergence_score": 0.4944465083483126,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.10089077889055767,
+          "local_train_acc": 0.28125,
+          "local_val_acc": 0.24,
+          "grad_diag": {
+            "update_l2_norm": 9.662548065185547,
+            "relative_update_norm": 1.2238716132089118,
+            "compression_error": 35.264652252197266,
+            "retention_ratio": 5.260651023305138,
+            "compressed_cosine": 0.47042030096054077
+          }
+        },
+        {
+          "client_id": 45,
+          "divergence_score": 0.49289057039505424,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03256998458517104,
+          "local_train_acc": 0.2743055555555556,
+          "local_val_acc": 0.25,
+          "grad_diag": {
+            "update_l2_norm": 4.019602298736572,
+            "relative_update_norm": 0.5091283496470257,
+            "compression_error": 120.053466796875,
+            "retention_ratio": 28.706211399544408,
+            "compressed_cosine": -0.49077698588371277
+          }
+        },
+        {
+          "client_id": 37,
+          "divergence_score": 0.5006955928758731,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03745193599022892,
+          "local_train_acc": 0.496875,
+          "local_val_acc": 0.5,
+          "grad_diag": {
+            "update_l2_norm": 6.4785308837890625,
+            "relative_update_norm": 0.8205796225257298,
+            "compression_error": 102.6045150756836,
+            "retention_ratio": 20.03153048488044,
+            "compressed_cosine": 0.02457551285624504
+          }
+        },
+        {
+          "client_id": 92,
+          "divergence_score": 0.49918334385463253,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.033340419450171827,
+          "local_train_acc": 0.3784722222222222,
+          "local_val_acc": 0.25,
+          "grad_diag": {
+            "update_l2_norm": 3.857619047164917,
+            "relative_update_norm": 0.48861132845588506,
+            "compression_error": 117.20230102539062,
+            "retention_ratio": 30.05748565034862,
+            "compressed_cosine": -0.4950653314590454
+          }
+        },
+        {
+          "client_id": 64,
+          "divergence_score": 0.49689907991039517,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.030342207020912046,
+          "local_train_acc": 0.43359375,
+          "local_val_acc": 0.4,
+          "grad_diag": {
+            "update_l2_norm": 5.0508527755737305,
+            "relative_update_norm": 0.6397479518673347,
+            "compression_error": 127.48873138427734,
+            "retention_ratio": 30.955883047097128,
+            "compressed_cosine": -0.1906318962574005
+          }
+        },
+        {
+          "client_id": 82,
+          "divergence_score": 0.49410501822188185,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.044152486114282755,
+          "local_train_acc": 0.3229166666666667,
+          "local_val_acc": 0.27906976744186046,
+          "grad_diag": {
+            "update_l2_norm": 4.728593826293945,
+            "relative_update_norm": 0.5989301906033977,
+            "compression_error": 89.02201080322266,
+            "retention_ratio": 18.518360592435645,
+            "compressed_cosine": -0.4013315737247467
+          }
+        },
+        {
+          "client_id": 44,
+          "divergence_score": 0.5043145410060007,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.039738105995943906,
+          "local_train_acc": 0.475,
+          "local_val_acc": 0.5384615384615384,
+          "grad_diag": {
+            "update_l2_norm": 9.729719161987305,
+            "relative_update_norm": 1.2323795966154814,
+            "compression_error": 95.14225769042969,
+            "retention_ratio": 11.95582756810624,
+            "compressed_cosine": 0.232923224568367
+          }
+        },
+        {
+          "client_id": 22,
+          "divergence_score": 0.503264952849189,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06129808866918887,
+          "local_train_acc": 0.443359375,
+          "local_val_acc": 0.45,
+          "grad_diag": {
+            "update_l2_norm": 15.088247299194336,
+            "relative_update_norm": 1.9110981324992127,
+            "compression_error": 58.7496452331543,
+            "retention_ratio": 4.766701325472729,
+            "compressed_cosine": 0.394962877035141
+          }
+        },
+        {
+          "client_id": 55,
+          "divergence_score": 0.49811777871359403,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06638459942173919,
+          "local_train_acc": 0.359375,
+          "local_val_acc": 0.4307692307692308,
+          "grad_diag": {
+            "update_l2_norm": 8.535707473754883,
+            "relative_update_norm": 1.0811444357439428,
+            "compression_error": 58.097625732421875,
+            "retention_ratio": 7.734588336874589,
+            "compressed_cosine": 0.03614107519388199
+          }
+        },
+        {
+          "client_id": 6,
+          "divergence_score": 0.4945997554494492,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.0410352744299877,
+          "local_train_acc": 0.22443181818181818,
+          "local_val_acc": 0.15,
+          "grad_diag": {
+            "update_l2_norm": 6.215004920959473,
+            "relative_update_norm": 0.7872010620182031,
+            "compression_error": 94.29151916503906,
+            "retention_ratio": 17.786248273141354,
+            "compressed_cosine": -0.09543542563915253
+          }
+        },
+        {
+          "client_id": 63,
+          "divergence_score": 0.4986774746812166,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04863432898102408,
+          "local_train_acc": 0.37259615384615385,
+          "local_val_acc": 0.3404255319148936,
+          "grad_diag": {
+            "update_l2_norm": 7.273985862731934,
+            "relative_update_norm": 0.9213330430258097,
+            "compression_error": 78.85468292236328,
+            "retention_ratio": 13.311915145595673,
+            "compressed_cosine": 0.06385992467403412
+          }
+        },
+        {
+          "client_id": 73,
+          "divergence_score": 0.49370789821857025,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04435877375886146,
+          "local_train_acc": 0.2786458333333333,
+          "local_val_acc": 0.09302325581395349,
+          "grad_diag": {
+            "update_l2_norm": 6.857953071594238,
+            "relative_update_norm": 0.8686377581172611,
+            "compression_error": 86.34507751464844,
+            "retention_ratio": 16.136101377926444,
+            "compressed_cosine": 0.08343105018138885
+          }
+        }
+      ],
+      "agg_update_norm": 3.8428101539611816,
+      "global_update_norm": 8.430431365966797,
+      "routing_correlations": {
+        "pearson_div_acc": 0.6180673701689069,
+        "spearman_div_acc": 0.7278195488721804,
+        "pearson_div_loss": -0.7221846251849766,
+        "spearman_div_loss": -0.7233082706766917,
+        "pearson_div_norm": 0.22630418302971503,
+        "spearman_div_norm": 0.1819548872180451
+      },
+      "detailed_routing_diagnostics": {
+        "dir_div": {
+          "min": 0.5,
+          "max": 0.5,
+          "mean": 0.5,
+          "median": 0.5,
+          "std": 0.0,
+          "p10": 0.5,
+          "p25": 0.5,
+          "p50": 0.5,
+          "p75": 0.5,
+          "p90": 0.5
+        },
+        "loss_improvement": {
+          "min": 0.21087002754211426,
+          "max": 0.8098642826080322,
+          "mean": 0.43736159801483154,
+          "median": 0.42360055446624756,
+          "std": 0.1700676844561985,
+          "p10": 0.25584113597869873,
+          "p25": 0.2866772711277008,
+          "p50": 0.42360055446624756,
+          "p75": 0.4928528070449829,
+          "p90": 0.6890223264694215
+        },
+        "routing_score": {
+          "min": 0.35,
+          "max": 0.6499999999999999,
+          "mean": 0.46343593125836857,
+          "median": 0.45654385670229314,
+          "std": 0.085176618816227,
+          "p10": 0.3725233087243727,
+          "p25": 0.3879672640986736,
+          "p50": 0.45654385670229314,
+          "p75": 0.4912281221988533,
+          "p90": 0.5894775717212952
+        },
+        "tier_counts": {
+          "1": 0,
+          "2": 20,
+          "3": 0
+        },
+        "corr_dir_div_norm": {
+          "pearson": null,
+          "spearman": null
+        },
+        "corr_score_norm": {
+          "pearson": 0.2263041830297155,
+          "spearman": 0.1819548872180451
+        }
+      },
+      "upload_mb": 2.14912,
+      "download_mb": 21.492,
+      "total_mb": 23.64112,
+      "cumulative_total_mb": 23.64112,
+      "communication_savings": 45.00018611576401
+    },
+    {
+      "round": 1,
+      "test_accuracy": 0.1096,
+      "total_bytes_transmitted": 3438656,
+      "total_upload_bytes": 3438656,
+      "total_download_bytes": 21492000,
+      "delta_numel": 268650,
+      "clients": [
+        {
+          "client_id": 34,
+          "divergence_score": 0.9859675129872865,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04406422462287908,
+          "local_train_acc": 0.19318181818181818,
+          "local_val_acc": 0.125,
+          "grad_diag": {
+            "update_l2_norm": 1.8957676887512207,
+            "relative_update_norm": 0.22487196757265993,
+            "compression_error": 79.67134094238281,
+            "retention_ratio": 19.51877820350488,
+            "compressed_cosine": -0.8745607733726501
+          }
+        },
+        {
+          "client_id": 97,
+          "divergence_score": 0.5043475523137625,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.05316024209899513,
+          "local_train_acc": 0.33881578947368424,
+          "local_val_acc": 0.39705882352941174,
+          "grad_diag": {
+            "update_l2_norm": 2.7137506008148193,
+            "relative_update_norm": 0.3218993765574187,
+            "compression_error": 66.14436340332031,
+            "retention_ratio": 16.014110861525328,
+            "compressed_cosine": -0.735211193561554
+          }
+        },
+        {
+          "client_id": 89,
+          "divergence_score": 0.9932921506678754,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05176086737415578,
+          "local_train_acc": 0.31971153846153844,
+          "local_val_acc": 0.3404255319148936,
+          "grad_diag": {
+            "update_l2_norm": 3.728198528289795,
+            "relative_update_norm": 0.4422310515853713,
+            "compression_error": 67.7325210571289,
+            "retention_ratio": 14.164905994445197,
+            "compressed_cosine": -0.5970258712768555
+          }
+        },
+        {
+          "client_id": 77,
+          "divergence_score": 0.5399029203402077,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.049806523573097394,
+          "local_train_acc": 0.2977941176470588,
+          "local_val_acc": 0.3114754098360656,
+          "grad_diag": {
+            "update_l2_norm": 3.0335216522216797,
+            "relative_update_norm": 0.3598299447010322,
+            "compression_error": 70.93666076660156,
+            "retention_ratio": 14.736578056852103,
+            "compressed_cosine": -0.7489789724349976
+          }
+        },
+        {
+          "client_id": 19,
+          "divergence_score": 0.9909417470454095,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.09077768544651042,
+          "local_train_acc": 0.4375,
+          "local_val_acc": 0.3614457831325301,
+          "grad_diag": {
+            "update_l2_norm": 2.1787967681884766,
+            "relative_update_norm": 0.25844428044146867,
+            "compression_error": 40.206825256347656,
+            "retention_ratio": 9.688616109886214,
+            "compressed_cosine": -0.8232800960540771
+          }
+        },
+        {
+          "client_id": 46,
+          "divergence_score": 0.9901118006872229,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03845517798129728,
+          "local_train_acc": 0.2638888888888889,
+          "local_val_acc": 0.22857142857142856,
+          "grad_diag": {
+            "update_l2_norm": 2.067587375640869,
+            "relative_update_norm": 0.2452528566910122,
+            "compression_error": 90.58149719238281,
+            "retention_ratio": 22.920636978138674,
+            "compressed_cosine": -0.8411207795143127
+          }
+        },
+        {
+          "client_id": 4,
+          "divergence_score": 0.9927609148513464,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04372987950179017,
+          "local_train_acc": 0.24431818181818182,
+          "local_val_acc": 0.2564102564102564,
+          "grad_diag": {
+            "update_l2_norm": 2.459649085998535,
+            "relative_update_norm": 0.2917583904339709,
+            "compression_error": 80.13720703125,
+            "retention_ratio": 18.72881010305956,
+            "compressed_cosine": -0.800578236579895
+          }
+        },
+        {
+          "client_id": 15,
+          "divergence_score": 0.9878763956753879,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07839873055728973,
+          "local_train_acc": 0.3875,
+          "local_val_acc": 0.43661971830985913,
+          "grad_diag": {
+            "update_l2_norm": 3.3377702236175537,
+            "relative_update_norm": 0.39591926898212526,
+            "compression_error": 45.891597747802734,
+            "retention_ratio": 9.700872612859499,
+            "compressed_cosine": -0.6622830033302307
+          }
+        },
+        {
+          "client_id": 67,
+          "divergence_score": 0.985,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.030491030495671003,
+          "local_train_acc": 0.2767857142857143,
+          "local_val_acc": 0.10714285714285714,
+          "grad_diag": {
+            "update_l2_norm": 2.164560317993164,
+            "relative_update_norm": 0.25675558272514726,
+            "compression_error": 113.31581115722656,
+            "retention_ratio": 29.024875525639025,
+            "compressed_cosine": -0.8237969875335693
+          }
+        },
+        {
+          "client_id": 74,
+          "divergence_score": 1.0,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04718070303970279,
+          "local_train_acc": 0.4140625,
+          "local_val_acc": 0.30952380952380953,
+          "grad_diag": {
+            "update_l2_norm": 2.9085605144500732,
+            "relative_update_norm": 0.34500731791634975,
+            "compression_error": 74.80852508544922,
+            "retention_ratio": 15.51620308885605,
+            "compressed_cosine": -0.7746951580047607
+          }
+        },
+        {
+          "client_id": 96,
+          "divergence_score": 0.9935622206852627,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04933748560905549,
+          "local_train_acc": 0.3880208333333333,
+          "local_val_acc": 0.35555555555555557,
+          "grad_diag": {
+            "update_l2_norm": 2.2642109394073486,
+            "relative_update_norm": 0.26857592940591957,
+            "compression_error": 71.24372863769531,
+            "retention_ratio": 17.685327767241787,
+            "compressed_cosine": -0.8112083673477173
+          }
+        },
+        {
+          "client_id": 32,
+          "divergence_score": 0.9934015609543337,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06342878121197926,
+          "local_train_acc": 0.306640625,
+          "local_val_acc": 0.3508771929824561,
+          "grad_diag": {
+            "update_l2_norm": 2.5655124187469482,
+            "relative_update_norm": 0.30431567583881713,
+            "compression_error": 56.29117965698242,
+            "retention_ratio": 12.737013053662508,
+            "compressed_cosine": -0.7872728705406189
+          }
+        },
+        {
+          "client_id": 36,
+          "divergence_score": 0.9914323588423571,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.027312880698725468,
+          "local_train_acc": 0.32142857142857145,
+          "local_val_acc": 0.2916666666666667,
+          "grad_diag": {
+            "update_l2_norm": 2.237441301345825,
+            "relative_update_norm": 0.265400571360827,
+            "compression_error": 126.37236022949219,
+            "retention_ratio": 30.43919184614128,
+            "compressed_cosine": -0.8327338695526123
+          }
+        },
+        {
+          "client_id": 18,
+          "divergence_score": 0.9977856218919378,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03592477693558447,
+          "local_train_acc": 0.2534722222222222,
+          "local_val_acc": 0.3125,
+          "grad_diag": {
+            "update_l2_norm": 2.6598286628723145,
+            "relative_update_norm": 0.3155032699287371,
+            "compression_error": 96.54341125488281,
+            "retention_ratio": 23.406868637579343,
+            "compressed_cosine": -0.7515435814857483
+          }
+        },
+        {
+          "client_id": 13,
+          "divergence_score": 0.9471246951221446,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.039746770046494635,
+          "local_train_acc": 0.3125,
+          "local_val_acc": 0.32432432432432434,
+          "grad_diag": {
+            "update_l2_norm": 2.1405417919158936,
+            "relative_update_norm": 0.2539065557851698,
+            "compression_error": 87.54810333251953,
+            "retention_ratio": 22.994731950947788,
+            "compressed_cosine": -0.818627119064331
+          }
+        },
+        {
+          "client_id": 47,
+          "divergence_score": 0.9875605177830464,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06663432375201056,
+          "local_train_acc": 0.2555147058823529,
+          "local_val_acc": 0.16393442622950818,
+          "grad_diag": {
+            "update_l2_norm": 2.1915602684020996,
+            "relative_update_norm": 0.2599582599354657,
+            "compression_error": 53.75981521606445,
+            "retention_ratio": 12.718252713218394,
+            "compressed_cosine": -0.8334372639656067
+          }
+        },
+        {
+          "client_id": 22,
+          "divergence_score": 0.5501383906104188,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.049010468844266256,
+          "local_train_acc": 0.40234375,
+          "local_val_acc": 0.4,
+          "grad_diag": {
+            "update_l2_norm": 3.00217604637146,
+            "relative_update_norm": 0.3561117950015091,
+            "compression_error": 71.59961700439453,
+            "retention_ratio": 16.21364366335038,
+            "compressed_cosine": -0.7092278599739075
+          }
+        },
+        {
+          "client_id": 66,
+          "divergence_score": 0.9911455904634326,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.046121749016812694,
+          "local_train_acc": 0.36363636363636365,
+          "local_val_acc": 0.2857142857142857,
+          "grad_diag": {
+            "update_l2_norm": 2.304750919342041,
+            "relative_update_norm": 0.27338469638056695,
+            "compression_error": 75.92082977294922,
+            "retention_ratio": 19.098278130856453,
+            "compressed_cosine": -0.8008793592453003
+          }
+        },
+        {
+          "client_id": 43,
+          "divergence_score": 0.5554517233200176,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.03589003206314599,
+          "local_train_acc": 0.3854166666666667,
+          "local_val_acc": 0.5813953488372093,
+          "grad_diag": {
+            "update_l2_norm": 2.801605463027954,
+            "relative_update_norm": 0.3323205351434194,
+            "compression_error": 96.71160125732422,
+            "retention_ratio": 22.5507011139976,
+            "compressed_cosine": -0.7410684823989868
+          }
+        },
+        {
+          "client_id": 83,
+          "divergence_score": 0.9919260351547354,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05876766713053661,
+          "local_train_acc": 0.19583333333333333,
+          "local_val_acc": 0.16981132075471697,
+          "grad_diag": {
+            "update_l2_norm": 2.3728787899017334,
+            "relative_update_norm": 0.2814658807947739,
+            "compression_error": 60.323814392089844,
+            "retention_ratio": 14.617195504155806,
+            "compressed_cosine": -0.7972911596298218
+          }
+        }
+      ],
+      "agg_update_norm": 3.359178304672241,
+      "global_update_norm": 10.139765739440918,
+      "routing_correlations": {
+        "pearson_div_acc": -0.26310783122527426,
+        "spearman_div_acc": -0.016541353383458645,
+        "pearson_div_loss": 0.34993983499455494,
+        "spearman_div_loss": -0.06616541353383458,
+        "pearson_div_norm": -0.3470578534463693,
+        "spearman_div_norm": 0.05263157894736842
+      },
+      "detailed_routing_diagnostics": {
+        "dir_div": {
+          "min": 0.973275041081894,
+          "max": 1.0,
+          "mean": 0.9975698384453805,
+          "median": 1.0,
+          "std": 0.0068863880194232185,
+          "p10": 0.9950743867239003,
+          "p25": 1.0,
+          "p50": 1.0,
+          "p75": 1.0,
+          "p90": 1.0
+        },
+        "loss_improvement": {
+          "min": 0.08776021003723145,
+          "max": 0.6934313774108887,
+          "mean": 0.402648001909256,
+          "median": 0.41185617446899414,
+          "std": 0.16648149690286076,
+          "p10": 0.1847167491912842,
+          "p25": 0.3192986249923706,
+          "p50": 0.41185617446899414,
+          "p75": 0.4944438338279724,
+          "p90": 0.6365342617034913
+        },
+        "routing_score": {
+          "min": 0.19785444555495676,
+          "max": 1.0,
+          "mean": 0.7923170802009847,
+          "median": 0.8335839399709255,
+          "std": 0.1993407182928908,
+          "p10": 0.6593158654860848,
+          "p25": 0.7894795992235774,
+          "p50": 0.8335839399709255,
+          "p75": 0.8688345177413201,
+          "p90": 0.9718178185924957
+        },
+        "tier_counts": {
+          "1": 4,
+          "2": 16,
+          "3": 0
+        },
+        "corr_dir_div_norm": {
+          "pearson": 0.008785144389976084,
+          "spearman": -0.09675704737288653
+        },
+        "corr_score_norm": {
+          "pearson": 0.2776706507789309,
+          "spearman": 0.6090225563909774
+        }
+      },
+      "upload_mb": 3.438656,
+      "download_mb": 21.492,
+      "total_mb": 24.930656,
+      "cumulative_total_mb": 48.571776,
+      "communication_savings": 42.0001488926112
+    },
+    {
+      "round": 2,
+      "test_accuracy": 0.1882,
+      "total_bytes_transmitted": 3761040,
+      "total_upload_bytes": 3761040,
+      "total_download_bytes": 21492000,
+      "delta_numel": 268650,
+      "clients": [
+        {
+          "client_id": 69,
+          "divergence_score": 0.5262899657965294,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.021733899978226164,
+          "local_train_acc": 0.35546875,
+          "local_val_acc": 0.4482758620689655,
+          "grad_diag": {
+            "update_l2_norm": 2.4737777709960938,
+            "relative_update_norm": 0.24396794113041234,
+            "compression_error": 155.4775848388672,
+            "retention_ratio": 41.805493151639816,
+            "compressed_cosine": -0.7522945404052734
+          }
+        },
+        {
+          "client_id": 30,
+          "divergence_score": 0.9877102433508697,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.057666710649343436,
+          "local_train_acc": 0.357421875,
+          "local_val_acc": 0.3157894736842105,
+          "grad_diag": {
+            "update_l2_norm": 2.81972599029541,
+            "relative_update_norm": 0.27808591073533845,
+            "compression_error": 60.31075668334961,
+            "retention_ratio": 14.955328558751468,
+            "compressed_cosine": -0.6997864246368408
+          }
+        },
+        {
+          "client_id": 83,
+          "divergence_score": 0.9797900645820223,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05335615880594959,
+          "local_train_acc": 0.22916666666666666,
+          "local_val_acc": 0.32075471698113206,
+          "grad_diag": {
+            "update_l2_norm": 2.5443897247314453,
+            "relative_update_norm": 0.25093180553811656,
+            "compression_error": 65.49683380126953,
+            "retention_ratio": 15.09496099229149,
+            "compressed_cosine": -0.7868924736976624
+          }
+        },
+        {
+          "client_id": 80,
+          "divergence_score": 0.9527405808631392,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.035764809431011825,
+          "local_train_acc": 0.321875,
+          "local_val_acc": 0.2222222222222222,
+          "grad_diag": {
+            "update_l2_norm": 2.154271364212036,
+            "relative_update_norm": 0.21245770558904623,
+            "compression_error": 95.42143249511719,
+            "retention_ratio": 28.141151463775685,
+            "compressed_cosine": -0.7881115674972534
+          }
+        },
+        {
+          "client_id": 38,
+          "divergence_score": 0.963643974844398,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07095380414489212,
+          "local_train_acc": 0.3921875,
+          "local_val_acc": 0.4861111111111111,
+          "grad_diag": {
+            "update_l2_norm": 3.0761823654174805,
+            "relative_update_norm": 0.30337805078197927,
+            "compression_error": 49.405879974365234,
+            "retention_ratio": 11.957965093540217,
+            "compressed_cosine": -0.6491475105285645
+          }
+        },
+        {
+          "client_id": 28,
+          "divergence_score": 0.9895943749284668,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.0629288248596881,
+          "local_train_acc": 0.4338235294117647,
+          "local_val_acc": 0.42857142857142855,
+          "grad_diag": {
+            "update_l2_norm": 2.9483795166015625,
+            "relative_update_norm": 0.2907739283495645,
+            "compression_error": 55.4618034362793,
+            "retention_ratio": 13.512251299050732,
+            "compressed_cosine": -0.6777140498161316
+          }
+        },
+        {
+          "client_id": 68,
+          "divergence_score": 0.9811362199396656,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.02228377181498213,
+          "local_train_acc": 0.3333333333333333,
+          "local_val_acc": 0.3181818181818182,
+          "grad_diag": {
+            "update_l2_norm": 2.2344563007354736,
+            "relative_update_norm": 0.2203656729508108,
+            "compression_error": 151.64198303222656,
+            "retention_ratio": 43.369251438025636,
+            "compressed_cosine": -0.7816109657287598
+          }
+        },
+        {
+          "client_id": 14,
+          "divergence_score": 0.9861962276113283,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.08350284989213272,
+          "local_train_acc": 0.36277173913043476,
+          "local_val_acc": 0.3253012048192771,
+          "grad_diag": {
+            "update_l2_norm": 3.472540855407715,
+            "relative_update_norm": 0.3424675623323801,
+            "compression_error": 42.13418960571289,
+            "retention_ratio": 9.928866899876407,
+            "compressed_cosine": -0.5638681650161743
+          }
+        },
+        {
+          "client_id": 20,
+          "divergence_score": 0.9335734554090744,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04745538780628585,
+          "local_train_acc": 0.3918269230769231,
+          "local_val_acc": 0.30612244897959184,
+          "grad_diag": {
+            "update_l2_norm": 2.4518444538116455,
+            "relative_update_norm": 0.24180484212516276,
+            "compression_error": 72.62650299072266,
+            "retention_ratio": 19.722533509429113,
+            "compressed_cosine": -0.7469136118888855
+          }
+        },
+        {
+          "client_id": 0,
+          "divergence_score": 0.9917582517197557,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.050131883607836006,
+          "local_train_acc": 0.37723214285714285,
+          "local_val_acc": 0.42,
+          "grad_diag": {
+            "update_l2_norm": 3.3816637992858887,
+            "relative_update_norm": 0.33350512094496826,
+            "compression_error": 68.80663299560547,
+            "retention_ratio": 15.980635811571162,
+            "compressed_cosine": -0.6089062094688416
+          }
+        },
+        {
+          "client_id": 78,
+          "divergence_score": 0.5468942981015645,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.047769700567922325,
+          "local_train_acc": 0.3541666666666667,
+          "local_val_acc": 0.5,
+          "grad_diag": {
+            "update_l2_norm": 2.3471648693084717,
+            "relative_update_norm": 0.23148117319699427,
+            "compression_error": 72.4610595703125,
+            "retention_ratio": 18.54368851725675,
+            "compressed_cosine": -0.7859148979187012
+          }
+        },
+        {
+          "client_id": 66,
+          "divergence_score": 0.9441437997559252,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04112210680915017,
+          "local_train_acc": 0.3977272727272727,
+          "local_val_acc": 0.38095238095238093,
+          "grad_diag": {
+            "update_l2_norm": 1.9150242805480957,
+            "relative_update_norm": 0.18886277353520847,
+            "compression_error": 83.73480224609375,
+            "retention_ratio": 22.756083859354977,
+            "compressed_cosine": -0.8465599417686462
+          }
+        },
+        {
+          "client_id": 70,
+          "divergence_score": 0.9865266495546198,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.047897735880678555,
+          "local_train_acc": 0.3557692307692308,
+          "local_val_acc": 0.22916666666666666,
+          "grad_diag": {
+            "update_l2_norm": 2.826206922531128,
+            "relative_update_norm": 0.27872507069250674,
+            "compression_error": 72.15619659423828,
+            "retention_ratio": 17.535182208181986,
+            "compressed_cosine": -0.7108447551727295
+          }
+        },
+        {
+          "client_id": 45,
+          "divergence_score": 0.4899838189499714,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.022685936861000126,
+          "local_train_acc": 0.3576388888888889,
+          "local_val_acc": 0.25,
+          "grad_diag": {
+            "update_l2_norm": 1.773492693901062,
+            "relative_update_norm": 0.1749047009047418,
+            "compression_error": 149.0709228515625,
+            "retention_ratio": 45.27368483415557,
+            "compressed_cosine": -0.8538324236869812
+          }
+        },
+        {
+          "client_id": 56,
+          "divergence_score": 1.0,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07038656204000576,
+          "local_train_acc": 0.53125,
+          "local_val_acc": 0.5142857142857142,
+          "grad_diag": {
+            "update_l2_norm": 3.4150242805480957,
+            "relative_update_norm": 0.3367951852442295,
+            "compression_error": 49.62110900878906,
+            "retention_ratio": 11.678367540711987,
+            "compressed_cosine": -0.5841977596282959
+          }
+        },
+        {
+          "client_id": 11,
+          "divergence_score": 0.9930720740965115,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06592490398620175,
+          "local_train_acc": 0.3854166666666667,
+          "local_val_acc": 0.46153846153846156,
+          "grad_diag": {
+            "update_l2_norm": 2.8682472705841064,
+            "relative_update_norm": 0.28287115741021596,
+            "compression_error": 53.0899543762207,
+            "retention_ratio": 13.024786790083112,
+            "compressed_cosine": -0.6910573840141296
+          }
+        },
+        {
+          "client_id": 47,
+          "divergence_score": 0.9737733672991994,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.0604455475860584,
+          "local_train_acc": 0.3069852941176471,
+          "local_val_acc": 0.14754098360655737,
+          "grad_diag": {
+            "update_l2_norm": 2.5097506046295166,
+            "relative_update_norm": 0.24751563982067876,
+            "compression_error": 57.70162582397461,
+            "retention_ratio": 14.95737310727982,
+            "compressed_cosine": -0.7466474175453186
+          }
+        },
+        {
+          "client_id": 55,
+          "divergence_score": 0.5354264917585366,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.048081141893308504,
+          "local_train_acc": 0.328125,
+          "local_val_acc": 0.36923076923076925,
+          "grad_diag": {
+            "update_l2_norm": 2.732487201690674,
+            "relative_update_norm": 0.2694822811400904,
+            "compression_error": 71.6346664428711,
+            "retention_ratio": 18.84016716373778,
+            "compressed_cosine": -0.6979607939720154
+          }
+        },
+        {
+          "client_id": 77,
+          "divergence_score": 0.5762901963421418,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.04700761529724893,
+          "local_train_acc": 0.3382352941176471,
+          "local_val_acc": 0.3114754098360656,
+          "grad_diag": {
+            "update_l2_norm": 2.82308292388916,
+            "relative_update_norm": 0.2784169769236521,
+            "compression_error": 73.31071472167969,
+            "retention_ratio": 18.498675761153898,
+            "compressed_cosine": -0.6952587962150574
+          }
+        },
+        {
+          "client_id": 62,
+          "divergence_score": 0.9856413138766433,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04290064808807762,
+          "local_train_acc": 0.3333333333333333,
+          "local_val_acc": 0.27906976744186046,
+          "grad_diag": {
+            "update_l2_norm": 2.088312864303589,
+            "relative_update_norm": 0.20595277227960232,
+            "compression_error": 80.5765380859375,
+            "retention_ratio": 20.329458276167692,
+            "compressed_cosine": -0.8368602395057678
+          }
+        }
+      ],
+      "agg_update_norm": 3.3190360069274902,
+      "global_update_norm": 12.317242622375488,
+      "routing_correlations": {
+        "pearson_div_acc": 0.16681808610831003,
+        "spearman_div_acc": 0.3609022556390977,
+        "pearson_div_loss": 0.3188720241032301,
+        "spearman_div_loss": 0.1533834586466165,
+        "pearson_div_norm": 0.3274382644643906,
+        "spearman_div_norm": 0.6270676691729322
+      },
+      "detailed_routing_diagnostics": {
+        "dir_div": {
+          "min": 0.9364104529178469,
+          "max": 1.0,
+          "mean": 0.9888167842071243,
+          "median": 1.0,
+          "std": 0.01921172750347014,
+          "p10": 0.960805362781673,
+          "p25": 0.9825206306585368,
+          "p50": 1.0,
+          "p75": 1.0,
+          "p90": 1.0
+        },
+        "loss_improvement": {
+          "min": 0.24809980392456055,
+          "max": 1.2146639823913574,
+          "mean": 0.522843062877655,
+          "median": 0.5016090273857117,
+          "std": 0.2244188344971352,
+          "p10": 0.28700670003890993,
+          "p25": 0.3478040099143982,
+          "p50": 0.5016090273857117,
+          "p75": 0.6663531959056854,
+          "p90": 0.7531856656074524
+        },
+        "routing_score": {
+          "min": 0.013411653096744403,
+          "max": 1.0,
+          "mean": 0.6621682489212715,
+          "median": 0.736496108675206,
+          "std": 0.24329792958835203,
+          "p10": 0.34938263247407597,
+          "p25": 0.6146453423787676,
+          "p50": 0.736496108675206,
+          "p75": 0.8015546776025242,
+          "p90": 0.8567674054972986
+        },
+        "tier_counts": {
+          "1": 5,
+          "2": 15,
+          "3": 0
+        },
+        "corr_dir_div_norm": {
+          "pearson": 0.608045767471784,
+          "spearman": 0.4786334362485011
+        },
+        "corr_score_norm": {
+          "pearson": 0.708225384875233,
+          "spearman": 0.6571428571428571
+        }
+      },
+      "upload_mb": 3.76104,
+      "download_mb": 21.492,
+      "total_mb": 25.25304,
+      "cumulative_total_mb": 73.824816,
+      "communication_savings": 41.25013958682301
+    },
+    {
+      "round": 3,
+      "test_accuracy": 0.2104,
+      "total_bytes_transmitted": 3438656,
+      "total_upload_bytes": 3438656,
+      "total_download_bytes": 21492000,
+      "delta_numel": 268650,
+      "clients": [
+        {
+          "client_id": 55,
+          "divergence_score": 0.5528184622945171,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.04850655882249496,
+          "local_train_acc": 0.3524305555555556,
+          "local_val_acc": 0.47692307692307695,
+          "grad_diag": {
+            "update_l2_norm": 2.4490256309509277,
+            "relative_update_norm": 0.198829048516267,
+            "compression_error": 68.10008239746094,
+            "retention_ratio": 18.463262898670525,
+            "compressed_cosine": -0.7395517230033875
+          }
+        },
+        {
+          "client_id": 30,
+          "divergence_score": 0.981180148968136,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05706491030806887,
+          "local_train_acc": 0.3359375,
+          "local_val_acc": 0.2982456140350877,
+          "grad_diag": {
+            "update_l2_norm": 2.4937431812286377,
+            "relative_update_norm": 0.20245953235495312,
+            "compression_error": 58.28520965576172,
+            "retention_ratio": 15.59597074016943,
+            "compressed_cosine": -0.732185959815979
+          }
+        },
+        {
+          "client_id": 3,
+          "divergence_score": 0.9939630097458658,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06019144788718622,
+          "local_train_acc": 0.3897058823529412,
+          "local_val_acc": 0.36666666666666664,
+          "grad_diag": {
+            "update_l2_norm": 2.6450610160827637,
+            "relative_update_norm": 0.21474457369847932,
+            "compression_error": 55.68461608886719,
+            "retention_ratio": 13.500716958679106,
+            "compressed_cosine": -0.7394928932189941
+          }
+        },
+        {
+          "client_id": 43,
+          "divergence_score": 0.598795180296316,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.03379818708588218,
+          "local_train_acc": 0.4114583333333333,
+          "local_val_acc": 0.5348837209302325,
+          "grad_diag": {
+            "update_l2_norm": 2.3915419578552246,
+            "relative_update_norm": 0.19416212144029316,
+            "compression_error": 96.95228576660156,
+            "retention_ratio": 24.46173452627032,
+            "compressed_cosine": -0.7835597991943359
+          }
+        },
+        {
+          "client_id": 21,
+          "divergence_score": 0.8887150633754631,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.044510882720906635,
+          "local_train_acc": 0.41586538461538464,
+          "local_val_acc": 0.40425531914893614,
+          "grad_diag": {
+            "update_l2_norm": 1.9703398942947388,
+            "relative_update_norm": 0.15996598871206952,
+            "compression_error": 74.08087158203125,
+            "retention_ratio": 21.28373420078304,
+            "compressed_cosine": -0.819038987159729
+          }
+        },
+        {
+          "client_id": 41,
+          "divergence_score": 0.9961800655904882,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06732181162657731,
+          "local_train_acc": 0.3470394736842105,
+          "local_val_acc": 0.3582089552238806,
+          "grad_diag": {
+            "update_l2_norm": 2.4665000438690186,
+            "relative_update_norm": 0.20024774371078616,
+            "compression_error": 50.057064056396484,
+            "retention_ratio": 12.559930370594685,
+            "compressed_cosine": -0.7588644623756409
+          }
+        },
+        {
+          "client_id": 85,
+          "divergence_score": 0.5058634930758711,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.043962834779476226,
+          "local_train_acc": 0.43014705882352944,
+          "local_val_acc": 0.3387096774193548,
+          "grad_diag": {
+            "update_l2_norm": 2.7556591033935547,
+            "relative_update_norm": 0.2237237008214507,
+            "compression_error": 74.90369415283203,
+            "retention_ratio": 19.048343519785444,
+            "compressed_cosine": -0.7002382874488831
+          }
+        },
+        {
+          "client_id": 23,
+          "divergence_score": 0.9906475565804874,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.08364311835925016,
+          "local_train_acc": 0.4076086956521739,
+          "local_val_acc": 0.38095238095238093,
+          "grad_diag": {
+            "update_l2_norm": 2.912808895111084,
+            "relative_update_norm": 0.23648222125783888,
+            "compression_error": 40.823036193847656,
+            "retention_ratio": 9.48430322048902,
+            "compressed_cosine": -0.6929344534873962
+          }
+        },
+        {
+          "client_id": 5,
+          "divergence_score": 0.9900287972373194,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04345883163988837,
+          "local_train_acc": 0.3828125,
+          "local_val_acc": 0.3488372093023256,
+          "grad_diag": {
+            "update_l2_norm": 2.1463027000427246,
+            "relative_update_norm": 0.17425188135400968,
+            "compression_error": 76.06573486328125,
+            "retention_ratio": 19.83437616541665,
+            "compressed_cosine": -0.814068078994751
+          }
+        },
+        {
+          "client_id": 28,
+          "divergence_score": 0.9829665466002482,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06226940892559161,
+          "local_train_acc": 0.5165441176470589,
+          "local_val_acc": 0.4126984126984127,
+          "grad_diag": {
+            "update_l2_norm": 2.519536256790161,
+            "relative_update_norm": 0.20455359482918478,
+            "compression_error": 53.66864013671875,
+            "retention_ratio": 14.128150447549105,
+            "compressed_cosine": -0.7311055660247803
+          }
+        },
+        {
+          "client_id": 29,
+          "divergence_score": 0.99553574218071,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07612627073945567,
+          "local_train_acc": 0.4642857142857143,
+          "local_val_acc": 0.42105263157894735,
+          "grad_diag": {
+            "update_l2_norm": 2.9919373989105225,
+            "relative_update_norm": 0.24290642724495598,
+            "compression_error": 44.458824157714844,
+            "retention_ratio": 10.490913948829693,
+            "compressed_cosine": -0.6706380844116211
+          }
+        },
+        {
+          "client_id": 65,
+          "divergence_score": 0.9979094295018136,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05169498953581295,
+          "local_train_acc": 0.4375,
+          "local_val_acc": 0.5576923076923077,
+          "grad_diag": {
+            "update_l2_norm": 2.7098424434661865,
+            "relative_update_norm": 0.22000398356556605,
+            "compression_error": 64.27587890625,
+            "retention_ratio": 15.770073947649344,
+            "compressed_cosine": -0.7239238023757935
+          }
+        },
+        {
+          "client_id": 78,
+          "divergence_score": 0.586829064624427,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.049129344423359304,
+          "local_train_acc": 0.3576388888888889,
+          "local_val_acc": 0.421875,
+          "grad_diag": {
+            "update_l2_norm": 2.350851058959961,
+            "relative_update_norm": 0.1908585493549837,
+            "compression_error": 67.63705444335938,
+            "retention_ratio": 17.011394844042588,
+            "compressed_cosine": -0.7869570255279541
+          }
+        },
+        {
+          "client_id": 66,
+          "divergence_score": 0.94365240776639,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04081752529852322,
+          "local_train_acc": 0.4034090909090909,
+          "local_val_acc": 0.35714285714285715,
+          "grad_diag": {
+            "update_l2_norm": 2.097144365310669,
+            "relative_update_norm": 0.17026086353945802,
+            "compression_error": 80.80903625488281,
+            "retention_ratio": 21.18067497502803,
+            "compressed_cosine": -0.8219983577728271
+          }
+        },
+        {
+          "client_id": 40,
+          "divergence_score": 0.9952443349982038,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04357315317162801,
+          "local_train_acc": 0.3463541666666667,
+          "local_val_acc": 0.32558139534883723,
+          "grad_diag": {
+            "update_l2_norm": 2.321216106414795,
+            "relative_update_norm": 0.18845257640683935,
+            "compression_error": 75.81949615478516,
+            "retention_ratio": 19.495208802371273,
+            "compressed_cosine": -0.786279022693634
+          }
+        },
+        {
+          "client_id": 81,
+          "divergence_score": 0.9850654931454463,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.023705184643023628,
+          "local_train_acc": 0.3177083333333333,
+          "local_val_acc": 0.2608695652173913,
+          "grad_diag": {
+            "update_l2_norm": 1.3705523014068604,
+            "relative_update_norm": 0.11127103227772071,
+            "compression_error": 136.94985961914062,
+            "retention_ratio": 40.16742499631313,
+            "compressed_cosine": -0.9124669432640076
+          }
+        },
+        {
+          "client_id": 16,
+          "divergence_score": 0.9419525232374335,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.027580661517311506,
+          "local_train_acc": 0.39453125,
+          "local_val_acc": 0.2857142857142857,
+          "grad_diag": {
+            "update_l2_norm": 1.5917176008224487,
+            "relative_update_norm": 0.12922677985825629,
+            "compression_error": 118.07819366455078,
+            "retention_ratio": 34.1016279705427,
+            "compressed_cosine": -0.8836817145347595
+          }
+        },
+        {
+          "client_id": 2,
+          "divergence_score": 0.9947832894904569,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.029887567343655594,
+          "local_train_acc": 0.38671875,
+          "local_val_acc": 0.36666666666666664,
+          "grad_diag": {
+            "update_l2_norm": 1.8594470024108887,
+            "relative_update_norm": 0.15096292728966948,
+            "compression_error": 109.36531066894531,
+            "retention_ratio": 29.058860068785275,
+            "compressed_cosine": -0.8609845638275146
+          }
+        },
+        {
+          "client_id": 10,
+          "divergence_score": 0.9992323780607929,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07063031487155827,
+          "local_train_acc": 0.37006578947368424,
+          "local_val_acc": 0.35714285714285715,
+          "grad_diag": {
+            "update_l2_norm": 3.03816556930542,
+            "relative_update_norm": 0.24665955380194363,
+            "compression_error": 47.93019104003906,
+            "retention_ratio": 10.733640326056292,
+            "compressed_cosine": -0.6913516521453857
+          }
+        },
+        {
+          "client_id": 74,
+          "divergence_score": 0.969136555555549,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.042126996300349336,
+          "local_train_acc": 0.421875,
+          "local_val_acc": 0.30952380952380953,
+          "grad_diag": {
+            "update_l2_norm": 2.291132926940918,
+            "relative_update_norm": 0.18601021325818887,
+            "compression_error": 78.07664489746094,
+            "retention_ratio": 21.48701255787706,
+            "compressed_cosine": -0.7692481875419617
+          }
+        }
+      ],
+      "agg_update_norm": 3.1741645336151123,
+      "global_update_norm": 14.618849754333496,
+      "routing_correlations": {
+        "pearson_div_acc": 0.03918873659384889,
+        "spearman_div_acc": -0.08571428571428572,
+        "pearson_div_loss": 0.0567058677052959,
+        "spearman_div_loss": -0.21804511278195485,
+        "pearson_div_norm": -0.08116614445221174,
+        "spearman_div_norm": 0.33684210526315783
+      },
+      "detailed_routing_diagnostics": {
+        "dir_div": {
+          "min": 0.9275533572444291,
+          "max": 1.0,
+          "mean": 0.9868213267717968,
+          "median": 1.0,
+          "std": 0.02280901752782847,
+          "p10": 0.9510678600919349,
+          "p25": 0.9857724882155194,
+          "p50": 1.0,
+          "p75": 1.0,
+          "p90": 1.0
+        },
+        "loss_improvement": {
+          "min": -0.07248425483703613,
+          "max": 0.6990352869033813,
+          "mean": 0.3893638849258423,
+          "median": 0.42749446630477905,
+          "std": 0.20356727173544778,
+          "p10": 0.16064152717590335,
+          "p25": 0.3002989590167999,
+          "p50": 0.42749446630477905,
+          "p75": 0.5145233869552612,
+          "p90": 0.5983120918273926
+        },
+        "routing_score": {
+          "min": 0.15078747986511074,
+          "max": 1.0,
+          "mean": 0.7522503555554159,
+          "median": 0.8674611154734041,
+          "std": 0.24533341783074034,
+          "p10": 0.3985942461226558,
+          "p25": 0.647929413910404,
+          "p50": 0.8674611154734041,
+          "p75": 0.9118209356494733,
+          "p90": 0.9608344871542303
+        },
+        "tier_counts": {
+          "1": 4,
+          "2": 16,
+          "3": 0
+        },
+        "corr_dir_div_norm": {
+          "pearson": 0.15003467692728223,
+          "spearman": 0.11821985291344711
+        },
+        "corr_score_norm": {
+          "pearson": 0.33173427240454034,
+          "spearman": 0.37293233082706767
+        }
+      },
+      "upload_mb": 3.438656,
+      "download_mb": 21.492,
+      "total_mb": 24.930656,
+      "cumulative_total_mb": 98.755472,
+      "communication_savings": 42.0001488926112
+    },
+    {
+      "round": 4,
+      "test_accuracy": 0.2547,
+      "total_bytes_transmitted": 2149120,
+      "total_upload_bytes": 2149120,
+      "total_download_bytes": 21492000,
+      "delta_numel": 268650,
+      "clients": [
+        {
+          "client_id": 47,
+          "divergence_score": 0.9488545926897484,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06342596057657578,
+          "local_train_acc": 0.32536764705882354,
+          "local_val_acc": 0.22950819672131148,
+          "grad_diag": {
+            "update_l2_norm": 2.842532157897949,
+            "relative_update_norm": 0.19444294220585526,
+            "compression_error": 46.23002624511719,
+            "retention_ratio": 12.644380173058911,
+            "compressed_cosine": -0.6089863181114197
+          }
+        },
+        {
+          "client_id": 16,
+          "divergence_score": 0.9156502756371643,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.029114040267659704,
+          "local_train_acc": 0.40625,
+          "local_val_acc": 0.25,
+          "grad_diag": {
+            "update_l2_norm": 2.0960450172424316,
+            "relative_update_norm": 0.14337961279211428,
+            "compression_error": 98.35733032226562,
+            "retention_ratio": 30.157005041138174,
+            "compressed_cosine": -0.7611777782440186
+          }
+        },
+        {
+          "client_id": 50,
+          "divergence_score": 0.9705787512622611,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.050735176232179414,
+          "local_train_acc": 0.3918269230769231,
+          "local_val_acc": 0.4375,
+          "grad_diag": {
+            "update_l2_norm": 2.223088502883911,
+            "relative_update_norm": 0.15207000141888155,
+            "compression_error": 57.51628875732422,
+            "retention_ratio": 16.794886486816814,
+            "compressed_cosine": -0.7428730726242065
+          }
+        },
+        {
+          "client_id": 15,
+          "divergence_score": 0.9713039100381045,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07548946991076241,
+          "local_train_acc": 0.4203125,
+          "local_val_acc": 0.4788732394366197,
+          "grad_diag": {
+            "update_l2_norm": 3.5955240726470947,
+            "relative_update_norm": 0.24595122961580929,
+            "compression_error": 39.112335205078125,
+            "retention_ratio": 9.219138009058378,
+            "compressed_cosine": -0.48954424262046814
+          }
+        },
+        {
+          "client_id": 70,
+          "divergence_score": 0.9591696540560755,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05020421038069976,
+          "local_train_acc": 0.39663461538461536,
+          "local_val_acc": 0.2916666666666667,
+          "grad_diag": {
+            "update_l2_norm": 2.5473241806030273,
+            "relative_update_norm": 0.17424928933604497,
+            "compression_error": 58.18581008911133,
+            "retention_ratio": 15.607366205346702,
+            "compressed_cosine": -0.7039374113082886
+          }
+        },
+        {
+          "client_id": 45,
+          "divergence_score": 0.5173287774300763,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.024778841489059816,
+          "local_train_acc": 0.4236111111111111,
+          "local_val_acc": 0.34375,
+          "grad_diag": {
+            "update_l2_norm": 2.272402286529541,
+            "relative_update_norm": 0.1554433026343901,
+            "compression_error": 115.09769439697266,
+            "retention_ratio": 34.517107039762465,
+            "compressed_cosine": -0.7290893793106079
+          }
+        },
+        {
+          "client_id": 39,
+          "divergence_score": 0.9730382716260821,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04110665620614014,
+          "local_train_acc": 0.4659090909090909,
+          "local_val_acc": 0.5641025641025641,
+          "grad_diag": {
+            "update_l2_norm": 2.3136017322540283,
+            "relative_update_norm": 0.15826154390622987,
+            "compression_error": 70.26183319091797,
+            "retention_ratio": 21.1037084593331,
+            "compressed_cosine": -0.7124612331390381
+          }
+        },
+        {
+          "client_id": 31,
+          "divergence_score": 0.9775998775450248,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06391131260016933,
+          "local_train_acc": 0.42463235294117646,
+          "local_val_acc": 0.43333333333333335,
+          "grad_diag": {
+            "update_l2_norm": 2.8004164695739746,
+            "relative_update_norm": 0.19156202551051196,
+            "compression_error": 45.85173034667969,
+            "retention_ratio": 12.798216221667197,
+            "compressed_cosine": -0.6089849472045898
+          }
+        },
+        {
+          "client_id": 63,
+          "divergence_score": 0.515056420899798,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03670420659221708,
+          "local_train_acc": 0.4375,
+          "local_val_acc": 0.3404255319148936,
+          "grad_diag": {
+            "update_l2_norm": 2.344555139541626,
+            "relative_update_norm": 0.1603789066131297,
+            "compression_error": 78.56117248535156,
+            "retention_ratio": 22.56976984498702,
+            "compressed_cosine": -0.7258504033088684
+          }
+        },
+        {
+          "client_id": 37,
+          "divergence_score": 0.5246104584316357,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.028468280830835246,
+          "local_train_acc": 0.5,
+          "local_val_acc": 0.4722222222222222,
+          "grad_diag": {
+            "update_l2_norm": 3.048414468765259,
+            "relative_update_norm": 0.208526287635018,
+            "compression_error": 100.53449249267578,
+            "retention_ratio": 25.420008126070748,
+            "compressed_cosine": -0.6216034889221191
+          }
+        },
+        {
+          "client_id": 8,
+          "divergence_score": 0.9734031070891483,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.09776341152445925,
+          "local_train_acc": 0.3737980769230769,
+          "local_val_acc": 0.358695652173913,
+          "grad_diag": {
+            "update_l2_norm": 3.3870649337768555,
+            "relative_update_norm": 0.23169161669322313,
+            "compression_error": 30.605628967285156,
+            "retention_ratio": 7.604240734841346,
+            "compressed_cosine": -0.4974430799484253
+          }
+        },
+        {
+          "client_id": 12,
+          "divergence_score": 0.524526159942263,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07716684982145978,
+          "local_train_acc": 0.30357142857142855,
+          "local_val_acc": 0.29,
+          "grad_diag": {
+            "update_l2_norm": 3.1957814693450928,
+            "relative_update_norm": 0.21860690294034663,
+            "compression_error": 38.376014709472656,
+            "retention_ratio": 9.694090716903428,
+            "compressed_cosine": -0.552565336227417
+          }
+        },
+        {
+          "client_id": 96,
+          "divergence_score": 0.9761138783363124,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04748766361182518,
+          "local_train_acc": 0.4453125,
+          "local_val_acc": 0.35555555555555557,
+          "grad_diag": {
+            "update_l2_norm": 2.943779468536377,
+            "relative_update_norm": 0.20136874774732166,
+            "compression_error": 61.3267936706543,
+            "retention_ratio": 15.406935510308516,
+            "compressed_cosine": -0.6427399516105652
+          }
+        },
+        {
+          "client_id": 91,
+          "divergence_score": 0.9750838559681815,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.039980812417543796,
+          "local_train_acc": 0.4125,
+          "local_val_acc": 0.4594594594594595,
+          "grad_diag": {
+            "update_l2_norm": 2.448837995529175,
+            "relative_update_norm": 0.16751235813222998,
+            "compression_error": 72.35372161865234,
+            "retention_ratio": 20.178545089330886,
+            "compressed_cosine": -0.7129935026168823
+          }
+        },
+        {
+          "client_id": 27,
+          "divergence_score": 0.974278633813514,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04019801035277215,
+          "local_train_acc": 0.39375,
+          "local_val_acc": 0.39473684210526316,
+          "grad_diag": {
+            "update_l2_norm": 2.6004161834716797,
+            "relative_update_norm": 0.17788103901271937,
+            "compression_error": 72.06780242919922,
+            "retention_ratio": 19.102493289818224,
+            "compressed_cosine": -0.7021887898445129
+          }
+        },
+        {
+          "client_id": 97,
+          "divergence_score": 0.528306227590827,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05283429534941514,
+          "local_train_acc": 0.3503289473684211,
+          "local_val_acc": 0.5,
+          "grad_diag": {
+            "update_l2_norm": 3.078321933746338,
+            "relative_update_norm": 0.21057210283140262,
+            "compression_error": 55.224308013916016,
+            "retention_ratio": 13.901991217676624,
+            "compressed_cosine": -0.6017252206802368
+          }
+        },
+        {
+          "client_id": 78,
+          "divergence_score": 0.6066834346099664,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05348274698570869,
+          "local_train_acc": 0.3784722222222222,
+          "local_val_acc": 0.5,
+          "grad_diag": {
+            "update_l2_norm": 2.905010223388672,
+            "relative_update_norm": 0.19871674394406671,
+            "compression_error": 54.50348663330078,
+            "retention_ratio": 14.469454951737662,
+            "compressed_cosine": -0.6143276691436768
+          }
+        },
+        {
+          "client_id": 72,
+          "divergence_score": 0.9714167510369809,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05250731784238694,
+          "local_train_acc": 0.36607142857142855,
+          "local_val_acc": 0.4,
+          "grad_diag": {
+            "update_l2_norm": 2.536621570587158,
+            "relative_update_norm": 0.17351717906774589,
+            "compression_error": 55.52544021606445,
+            "retention_ratio": 15.743448119908166,
+            "compressed_cosine": -0.6771636009216309
+          }
+        },
+        {
+          "client_id": 26,
+          "divergence_score": 0.9824999999999999,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.032622376787350735,
+          "local_train_acc": 0.41015625,
+          "local_val_acc": 0.4666666666666667,
+          "grad_diag": {
+            "update_l2_norm": 2.216514825820923,
+            "relative_update_norm": 0.15162033012644355,
+            "compression_error": 87.93669891357422,
+            "retention_ratio": 27.044748961222357,
+            "compressed_cosine": -0.7299587726593018
+          }
+        },
+        {
+          "client_id": 9,
+          "divergence_score": 0.528967743783087,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04201836022077958,
+          "local_train_acc": 0.36875,
+          "local_val_acc": 0.2962962962962963,
+          "grad_diag": {
+            "update_l2_norm": 3.247650623321533,
+            "relative_update_norm": 0.2221550038407656,
+            "compression_error": 68.52521514892578,
+            "retention_ratio": 17.832593459894543,
+            "compressed_cosine": -0.5352514982223511
+          }
+        }
+      ],
+      "agg_update_norm": 2.792468309402466,
+      "global_update_norm": 16.31192970275879,
+      "routing_correlations": {
+        "pearson_div_acc": 0.08265070885680043,
+        "spearman_div_acc": 0.18345864661654135,
+        "pearson_div_loss": -0.13605259804142028,
+        "spearman_div_loss": -0.156390977443609,
+        "pearson_div_norm": -0.21426893391342003,
+        "spearman_div_norm": -0.12481203007518797
+      },
+      "detailed_routing_diagnostics": {
+        "dir_div": {
+          "min": 1.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "p10": 1.0,
+          "p25": 1.0,
+          "p50": 1.0,
+          "p75": 1.0,
+          "p90": 1.0
+        },
+        "loss_improvement": {
+          "min": 0.20409560203552246,
+          "max": 0.7470136880874634,
+          "mean": 0.4961551368236542,
+          "median": 0.48128318786621094,
+          "std": 0.16572203839799285,
+          "p10": 0.30633389949798584,
+          "p25": 0.375921368598938,
+          "p50": 0.48128318786621094,
+          "p75": 0.65199214220047,
+          "p90": 0.7273283123970032
+        },
+        "routing_score": {
+          "min": 0.35,
+          "max": 0.6499999999999999,
+          "mean": 0.5113832043680657,
+          "median": 0.5031654182934163,
+          "std": 0.09157295142059693,
+          "p10": 0.4064937695514617,
+          "p25": 0.44494568571821913,
+          "p50": 0.5031654182934163,
+          "p75": 0.5974939875858716,
+          "p90": 0.6391224609036636
+        },
+        "tier_counts": {
+          "1": 0,
+          "2": 20,
+          "3": 0
+        },
+        "corr_dir_div_norm": {
+          "pearson": null,
+          "spearman": null
+        },
+        "corr_score_norm": {
+          "pearson": 0.52142831517601,
+          "spearman": 0.4631578947368421
+        }
+      },
+      "upload_mb": 2.14912,
+      "download_mb": 21.492,
+      "total_mb": 23.64112,
+      "cumulative_total_mb": 122.396592,
+      "communication_savings": 45.00018611576401
+    },
+    {
+      "round": 5,
+      "test_accuracy": 0.2661,
+      "total_bytes_transmitted": 3116272,
+      "total_upload_bytes": 3116272,
+      "total_download_bytes": 21492000,
+      "delta_numel": 268650,
+      "clients": [
+        {
+          "client_id": 90,
+          "divergence_score": 0.9937448178030525,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.034079385730478876,
+          "local_train_acc": 0.5078125,
+          "local_val_acc": 0.36666666666666664,
+          "grad_diag": {
+            "update_l2_norm": 2.138655424118042,
+            "relative_update_norm": 0.13110989705628376,
+            "compression_error": 83.760009765625,
+            "retention_ratio": 25.096943805455144,
+            "compressed_cosine": -0.7573310136795044
+          }
+        },
+        {
+          "client_id": 46,
+          "divergence_score": 0.9779417987522909,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03868925088445092,
+          "local_train_acc": 0.3715277777777778,
+          "local_val_acc": 0.42857142857142855,
+          "grad_diag": {
+            "update_l2_norm": 1.768558382987976,
+            "relative_update_norm": 0.10842116262240052,
+            "compression_error": 74.21914672851562,
+            "retention_ratio": 22.788855488911594,
+            "compressed_cosine": -0.828256368637085
+          }
+        },
+        {
+          "client_id": 20,
+          "divergence_score": 0.9341887254987078,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05260541663567883,
+          "local_train_acc": 0.41586538461538464,
+          "local_val_acc": 0.3673469387755102,
+          "grad_diag": {
+            "update_l2_norm": 2.5378828048706055,
+            "relative_update_norm": 0.15558446187034394,
+            "compression_error": 55.33158874511719,
+            "retention_ratio": 14.456176895546468,
+            "compressed_cosine": -0.7185957431793213
+          }
+        },
+        {
+          "client_id": 31,
+          "divergence_score": 0.9548280712344117,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06584605969068504,
+          "local_train_acc": 0.4485294117647059,
+          "local_val_acc": 0.38333333333333336,
+          "grad_diag": {
+            "update_l2_norm": 1.9795916080474854,
+            "relative_update_norm": 0.12135851760767966,
+            "compression_error": 44.64097595214844,
+            "retention_ratio": 13.132447792189465,
+            "compressed_cosine": -0.789836585521698
+          }
+        },
+        {
+          "client_id": 58,
+          "divergence_score": 0.9887703759454116,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.0420936315100448,
+          "local_train_acc": 0.3875,
+          "local_val_acc": 0.23684210526315788,
+          "grad_diag": {
+            "update_l2_norm": 1.699813961982727,
+            "relative_update_norm": 0.10420679790541536,
+            "compression_error": 68.5320053100586,
+            "retention_ratio": 20.59956892874711,
+            "compressed_cosine": -0.8469581007957458
+          }
+        },
+        {
+          "client_id": 18,
+          "divergence_score": 0.9931019324032315,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03628218891005056,
+          "local_train_acc": 0.4166666666666667,
+          "local_val_acc": 0.4375,
+          "grad_diag": {
+            "update_l2_norm": 2.022078275680542,
+            "relative_update_norm": 0.12396315534259283,
+            "compression_error": 78.9771728515625,
+            "retention_ratio": 23.17764446035214,
+            "compressed_cosine": -0.7910031080245972
+          }
+        },
+        {
+          "client_id": 86,
+          "divergence_score": 0.9898093587949884,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.0584463348819688,
+          "local_train_acc": 0.40401785714285715,
+          "local_val_acc": 0.36538461538461536,
+          "grad_diag": {
+            "update_l2_norm": 1.980683445930481,
+            "relative_update_norm": 0.12142545253830353,
+            "compression_error": 49.920623779296875,
+            "retention_ratio": 14.961462634888154,
+            "compressed_cosine": -0.785558819770813
+          }
+        },
+        {
+          "client_id": 76,
+          "divergence_score": 0.527636287930275,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.023846446842079313,
+          "local_train_acc": 0.3515625,
+          "local_val_acc": 0.2413793103448276,
+          "grad_diag": {
+            "update_l2_norm": 1.573030710220337,
+            "relative_update_norm": 0.09643437281085725,
+            "compression_error": 118.7745361328125,
+            "retention_ratio": 38.231430663223385,
+            "compressed_cosine": -0.8572909832000732
+          }
+        },
+        {
+          "client_id": 72,
+          "divergence_score": 0.9643131445775542,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05453761155731877,
+          "local_train_acc": 0.38839285714285715,
+          "local_val_acc": 0.46,
+          "grad_diag": {
+            "update_l2_norm": 1.996611475944519,
+            "relative_update_norm": 0.12240191763497105,
+            "compression_error": 53.34715270996094,
+            "retention_ratio": 15.84765176270485,
+            "compressed_cosine": -0.7862187027931213
+          }
+        },
+        {
+          "client_id": 44,
+          "divergence_score": 0.5485696680161866,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.032084680067723574,
+          "local_train_acc": 0.534375,
+          "local_val_acc": 0.5897435897435898,
+          "grad_diag": {
+            "update_l2_norm": 2.1400041580200195,
+            "relative_update_norm": 0.13119258095246003,
+            "compression_error": 88.9486083984375,
+            "retention_ratio": 25.738201940355815,
+            "compressed_cosine": -0.7719577550888062
+          }
+        },
+        {
+          "client_id": 62,
+          "divergence_score": 0.9752608367679861,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04728971239123111,
+          "local_train_acc": 0.4140625,
+          "local_val_acc": 0.3488372093023256,
+          "grad_diag": {
+            "update_l2_norm": 2.075526714324951,
+            "relative_update_norm": 0.12723980253384265,
+            "compression_error": 61.08715057373047,
+            "retention_ratio": 18.197975150776323,
+            "compressed_cosine": -0.7697750329971313
+          }
+        },
+        {
+          "client_id": 64,
+          "divergence_score": 0.5309514196191316,
+          "tier": 1,
+          "upload_bytes": 429840,
+          "download_bytes": 1074600,
+          "bytes_received": 429840,
+          "aggregation_weight": 0.02428096082758455,
+          "local_train_acc": 0.484375,
+          "local_val_acc": 0.4,
+          "grad_diag": {
+            "update_l2_norm": 1.820163607597351,
+            "relative_update_norm": 0.11158481189932495,
+            "compression_error": 116.85834503173828,
+            "retention_ratio": 34.4771198630628,
+            "compressed_cosine": -0.8351262807846069
+          }
+        },
+        {
+          "client_id": 8,
+          "divergence_score": 0.9245670274032546,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.09932743607996478,
+          "local_train_acc": 0.3918269230769231,
+          "local_val_acc": 0.3804347826086957,
+          "grad_diag": {
+            "update_l2_norm": 2.5740907192230225,
+            "relative_update_norm": 0.15780418173256805,
+            "compression_error": 30.245166778564453,
+            "retention_ratio": 8.24824281359682,
+            "compressed_cosine": -0.6662223935127258
+          }
+        },
+        {
+          "client_id": 42,
+          "divergence_score": 0.970504950137277,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03611019906565181,
+          "local_train_acc": 0.3819444444444444,
+          "local_val_acc": 0.28125,
+          "grad_diag": {
+            "update_l2_norm": 1.8057630062103271,
+            "relative_update_norm": 0.11070198554772608,
+            "compression_error": 79.21412658691406,
+            "retention_ratio": 25.084431464286787,
+            "compressed_cosine": -0.8124475479125977
+          }
+        },
+        {
+          "client_id": 4,
+          "divergence_score": 0.9892712721649664,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04419109380182096,
+          "local_train_acc": 0.3465909090909091,
+          "local_val_acc": 0.28205128205128205,
+          "grad_diag": {
+            "update_l2_norm": 2.061666250228882,
+            "relative_update_norm": 0.12639008920447947,
+            "compression_error": 65.25875854492188,
+            "retention_ratio": 19.186125562312462,
+            "compressed_cosine": -0.7788577079772949
+          }
+        },
+        {
+          "client_id": 50,
+          "divergence_score": 0.9602387237980585,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.052608197637070836,
+          "local_train_acc": 0.4110576923076923,
+          "local_val_acc": 0.3958333333333333,
+          "grad_diag": {
+            "update_l2_norm": 1.8453037738800049,
+            "relative_update_norm": 0.1131260254001655,
+            "compression_error": 55.38984680175781,
+            "retention_ratio": 16.080680862738948,
+            "compressed_cosine": -0.8263772130012512
+          }
+        },
+        {
+          "client_id": 33,
+          "divergence_score": 0.9959282633446298,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.014903008499722063,
+          "local_train_acc": 0.4166666666666667,
+          "local_val_acc": 0.3076923076923077,
+          "grad_diag": {
+            "update_l2_norm": 0.9221267104148865,
+            "relative_update_norm": 0.05653081684498247,
+            "compression_error": 188.55889892578125,
+            "retention_ratio": 65.41294047470912,
+            "compressed_cosine": -0.9463197588920593
+          }
+        },
+        {
+          "client_id": 14,
+          "divergence_score": 0.9796782170297095,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.09222809351066427,
+          "local_train_acc": 0.39402173913043476,
+          "local_val_acc": 0.39759036144578314,
+          "grad_diag": {
+            "update_l2_norm": 2.597134828567505,
+            "relative_update_norm": 0.15921689682908938,
+            "compression_error": 32.608009338378906,
+            "retention_ratio": 8.406418175733412,
+            "compressed_cosine": -0.6918364763259888
+          }
+        },
+        {
+          "client_id": 10,
+          "divergence_score": 0.9964093097122761,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07872166961583979,
+          "local_train_acc": 0.5032894736842105,
+          "local_val_acc": 0.5142857142857142,
+          "grad_diag": {
+            "update_l2_norm": 2.7972121238708496,
+            "relative_update_norm": 0.17148260045516045,
+            "compression_error": 37.69615936279297,
+            "retention_ratio": 9.582430682105855,
+            "compressed_cosine": -0.6554447412490845
+          }
+        },
+        {
+          "client_id": 60,
+          "divergence_score": 1.0,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07182862185997038,
+          "local_train_acc": 0.7378472222222222,
+          "local_val_acc": 0.78125,
+          "grad_diag": {
+            "update_l2_norm": 2.573686361312866,
+            "relative_update_norm": 0.15777939264154542,
+            "compression_error": 41.38292694091797,
+            "retention_ratio": 10.261531006731472,
+            "compressed_cosine": -0.7288107872009277
+          }
+        }
+      ],
+      "agg_update_norm": 2.7700090408325195,
+      "global_update_norm": 18.244518280029297,
+      "routing_correlations": {
+        "pearson_div_acc": -0.05805694064332636,
+        "spearman_div_acc": 0.23759398496240602,
+        "pearson_div_loss": -0.17100536863163898,
+        "spearman_div_loss": -0.3533834586466165,
+        "pearson_div_norm": 0.1755129738029813,
+        "spearman_div_norm": 0.18646616541353384
+      },
+      "detailed_routing_diagnostics": {
+        "dir_div": {
+          "min": 0.962107665120874,
+          "max": 1.0,
+          "mean": 0.9967829550268092,
+          "median": 1.0,
+          "std": 0.008943968345812665,
+          "p10": 0.9893856455669842,
+          "p25": 1.0,
+          "p50": 1.0,
+          "p75": 1.0,
+          "p90": 1.0
+        },
+        "loss_improvement": {
+          "min": 0.02966749668121338,
+          "max": 0.8257365226745605,
+          "mean": 0.36586933135986327,
+          "median": 0.3259400725364685,
+          "std": 0.2290202664055608,
+          "p10": 0.06292169094085694,
+          "p25": 0.182573139667511,
+          "p50": 0.3259400725364685,
+          "p75": 0.5750513672828674,
+          "p90": 0.61587393283844
+        },
+        "routing_score": {
+          "min": 0.007412183241136337,
+          "max": 1.0,
+          "mean": 0.7672685107955302,
+          "median": 0.7991888556166741,
+          "std": 0.20991717162018864,
+          "p10": 0.5910917209280496,
+          "p25": 0.7301462014093929,
+          "p50": 0.7991888556166741,
+          "p75": 0.9055288622444952,
+          "p90": 0.9209129172281572
+        },
+        "tier_counts": {
+          "1": 3,
+          "2": 17,
+          "3": 0
+        },
+        "corr_dir_div_norm": {
+          "pearson": -0.220299144103929,
+          "spearman": -0.019351409474577305
+        },
+        "corr_score_norm": {
+          "pearson": -0.0508051635157834,
+          "spearman": 0.3954887218045112
+        }
+      },
+      "upload_mb": 3.116272,
+      "download_mb": 21.492,
+      "total_mb": 24.608272,
+      "cumulative_total_mb": 147.004864,
+      "communication_savings": 42.750158198399404
+    },
+    {
+      "round": 6,
+      "test_accuracy": 0.2669,
+      "total_bytes_transmitted": 2149120,
+      "total_upload_bytes": 2149120,
+      "total_download_bytes": 21492000,
+      "delta_numel": 268650,
+      "clients": [
+        {
+          "client_id": 17,
+          "divergence_score": 0.9802190866698826,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.0732165189462091,
+          "local_train_acc": 0.5411184210526315,
+          "local_val_acc": 0.6029411764705882,
+          "grad_diag": {
+            "update_l2_norm": 2.0365915298461914,
+            "relative_update_norm": 0.11162758580890968,
+            "compression_error": 33.69430923461914,
+            "retention_ratio": 10.968145153544347,
+            "compressed_cosine": -0.7127358913421631
+          }
+        },
+        {
+          "client_id": 93,
+          "divergence_score": 0.9698067325700178,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06021747264706172,
+          "local_train_acc": 0.42083333333333334,
+          "local_val_acc": 0.42857142857142855,
+          "grad_diag": {
+            "update_l2_norm": 1.892067551612854,
+            "relative_update_norm": 0.10370608434665757,
+            "compression_error": 40.72395324707031,
+            "retention_ratio": 12.957943697025533,
+            "compressed_cosine": -0.7697636485099792
+          }
+        },
+        {
+          "client_id": 58,
+          "divergence_score": 0.963191361734053,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04028185275235961,
+          "local_train_acc": 0.36875,
+          "local_val_acc": 0.2631578947368421,
+          "grad_diag": {
+            "update_l2_norm": 1.256421446800232,
+            "relative_update_norm": 0.06886569584988869,
+            "compression_error": 59.67216491699219,
+            "retention_ratio": 22.233818657856553,
+            "compressed_cosine": -0.8738934993743896
+          }
+        },
+        {
+          "client_id": 35,
+          "divergence_score": 0.9717124821467419,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.0498962933352801,
+          "local_train_acc": 0.33413461538461536,
+          "local_val_acc": 0.34782608695652173,
+          "grad_diag": {
+            "update_l2_norm": 1.3758424520492554,
+            "relative_update_norm": 0.0754112786609045,
+            "compression_error": 48.61975860595703,
+            "retention_ratio": 17.52819051466663,
+            "compressed_cosine": -0.8542189002037048
+          }
+        },
+        {
+          "client_id": 59,
+          "divergence_score": 0.9821727208128789,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06237904215284591,
+          "local_train_acc": 0.498046875,
+          "local_val_acc": 0.5172413793103449,
+          "grad_diag": {
+            "update_l2_norm": 2.0087010860443115,
+            "relative_update_norm": 0.11009888313922016,
+            "compression_error": 39.359535217285156,
+            "retention_ratio": 12.324430690400847,
+            "compressed_cosine": -0.7447535395622253
+          }
+        },
+        {
+          "client_id": 2,
+          "divergence_score": 0.9665242724157148,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.031881203001073374,
+          "local_train_acc": 0.421875,
+          "local_val_acc": 0.3333333333333333,
+          "grad_diag": {
+            "update_l2_norm": 1.3745986223220825,
+            "relative_update_norm": 0.07534310312959797,
+            "compression_error": 74.6966552734375,
+            "retention_ratio": 28.420805376714476,
+            "compressed_cosine": -0.844772219657898
+          }
+        },
+        {
+          "client_id": 96,
+          "divergence_score": 0.9545987056724963,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.047467404378491465,
+          "local_train_acc": 0.4296875,
+          "local_val_acc": 0.3333333333333333,
+          "grad_diag": {
+            "update_l2_norm": 1.6375253200531006,
+            "relative_update_norm": 0.08975437415881561,
+            "compression_error": 50.908565521240234,
+            "retention_ratio": 17.948480747152765,
+            "compressed_cosine": -0.7992498278617859
+          }
+        },
+        {
+          "client_id": 49,
+          "divergence_score": 0.9696862082990456,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06092074126047607,
+          "local_train_acc": 0.39453125,
+          "local_val_acc": 0.38596491228070173,
+          "grad_diag": {
+            "update_l2_norm": 1.7296442985534668,
+            "relative_update_norm": 0.09480350601784644,
+            "compression_error": 40.14357376098633,
+            "retention_ratio": 13.77582479277369,
+            "compressed_cosine": -0.7806786894798279
+          }
+        },
+        {
+          "client_id": 79,
+          "divergence_score": 0.9810647251544129,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03093487472697739,
+          "local_train_acc": 0.66015625,
+          "local_val_acc": 0.6071428571428571,
+          "grad_diag": {
+            "update_l2_norm": 1.7609666585922241,
+            "relative_update_norm": 0.09652031539357236,
+            "compression_error": 77.00112915039062,
+            "retention_ratio": 26.2873434275653,
+            "compressed_cosine": -0.7856426239013672
+          }
+        },
+        {
+          "client_id": 8,
+          "divergence_score": 0.9014873375843878,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.0950964525398808,
+          "local_train_acc": 0.39302884615384615,
+          "local_val_acc": 0.3695652173913043,
+          "grad_diag": {
+            "update_l2_norm": 1.801640510559082,
+            "relative_update_norm": 0.0987496892439842,
+            "compression_error": 26.597211837768555,
+            "retention_ratio": 8.506411998356526,
+            "compressed_cosine": -0.77706378698349
+          }
+        },
+        {
+          "client_id": 50,
+          "divergence_score": 0.9364883945119055,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.050373194254730594,
+          "local_train_acc": 0.40625,
+          "local_val_acc": 0.3958333333333333,
+          "grad_diag": {
+            "update_l2_norm": 1.6654213666915894,
+            "relative_update_norm": 0.091283383925493,
+            "compression_error": 48.144107818603516,
+            "retention_ratio": 16.58875274681342,
+            "compressed_cosine": -0.7994624972343445
+          }
+        },
+        {
+          "client_id": 94,
+          "divergence_score": 0.9777184895907229,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.037271467494501734,
+          "local_train_acc": 0.5104166666666666,
+          "local_val_acc": 0.5588235294117647,
+          "grad_diag": {
+            "update_l2_norm": 1.608219027519226,
+            "relative_update_norm": 0.08814806742689418,
+            "compression_error": 64.28804779052734,
+            "retention_ratio": 22.583131443496924,
+            "compressed_cosine": -0.8113150596618652
+          }
+        },
+        {
+          "client_id": 57,
+          "divergence_score": 0.9751579895103242,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03994047424124989,
+          "local_train_acc": 0.475,
+          "local_val_acc": 0.40540540540540543,
+          "grad_diag": {
+            "update_l2_norm": 1.7487521171569824,
+            "relative_update_norm": 0.09585082435808627,
+            "compression_error": 60.13299560546875,
+            "retention_ratio": 20.531318318578325,
+            "compressed_cosine": -0.7852514982223511
+          }
+        },
+        {
+          "client_id": 48,
+          "divergence_score": 0.9824999999999999,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03439721659399858,
+          "local_train_acc": 0.5,
+          "local_val_acc": 0.5,
+          "grad_diag": {
+            "update_l2_norm": 1.9382449388504028,
+            "relative_update_norm": 0.10623711238087512,
+            "compression_error": 69.41842651367188,
+            "retention_ratio": 23.142490743154465,
+            "compressed_cosine": -0.7464746236801147
+          }
+        },
+        {
+          "client_id": 27,
+          "divergence_score": 0.9491257670034542,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.040103230255600496,
+          "local_train_acc": 0.378125,
+          "local_val_acc": 0.39473684210526316,
+          "grad_diag": {
+            "update_l2_norm": 1.426055669784546,
+            "relative_update_norm": 0.07816351453606349,
+            "compression_error": 59.82974624633789,
+            "retention_ratio": 22.358520515498086,
+            "compressed_cosine": -0.8354569673538208
+          }
+        },
+        {
+          "client_id": 34,
+          "divergence_score": 0.9548356804710261,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04256226519172024,
+          "local_train_acc": 0.36363636363636365,
+          "local_val_acc": 0.325,
+          "grad_diag": {
+            "update_l2_norm": 1.3672271966934204,
+            "relative_update_norm": 0.07493906803722004,
+            "compression_error": 56.65100860595703,
+            "retention_ratio": 20.257295567727798,
+            "compressed_cosine": -0.8603231906890869
+          }
+        },
+        {
+          "client_id": 53,
+          "divergence_score": 0.9745553474646008,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06343611322132528,
+          "local_train_acc": 0.404296875,
+          "local_val_acc": 0.3050847457627119,
+          "grad_diag": {
+            "update_l2_norm": 1.8474026918411255,
+            "relative_update_norm": 0.10125795943120725,
+            "compression_error": 38.74662399291992,
+            "retention_ratio": 12.517502642723224,
+            "compressed_cosine": -0.7733428478240967
+          }
+        },
+        {
+          "client_id": 45,
+          "divergence_score": 0.5320294790722602,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.025399198854720653,
+          "local_train_acc": 0.4340277777777778,
+          "local_val_acc": 0.375,
+          "grad_diag": {
+            "update_l2_norm": 1.326613426208496,
+            "relative_update_norm": 0.07271298731195472,
+            "compression_error": 93.32798767089844,
+            "retention_ratio": 34.50792842605147,
+            "compressed_cosine": -0.8644700646400452
+          }
+        },
+        {
+          "client_id": 83,
+          "divergence_score": 0.958838664344742,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.056712286826262254,
+          "local_train_acc": 0.37916666666666665,
+          "local_val_acc": 0.3584905660377358,
+          "grad_diag": {
+            "update_l2_norm": 1.6254034042358398,
+            "relative_update_norm": 0.08908996002459703,
+            "compression_error": 42.95881271362305,
+            "retention_ratio": 15.12636815885193,
+            "compressed_cosine": -0.799900472164154
+          }
+        },
+        {
+          "client_id": 88,
+          "divergence_score": 0.9820326968824191,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05751269732523472,
+          "local_train_acc": 0.5958333333333333,
+          "local_val_acc": 0.5660377358490566,
+          "grad_diag": {
+            "update_l2_norm": 1.9697924852371216,
+            "relative_update_norm": 0.10796626444192192,
+            "compression_error": 42.456546783447266,
+            "retention_ratio": 13.603421290521704,
+            "compressed_cosine": -0.7464452981948853
+          }
+        }
+      ],
+      "agg_update_norm": 2.3122923374176025,
+      "global_update_norm": 19.688716888427734,
+      "routing_correlations": {
+        "pearson_div_acc": 0.1334658484820297,
+        "spearman_div_acc": 0.6240601503759398,
+        "pearson_div_loss": -0.12610703232430956,
+        "spearman_div_loss": -0.3684210526315789,
+        "pearson_div_norm": 0.3730748928429504,
+        "spearman_div_norm": 0.6345864661654135
+      },
+      "detailed_routing_diagnostics": {
+        "dir_div": {
+          "min": 1.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "p10": 1.0,
+          "p25": 1.0,
+          "p50": 1.0,
+          "p75": 1.0,
+          "p90": 1.0
+        },
+        "loss_improvement": {
+          "min": 0.09601259231567383,
+          "max": 0.7009644508361816,
+          "mean": 0.3860609769821167,
+          "median": 0.35576772689819336,
+          "std": 0.19540053061571114,
+          "p10": 0.17155339717864992,
+          "p25": 0.23216500878334045,
+          "p50": 0.35576772689819336,
+          "p75": 0.5333378911018372,
+          "p90": 0.6826827764511109
+        },
+        "routing_score": {
+          "min": 0.35,
+          "max": 0.6499999999999999,
+          "mean": 0.4938370907938669,
+          "median": 0.4788144490791975,
+          "std": 0.09690053573531772,
+          "p10": 0.387461231236344,
+          "p25": 0.4175189676087512,
+          "p50": 0.4788144490791975,
+          "p75": 0.566872777210257,
+          "p90": 0.6409339855093027
+        },
+        "tier_counts": {
+          "1": 0,
+          "2": 20,
+          "3": 0
+        },
+        "corr_dir_div_norm": {
+          "pearson": null,
+          "spearman": null
+        },
+        "corr_score_norm": {
+          "pearson": 0.6329998334116629,
+          "spearman": 0.5774436090225563
+        }
+      },
+      "upload_mb": 2.14912,
+      "download_mb": 21.492,
+      "total_mb": 23.64112,
+      "cumulative_total_mb": 170.645984,
+      "communication_savings": 45.00018611576401
+    },
+    {
+      "round": 7,
+      "test_accuracy": 0.2622,
+      "total_bytes_transmitted": 2149120,
+      "total_upload_bytes": 2149120,
+      "total_download_bytes": 21492000,
+      "delta_numel": 268650,
+      "clients": [
+        {
+          "client_id": 14,
+          "divergence_score": 0.9572673139002145,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07698253267610082,
+          "local_train_acc": 0.4048913043478261,
+          "local_val_acc": 0.42168674698795183,
+          "grad_diag": {
+            "update_l2_norm": 1.6437705755233765,
+            "relative_update_norm": 0.08348794819074884,
+            "compression_error": 28.455469131469727,
+            "retention_ratio": 10.442124695992618,
+            "compressed_cosine": -0.7625446319580078
+          }
+        },
+        {
+          "client_id": 56,
+          "divergence_score": 0.9824999999999999,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06528478533006565,
+          "local_train_acc": 0.5131578947368421,
+          "local_val_acc": 0.5142857142857142,
+          "grad_diag": {
+            "update_l2_norm": 1.7668410539627075,
+            "relative_update_norm": 0.08973876073159386,
+            "compression_error": 33.12604522705078,
+            "retention_ratio": 12.195952716305095,
+            "compressed_cosine": -0.7269347906112671
+          }
+        },
+        {
+          "client_id": 11,
+          "divergence_score": 0.9718979235992832,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06102747438487469,
+          "local_train_acc": 0.4149305555555556,
+          "local_val_acc": 0.5384615384615384,
+          "grad_diag": {
+            "update_l2_norm": 1.4834845066070557,
+            "relative_update_norm": 0.07534693677671755,
+            "compression_error": 35.31298065185547,
+            "retention_ratio": 13.947966652311262,
+            "compressed_cosine": -0.7875603437423706
+          }
+        },
+        {
+          "client_id": 68,
+          "divergence_score": 0.9567359417549104,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.020590933813056243,
+          "local_train_acc": 0.4791666666666667,
+          "local_val_acc": 0.4090909090909091,
+          "grad_diag": {
+            "update_l2_norm": 1.0216375589370728,
+            "relative_update_norm": 0.0518894941060152,
+            "compression_error": 100.97224426269531,
+            "retention_ratio": 44.32210582955045,
+            "compressed_cosine": -0.8895262479782104
+          }
+        },
+        {
+          "client_id": 28,
+          "divergence_score": 0.959544500060777,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05798418052273834,
+          "local_train_acc": 0.5477941176470589,
+          "local_val_acc": 0.4603174603174603,
+          "grad_diag": {
+            "update_l2_norm": 1.569467306137085,
+            "relative_update_norm": 0.07971404713831591,
+            "compression_error": 37.01650619506836,
+            "retention_ratio": 14.611376052516873,
+            "compressed_cosine": -0.7626062035560608
+          }
+        },
+        {
+          "client_id": 66,
+          "divergence_score": 0.9209483121679746,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.038004048333957964,
+          "local_train_acc": 0.42329545454545453,
+          "local_val_acc": 0.35714285714285715,
+          "grad_diag": {
+            "update_l2_norm": 1.1284747123718262,
+            "relative_update_norm": 0.05731580776780329,
+            "compression_error": 55.602455139160156,
+            "retention_ratio": 23.7029827670218,
+            "compressed_cosine": -0.8673876523971558
+          }
+        },
+        {
+          "client_id": 73,
+          "divergence_score": 0.5134928615684075,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.02957271389787619,
+          "local_train_acc": 0.3177083333333333,
+          "local_val_acc": 0.20930232558139536,
+          "grad_diag": {
+            "update_l2_norm": 0.92116779088974,
+            "relative_update_norm": 0.04678658320447315,
+            "compression_error": 70.92061614990234,
+            "retention_ratio": 31.35273580539522,
+            "compressed_cosine": -0.9081753492355347
+          }
+        },
+        {
+          "client_id": 77,
+          "divergence_score": 0.5911071486751595,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04454886530720782,
+          "local_train_acc": 0.43014705882352944,
+          "local_val_acc": 0.4098360655737705,
+          "grad_diag": {
+            "update_l2_norm": 1.455043077468872,
+            "relative_update_norm": 0.07390238204522562,
+            "compression_error": 47.69355773925781,
+            "retention_ratio": 19.00267043454821,
+            "compressed_cosine": -0.7982107400894165
+          }
+        },
+        {
+          "client_id": 91,
+          "divergence_score": 0.9527378113232574,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.03478895921823492,
+          "local_train_acc": 0.4375,
+          "local_val_acc": 0.5135135135135135,
+          "grad_diag": {
+            "update_l2_norm": 1.2489209175109863,
+            "relative_update_norm": 0.06343333212562235,
+            "compression_error": 60.522247314453125,
+            "retention_ratio": 25.565022808759945,
+            "compressed_cosine": -0.8399027585983276
+          }
+        },
+        {
+          "client_id": 23,
+          "divergence_score": 0.9610138769689028,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07764384772678609,
+          "local_train_acc": 0.4470108695652174,
+          "local_val_acc": 0.39285714285714285,
+          "grad_diag": {
+            "update_l2_norm": 1.4215025901794434,
+            "relative_update_norm": 0.07219884354246302,
+            "compression_error": 28.26622200012207,
+            "retention_ratio": 10.7685227550815,
+            "compressed_cosine": -0.8127657175064087
+          }
+        },
+        {
+          "client_id": 3,
+          "divergence_score": 0.9681168892888646,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05598673829576315,
+          "local_train_acc": 0.4485294117647059,
+          "local_val_acc": 0.48333333333333334,
+          "grad_diag": {
+            "update_l2_norm": 1.4371376037597656,
+            "relative_update_norm": 0.07299295387829258,
+            "compression_error": 38.25230407714844,
+            "retention_ratio": 15.75243686577809,
+            "compressed_cosine": -0.7886887788772583
+          }
+        },
+        {
+          "client_id": 38,
+          "divergence_score": 0.9396272739228831,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06556184042551895,
+          "local_train_acc": 0.425,
+          "local_val_acc": 0.6111111111111112,
+          "grad_diag": {
+            "update_l2_norm": 1.4369750022888184,
+            "relative_update_norm": 0.07298469526642525,
+            "compression_error": 33.15805435180664,
+            "retention_ratio": 12.457660463369386,
+            "compressed_cosine": -0.8176066279411316
+          }
+        },
+        {
+          "client_id": 83,
+          "divergence_score": 0.9356839471364858,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04879087249639987,
+          "local_train_acc": 0.37083333333333335,
+          "local_val_acc": 0.32075471698113206,
+          "grad_diag": {
+            "update_l2_norm": 1.1012901067733765,
+            "relative_update_norm": 0.05593508774666124,
+            "compression_error": 43.6717529296875,
+            "retention_ratio": 19.17403686490801,
+            "compressed_cosine": -0.865676760673523
+          }
+        },
+        {
+          "client_id": 81,
+          "divergence_score": 0.9549464022973353,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.021997426661894717,
+          "local_train_acc": 0.3802083333333333,
+          "local_val_acc": 0.2608695652173913,
+          "grad_diag": {
+            "update_l2_norm": 0.6586045622825623,
+            "relative_update_norm": 0.03345086254298595,
+            "compression_error": 94.63333892822266,
+            "retention_ratio": 44.43610153810583,
+            "compressed_cosine": -0.9492278099060059
+          }
+        },
+        {
+          "client_id": 32,
+          "divergence_score": 0.9660179095676753,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05346772656350861,
+          "local_train_acc": 0.390625,
+          "local_val_acc": 0.3684210526315789,
+          "grad_diag": {
+            "update_l2_norm": 1.2461700439453125,
+            "relative_update_norm": 0.06329361385036539,
+            "compression_error": 40.037940979003906,
+            "retention_ratio": 16.804519687550354,
+            "compressed_cosine": -0.8378114104270935
+          }
+        },
+        {
+          "client_id": 95,
+          "divergence_score": 0.9738079936412343,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.06273286572256256,
+          "local_train_acc": 0.40460526315789475,
+          "local_val_acc": 0.47761194029850745,
+          "grad_diag": {
+            "update_l2_norm": 1.5110915899276733,
+            "relative_update_norm": 0.07674911465743278,
+            "compression_error": 34.45060348510742,
+            "retention_ratio": 13.271814586678063,
+            "compressed_cosine": -0.7880412340164185
+          }
+        },
+        {
+          "client_id": 29,
+          "divergence_score": 0.9700203908179513,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.07082199363830989,
+          "local_train_acc": 0.5059523809523809,
+          "local_val_acc": 0.5,
+          "grad_diag": {
+            "update_l2_norm": 1.5175114870071411,
+            "relative_update_norm": 0.07707518451337353,
+            "compression_error": 30.757593154907227,
+            "retention_ratio": 11.683778227328284,
+            "compressed_cosine": -0.788672149181366
+          }
+        },
+        {
+          "client_id": 52,
+          "divergence_score": 0.9757696365642217,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.019765304197815366,
+          "local_train_acc": 0.3385416666666667,
+          "local_val_acc": 0.38095238095238093,
+          "grad_diag": {
+            "update_l2_norm": 0.6628886461257935,
+            "relative_update_norm": 0.03366845335235704,
+            "compression_error": 105.0957260131836,
+            "retention_ratio": 49.438497880128075,
+            "compressed_cosine": -0.9485849142074585
+          }
+        },
+        {
+          "client_id": 25,
+          "divergence_score": 0.9675,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.04274547700276337,
+          "local_train_acc": 0.36778846153846156,
+          "local_val_acc": 0.41304347826086957,
+          "grad_diag": {
+            "update_l2_norm": 1.1430376768112183,
+            "relative_update_norm": 0.05805546817949582,
+            "compression_error": 49.67333984375,
+            "retention_ratio": 20.859783347802473,
+            "compressed_cosine": -0.8663691282272339
+          }
+        },
+        {
+          "client_id": 93,
+          "divergence_score": 0.9425529877261016,
+          "tier": 2,
+          "upload_bytes": 107456,
+          "download_bytes": 1074600,
+          "bytes_received": 107456,
+          "aggregation_weight": 0.05170141378456478,
+          "local_train_acc": 0.44375,
+          "local_val_acc": 0.42857142857142855,
+          "grad_diag": {
+            "update_l2_norm": 1.5054563283920288,
+            "relative_update_norm": 0.07646289684204245,
+            "compression_error": 41.32657241821289,
+            "retention_ratio": 16.40962282065871,
+            "compressed_cosine": -0.7821178436279297
+          }
+        }
+      ],
+      "agg_update_norm": 2.0381031036376953,
+      "global_update_norm": 20.973661422729492,
+      "routing_correlations": {
+        "pearson_div_acc": 0.3406835482897061,
+        "spearman_div_acc": 0.17142857142857143,
+        "pearson_div_loss": -0.07668961586722081,
+        "spearman_div_loss": -0.05413533834586466,
+        "pearson_div_norm": 0.16664952598866334,
+        "spearman_div_norm": 0.3609022556390977
+      },
+      "detailed_routing_diagnostics": {
+        "dir_div": {
+          "min": 1.0,
+          "max": 1.0,
+          "mean": 1.0,
+          "median": 1.0,
+          "std": 0.0,
+          "p10": 1.0,
+          "p25": 1.0,
+          "p50": 1.0,
+          "p75": 1.0,
+          "p90": 1.0
+        },
+        "loss_improvement": {
+          "min": 0.13124680519104004,
+          "max": 0.8541402816772461,
+          "mean": 0.4095770835876465,
+          "median": 0.4221034646034241,
+          "std": 0.16154439717738425,
+          "p10": 0.2204755187034607,
+          "p25": 0.3219403922557831,
+          "p50": 0.4221034646034241,
+          "p75": 0.4924068748950958,
+          "p90": 0.5412580370903016
+        },
+        "routing_score": {
+          "min": 0.35,
+          "max": 0.6499999999999999,
+          "mean": 0.46550676031114413,
+          "median": 0.4707051946959715,
+          "std": 0.06704074767527665,
+          "p10": 0.3870298182573749,
+          "p25": 0.4291376295128519,
+          "p50": 0.4707051946959715,
+          "p75": 0.49988103287066277,
+          "p90": 0.5201542116103542
+        },
+        "tier_counts": {
+          "1": 0,
+          "2": 20,
+          "3": 0
+        },
+        "corr_dir_div_norm": {
+          "pearson": null,
+          "spearman": null
+        },
+        "corr_score_norm": {
+          "pearson": 0.4585200532433971,
+          "spearman": 0.4947368421052631
+        }
+      },
+      "upload_mb": 2.14912,
+      "download_mb": 21.492,
+      "total_mb": 23.64112,
+      "cumulative_total_mb": 194.287104,
+      "communication_savings": 45.00018611576401
+    }
+  ]
+}

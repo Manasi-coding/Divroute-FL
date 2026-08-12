@@ -11,7 +11,7 @@ from .model import get_model
 from .client import FLClient
 from .server import FLServer
 from .logger import FLLogger
-from .mechanism import update_ema, compute_adaptive_taus, compute_percentile_taus
+from .mechanism import update_ema, compute_adaptive_taus, compute_percentile_taus, compute_decoupled_divergence
 from . import mechanism as _mech
 from .compression import get_adaptive_k_ratios
 from . import diagnostics as _diag
@@ -157,6 +157,13 @@ def run(config: Config | None = None) -> None:
     # ─────────────────────────────────────────────────────────────────────────
 
     # ── [DIAG] Routing-dynamics tracking ─────────────────────────────────────
+    from collections import deque
+    _rolling_ema_history = deque(maxlen=getattr(config, "rolling_window_size", 5))
+    _last_tau_low = None
+    _last_tau_high = None
+    _previous_client_tiers = {}
+    _convergence_frozen = False
+    
     _diag_prev_tiers: dict = {}
     _diag_prev_ema_ranks: dict = {}
     _diag_prev_raw_ranks: dict = {}
@@ -515,24 +522,14 @@ def run(config: Config | None = None) -> None:
 
                 if _use_directional:
                     # ── Phase-5 directional divergence ──────────────────────────
-                    # d_dir = 1 - cos(client_delta, prev_global_delta)
-                    # Round-1 safe: if prev_global_delta is None, assign a neutral
-                    # score of 0.5 (middle of [0, 1]) so all clients start as Tier-2.
-                    if _prev_delta_flat is None or _prev_delta_norm < 1e-12:
-                        d_dir = 0.5   # safe fallback for round 1 / near-zero global update
+                    # Use server momentum as the reference vector
+                    ref_vec = getattr(server, "_momentum_buf", None)
+                    if ref_vec is None or rnd == 0:
+                        d_dir = 0.5   # safe fallback for round 1 / zero momentum
                         if rnd == 0:
                             r["_round1_fallback"] = True
                     else:
-                        _delta_norm = client_delta.norm(p=2).item()
-                        if _delta_norm < 1e-12:
-                            d_dir = 0.0  # zero-norm client delta → no divergence
-                        else:
-                            _cos_dir = float(F.cosine_similarity(
-                                client_delta.double().unsqueeze(0),
-                                _prev_delta_flat.double().unsqueeze(0),
-                                dim=1, eps=1e-8,
-                            ).item())
-                            d_dir = max(0.0, min(1.0, 1.0 - _cos_dir))
+                        d_dir = compute_decoupled_divergence(client_delta, ref_vec.cpu())
                     d_raw = d_dir  # d_raw is the directional score
                     r["d_dir"] = d_dir
                     # ── Hybrid routing score ─────────────────────────────────────
@@ -653,41 +650,53 @@ def run(config: Config | None = None) -> None:
                         d_ema = update_ema(ema_scores, _cid, _hr, config.ema_beta)
                         r["d_ema"] = d_ema
 
-            # ── Set divergence_score (used by aggregation weighting) ─────────────
-            # When use_divergence_ema=True → use EMA-smoothed score for BOTH
-            #   tier assignment AND aggregation weighting.
-            # When False → use d_raw for tier assignment (legacy routing_score="raw"),
-            #   d_ema for aggregation weighting (original behaviour).
-            _use_ema_routing = getattr(config, "use_divergence_ema", False)
+            # ── [Phase-5 revised] Active EMA routing lock ───────────────────
+            active_ema_scores = []
             for r in results:
                 _cid = r["client_id"]
-                _d_raw_r = r.get("d_raw")
-                _d_ema_r = r.get("d_ema", ema_scores.get(_cid, 0.0))
-                if _d_raw_r is None:
-                    # NaN-guarded: already has divergence_score set
-                    continue
-                if _use_ema_routing:
-                    # EMA score used for BOTH agg weighting and tier assignment
-                    r["divergence_score"] = _d_ema_r
+                _hr = r.get("d_raw")
+                if _hr is None or np.isnan(_hr):
+                    # NaN fallback
+                    d_for_tier = ema_scores.get(_cid, config.tau_low)
                 else:
-                    # Legacy: EMA for agg, raw stored separately
-                    r["divergence_score"] = _d_ema_r  # agg weighting always uses EMA
-
-            # -- adaptive/percentile tau (Phase-5) ---------------------------------
-            _tau_win    = getattr(config, "tau_window",    1)
-            _tau_smooth = getattr(config, "tau_smoothing", 0.0)
-            _t_mode     = getattr(config, "threshold_mode", "adaptive_tau")
+                    d_for_tier = r["d_ema"]
+                
+                # ENFORCE: Active routing score is strictly the EMA score
+                r["divergence_score"] = d_for_tier
+                active_ema_scores.append(d_for_tier)
+                
+            # ── Rolling Thresholds & Convergence Protection ───────────────
+            _t_mode = getattr(config, "threshold_mode", "rolling_percentile")
             
-            if _t_mode == "percentile" and raw_d_scores:
-                _p33, _p67 = _mech.compute_percentile_taus(raw_d_scores)
-                # We store these purely for logging consistency, though they have flipped semantics
-                config.tau_low = _p33
-                config.tau_high = _p67
+            if _t_mode in ("percentile", "rolling_percentile"):
+                if _t_mode == "rolling_percentile":
+                    _rolling_ema_history.append(active_ema_scores)
+                    _history_flat = [s for round_scores in _rolling_ema_history for s in round_scores]
+                else:
+                    _history_flat = active_ema_scores
+                
+                # Convergence Protection
+                _spread = float(np.std(_history_flat)) if _history_flat else 0.0
+                _conv_floor = getattr(config, "convergence_floor", 1e-4)
+                
+                if _spread < _conv_floor and _last_tau_low is not None:
+                    config.tau_low = _last_tau_low
+                    config.tau_high = _last_tau_high
+                    _convergence_frozen = True
+                else:
+                    _p33, _p67 = _mech.compute_percentile_taus(_history_flat)
+                    config.tau_low = _p33
+                    config.tau_high = _p67
+                    _last_tau_low = config.tau_low
+                    _last_tau_high = config.tau_high
+                    _convergence_frozen = False
                 _mu, _sigma = 0.0, 0.0
             else:
                 # Rolling window logic for adaptive_tau
-                if raw_d_scores:
-                    _tau_score_history.append(list(raw_d_scores))
+                _tau_win    = getattr(config, "tau_window",    1)
+                _tau_smooth = getattr(config, "tau_smoothing", 0.0)
+                if active_ema_scores:
+                    _tau_score_history.append(list(active_ema_scores))
                     if len(_tau_score_history) > _tau_win:
                         _tau_score_history = _tau_score_history[-_tau_win:]
                 _rolled_scores = [s for rnd_scores in _tau_score_history for s in rnd_scores]
@@ -704,11 +713,12 @@ def run(config: Config | None = None) -> None:
                         config.tau_high = _cand_high
                 else:
                     _mu, _sigma = 0.0, 0.0
+                _convergence_frozen = False
 
             # ── PART 6: adaptive tau diagnostics ────────────────────────────────────
-            if getattr(config, "enable_tau_diagnostics", False) and raw_d_scores:
+            if getattr(config, "enable_tau_diagnostics", False) and active_ema_scores:
                 _tau_diag_payload = _diag.compute_tau_diagnostics(
-                    raw_d_scores, _mu, _sigma,
+                    active_ema_scores, _mu, _sigma,
                     config.tau_low, config.tau_high, results
                 )
                 if (rnd + 1) % getattr(config, "diag_print_interval", 25) == 0:
@@ -716,33 +726,26 @@ def run(config: Config | None = None) -> None:
             # ──────────────────────────────────────────────────────────────────────
 
             # -- tier assignment ---------------------------------------------------
-            _use_ema_routing = getattr(config, "use_divergence_ema", False)
+            _tier_flips = 0
             for r in results:
-                if _use_ema_routing:
-                    d_for_tier = r.get("d_ema", r["divergence_score"])
-                elif config.routing_score == "raw":
-                    d_for_tier = r.get("d_raw", r["divergence_score"])
-                else:
-                    d_for_tier = r["divergence_score"]
+                _cid = r["client_id"]
+                d_for_tier = r["divergence_score"]
                 
-                # Apply specific percentile tiering logic
-                if _t_mode == "percentile":
-                    if np.isnan(d_for_tier) or np.isinf(d_for_tier):
-                        tier = 1 # Bottom tier safely
-                    elif d_for_tier <= config.tau_low:
-                        tier = 1
-                    elif d_for_tier <= config.tau_high:
-                        tier = 2
-                    else:
-                        tier = 3
+                if np.isnan(d_for_tier) or np.isinf(d_for_tier):
+                    tier = 1 # Bottom tier safely
+                elif d_for_tier <= config.tau_low:
+                    tier = 1
+                elif d_for_tier <= config.tau_high:
+                    tier = 2
                 else:
-                    tier = server.assign_tier(d_for_tier)
+                    tier = 3
                     
                 r["natural_tier"] = tier
-                # Tier-3 warm-up period (first 15 rounds)
-                if rnd < 15 and tier == 3:
-                    tier = 2
                 r["tier"] = tier
+                
+                if _cid in _previous_client_tiers and _previous_client_tiers[_cid] != tier:
+                    _tier_flips += 1
+                _previous_client_tiers[_cid] = tier
 
             # -- Progress Guarantee ------------------------------------------------
             p_count = sum(1 for r in results if r["tier"] in (1, 2))
@@ -810,6 +813,10 @@ def run(config: Config | None = None) -> None:
                 print(f"  Tier counts (raw)   : {_raw_counts[1]}/{_raw_counts[2]}/{_raw_counts[3]}")
                 print(f"  Tier counts (ema)   : {_ema_counts[1]}/{_ema_counts[2]}/{_ema_counts[3]}")
                 print(f"  Actual tier counts  : {_act_counts[1]}/{_act_counts[2]}/{_act_counts[3]}")
+                print(f"  Tier flips          : {_tier_flips}")
+                print(f"  Thresholds frozen   : {_convergence_frozen}")
+                _tratio = config.tau_high / max(config.tau_low, 1e-8)
+                print(f"  Threshold ratio     : {_tratio:.4f}")
                 
                 if _valid_d_raws:
                     _avg_raw = sum(_valid_d_raws) / len(_valid_d_raws)
@@ -1218,6 +1225,8 @@ def run(config: Config | None = None) -> None:
             valid = [(x, y) for x, y in zip(xs, ys) if x is not None and y is not None and not np.isnan(x) and not np.isnan(y)]
             if len(valid) < 2: return {"pearson": None, "spearman": None}
             vx, vy = zip(*valid)
+            if np.std(vx) == 0.0 or np.std(vy) == 0.0:
+                return {"pearson": None, "spearman": None}
             try:
                 p, _ = stats.pearsonr(vx, vy)
                 s, _ = stats.spearmanr(vx, vy)
