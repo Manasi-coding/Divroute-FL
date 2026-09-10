@@ -1,0 +1,38 @@
+#!/bin/sh
+# Rejects a commit if any staged file exceeds MAX_SIZE_MB. Unlike
+# .gitignore, this checks actual byte size, not file name/pattern, so it
+# catches a large file regardless of what it's called or where it lives.
+#
+# One-time setup (per local clone -- .git/hooks/ is never itself tracked by
+# git, so this script has to be installed into it manually):
+#   cp scripts/git-hooks/pre-commit .git/hooks/pre-commit
+#   chmod +x .git/hooks/pre-commit
+#
+# To bypass for a single commit you're sure about: git commit --no-verify
+
+MAX_SIZE_MB=10
+MAX_SIZE_BYTES=$((MAX_SIZE_MB * 1024 * 1024))
+
+offenders=""
+
+for file in $(git diff --cached --name-only --diff-filter=ACM); do
+    # size of the staged blob, not the working-tree file -- this is what
+    # would actually be committed
+    size=$(git cat-file -s ":$file" 2>/dev/null) || continue
+    if [ "$size" -gt "$MAX_SIZE_BYTES" ]; then
+        size_mb=$(( (size + 1048575) / 1048576 ))
+        offenders="$offenders  $file (${size_mb}MB)\n"
+    fi
+done
+
+if [ -n "$offenders" ]; then
+    echo "commit rejected -- staged file(s) exceed ${MAX_SIZE_MB}MB:" >&2
+    printf "%b" "$offenders" >&2
+    echo "" >&2
+    echo "If this file genuinely belongs in the repo, use Git LFS instead of" >&2
+    echo "committing it directly. To bypass this check for one commit:" >&2
+    echo "  git commit --no-verify" >&2
+    exit 1
+fi
+
+exit 0

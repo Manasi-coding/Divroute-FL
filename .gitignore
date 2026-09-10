@@ -25,3 +25,26 @@
 __pycache__/
 *.pyc
 /divroute_fl/main_diag4_polarityfixed.py
+
+# --- Large-file safety net ---
+# .gitignore can only match by name/pattern, not by size, so this only
+# catches large files of these KNOWN types (model weights, archives,
+# datasets) if one ever ends up inside an allowed folder above. It is not
+# a substitute for the pre-commit size hook (see scripts/git-hooks/), which
+# is the only thing that actually rejects a commit for being too big
+# regardless of file type.
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.h5
+*.pkl
+*.npy
+*.npz
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar

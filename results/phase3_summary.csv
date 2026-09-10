@@ -1,3 +1,0 @@
-seed,method,final_accuracy,best_accuracy,download_mb,upload_mb,bidir_mb,fedavg_bidir_mb,saving_pct
-1,fedavg,0.0898,0.0910,44919.01,44880.53,89799.54,89838.02,0.0
-1,divroute,0.0107,0.0121,1603.61,9424.91,11028.52,18865.98,41.5
