@@ -74,6 +74,21 @@ class Config:
 
     # error feedback (Phase 1.1)
     use_error_feedback: bool = False   # validated: EF decreases accuracy at k_ratio_tier2=0.05
+    error_feedback_momentum: float = 0.9 # momentum factor for residual accumulation
+    # Only meaningful when use_error_feedback=True. Default False preserves
+    # the documented -3.8pp EF finding above exactly as measured (that
+    # finding predates this flag and used the plain accumulate-always
+    # behavior). When True, a client's residual buffer is reset to zero
+    # whenever its tier (and therefore its k_ratio) changes since the
+    # residual was last updated, instead of blending a residual accumulated
+    # under a different compression target into the new one. FL literature
+    # identifies this "stale error compensation" as a specific, documented
+    # failure mode of error feedback under partial client participation;
+    # DivRoute compounds it with round-to-round tier reassignment on top of
+    # partial participation. See compression.py's apply_tiered_compression()
+    # docstring for the full rationale.
+    error_feedback_tier_aware: bool = False
+    use_layerwise_topk: bool = False   # applies top-k independently per layer
 
     # Tier-3 staleness sync (Phase 1.2, Option A — periodic heartbeat)
     use_tier3_sync: bool = False       # validated: zero contribution at 20-round horizon
@@ -157,6 +172,20 @@ class Config:
     #   aggregation weight, local_loss, and update norm (where available).
     ablation_per_client_logging: bool = False
 
+    # Experiment E — inverted tier-bandwidth polarity
+    #   The live tier-assignment loop (main.py) gives the MOST bandwidth
+    #   (tier=1, k_ratio_tier1) to the LEAST-divergent clients and compresses
+    #   the MOST-divergent clients hardest (tier=3, k_ratio_tier2) -- the
+    #   opposite of the plain-language design intent ("drifted clients need a
+    #   strong correction signal" -> more bandwidth). See
+    #   DIVROUTE_ACCURACY_MASTER_PLAN.md §3.1 (which flagged this mismatch but
+    #   only fixed the aggregation-exclusion symptom, never this direction)
+    #   and §14 (the fourth companion-run result this flag exists to test).
+    #   When True: swaps which extreme gets tier=1 vs tier=3. Tier=2 (the
+    #   middle band) and the NaN/Inf safety fallback are unaffected.
+    #   Default False preserves all existing/validated behaviour exactly.
+    invert_tier_polarity: bool = False
+
     # run_label — optional suffix that overrides the checkpoint sub-folder name.
     # When non-empty, main.py uses this label instead of the auto-derived method
     # name so each ablation experiment writes to its own isolated directory.
@@ -216,6 +245,7 @@ class Config:
     # "default": Standard nn.BatchNorm2d, stats aggregated by server.
     # "local_bn": nn.BatchNorm2d, but running stats are excluded from global model.
     # "groupnorm": Replace nn.BatchNorm2d with nn.GroupNorm.
+    # "ws_groupnorm": Replace nn.Conv2d with WSConv2d and nn.BatchNorm2d with nn.GroupNorm.
     bn_mode: str = "default"
     # Routing score used for tier assignment.
     # "raw"  -> compare d_raw against tau (consistent: tau is also from d_raw)
@@ -228,7 +258,21 @@ class Config:
     # ── Dataset / model selection (Phase 3 scalability) ──────────────────────
     # Defaults preserve the original CIFAR-10 / SimpleCNN behaviour exactly.
     dataset_name: str = "cifar10"    # "cifar10" | "cifar100"
-    model_name:   str = "simplecnn"  # "simplecnn" | "resnet18"
+    model_name:   str = "simplecnn"  # "simplecnn" | "resnet18" | "efficientnet_b0_pretrained"
+
+    # ── Pretrained-backbone fine-tuning support ───────────────────────────────
+    # Only relevant when model_name="efficientnet_b0_pretrained". Image resize
+    # and ImageNet normalisation are derived automatically from model_name
+    # inside data.py — no separate flag needed for those, so they cannot drift
+    # out of sync. This field controls the local-training LR schedule's floor:
+    # local_lr decays via a half-cosine schedule from local_lr (round 0) down
+    # to local_lr_min (final round) — see get_local_lr() in client.py. The
+    # default (0.001) exactly matches client.train()'s previously-hardcoded
+    # floor, so existing runs that don't reference this field are unaffected.
+    # When fine-tuning a pretrained backbone, pair a lower local_lr (e.g. 0.01
+    # instead of the from-scratch default of 0.1) with this floor — 0.1 is
+    # tuned for random-init training and will damage pretrained features.
+    local_lr_min: float = 0.001
 
 
     # ── [PART 8] Scientific Instrumentation Options ──────────────────────────
@@ -333,6 +377,272 @@ def get_uniform_top5_config(**overrides) -> Config:
         use_epoch_warmup          = False,
         k_ratio_tier1             = 0.05,    # unused — all clients routed as Tier-2
         k_ratio_tier2             = 0.05,    # the single uniform compression ratio
+    )
+    base.update(overrides)
+    return Config(**base)
+
+
+def get_pretrained_finetune_config(**overrides) -> Config:
+    """
+    Config for DivRoute's pretrained-backbone fine-tuning run — the "main
+    result" condition described in DIVROUTE_ACCURACY_MASTER_PLAN.md, targeting
+    80-85% accuracy on CIFAR-100 (current from-scratch ceiling: 32.8% at round
+    274/300 on ResNet-18; this project's own best validated from-scratch
+    ceiling anywhere is ~64.1%, on the easier CIFAR-10, per
+    get_recommended_divroute_config's docstring — see the plan doc for why
+    from-scratch training cannot realistically reach 80-85% on CIFAR-100
+    under this protocol, and why a pretrained backbone is the recommended fix).
+
+    Starts from get_recommended_divroute_config()'s validated base — same
+    mechanism (divergence formula, tier routing, top-k dispatch, byte
+    accounting, gamma-decay), same k_ratio_tier1/tier2 — and changes only:
+        - model_name: ResNet-18-from-scratch -> ImageNet-pretrained
+          EfficientNet-B0 ("efficientnet_b0_pretrained"). data.py automatically
+          resizes CIFAR-100 images and switches to ImageNet normalisation for
+          this model_name — no separate flag needed.
+        - bn_mode="default": explicitly preserves pretrained BatchNorm running
+          statistics (do not set "groupnorm"/"ws_groupnorm" for this run —
+          fine as a secondary ablation, but not the main result; see
+          DIVROUTE_ACCURACY_MASTER_PLAN.md §4).
+        - include_tier3_in_aggregation=True: the live tier-assignment loop
+          (main.py) routes HIGH-divergence clients to Tier 3 and EXCLUDES
+          them (0 bytes, 0 aggregation weight) — verified directly against
+          main.py, see plan doc §3.1. This stops silently discarding the most
+          locally-distinct clients' updates every round.
+        - local_lr / local_lr_min: lowered for fine-tuning a pretrained
+          backbone instead of training a randomly-initialised one from
+          scratch — 0.1 (the from-scratch default) will damage pretrained
+          features.
+
+    Deliberately UNCHANGED from the validated base, despite general FL
+    literature suggesting otherwise — do not flip these on without a
+    dedicated re-validation run (see DIVROUTE_ALGORITHMS_MASTER_DOC.md §14):
+        - use_error_feedback=False   (documented finding: -3.8pp at k=0.05)
+        - use_server_momentum=False  (documented finding: -15.9pp, β=0.9/η=1.0
+          effective step size bug)
+
+    Caller should set run_label (via overrides) to something unique so this
+    run writes to its own fresh checkpoint directory. The checkpoint/resume
+    compatibility guard in main.py will correctly refuse to resume this run
+    from the existing ResNet-18-from-scratch checkpoint (model_name mismatch)
+    — that refusal is expected behaviour, not a bug to work around.
+
+    NOT guaranteed by this config alone: a specific accuracy number. See
+    DIVROUTE_ACCURACY_MASTER_PLAN.md §7 (guarantees vs. non-guarantees) and §9
+    — a centralized (non-federated) sanity check with this same model/resize/
+    normalisation pipeline, run before committing to the full federated
+    experiment, is recommended there and is not automated by this function.
+
+    Any keyword argument in `overrides` is forwarded to Config().
+    """
+    base = get_recommended_divroute_config().__dict__.copy()
+    base.update(
+        dataset_name                  = "cifar100",
+        model_name                    = "efficientnet_b0_pretrained",
+        bn_mode                       = "default",
+        include_tier3_in_aggregation  = True,
+        local_lr                      = 0.01,
+        local_lr_min                  = 0.001,
+        # tau_low/tau_high default to 0.01/0.02 and threshold_mode defaults
+        # to "adaptive_tau" with tau_smoothing=0.8 -- tuned for from-scratch
+        # ResNet-18 divergence scores, which run ~100x larger than a
+        # pretrained-backbone fine-tune's (observed ~1e-4 vs the 0.01/0.02
+        # tuned scale). adaptive_tau's EMA only decays 20%/round toward the
+        # real distribution, so tau_low never gets within an order of
+        # magnitude of the actual scores inside a 10- or even 20-round
+        # budget -- every client's score stays below tau_low the whole run,
+        # so every client is classified Tier 1 (confirmed empirically: a
+        # real 10-round run showed "15/0/0" tier counts every single
+        # round). Tier 2/3 compression never activates, defeating the
+        # entire routing comparison this config exists to run.
+        # rolling_percentile recomputes tau_low/tau_high directly from the
+        # actual score distribution's shape every round (p33/p67 over a
+        # rolling window) rather than decaying toward it from a stale
+        # from-scratch default, so it is scale-independent.
+        threshold_mode                = "rolling_percentile",
+        # convergence_floor (default 1e-4) freezes tau updates once the
+        # score spread drops below it -- also tuned for the from-scratch
+        # scale. Pretrained-regime spreads observed so far are ~1e-5..1e-4,
+        # i.e. already below the default floor, which would freeze tau
+        # after round 1 even with rolling_percentile active. Lowered two
+        # orders of magnitude so genuine convergence (not just a smaller
+        # backbone) is what triggers the freeze.
+        convergence_floor              = 1e-6,
+        # use_k_warmup defaults to True with k_warmup_rounds=30 -- a from-
+        # scratch-tuned schedule that ramps k_ratio_tier1/tier2 UP from
+        # 0.70/0.30 to their final values over the first 30 rounds.
+        # get_adaptive_k_ratios() (compression.py) checks use_k_warmup
+        # BEFORE it ever looks at k_ratio_tier1/tier2, and main.py calls it
+        # unconditionally every round regardless of fedavg_baseline_mode --
+        # so for any companion run at <=20 rounds (the entire run falls
+        # inside the warmup window), every round silently used k=0.70/0.30
+        # instead of this config's real k_ratio_tier1=0.20/k_ratio_tier2=0.05,
+        # for the ENTIRE run. Confirmed empirically: a real 20-round run's
+        # byte accounting only makes sense under k=0.70/0.30 (at k>0.5 the
+        # per-coordinate value+index overhead of top-k storage makes
+        # compressed size EXCEED dense, matching upload numbers that were
+        # sometimes larger than uncompressed FedAvg's reference). This
+        # doesn't just corrupt byte accounting -- k_ratio truncates what
+        # actually gets aggregated into the global model, so it silently
+        # changed training dynamics (and therefore every accuracy number)
+        # too. A 10-30 round warmup is reasonable for a from-scratch model
+        # training for hundreds of rounds; it makes no sense for a
+        # pretrained backbone fine-tuning for 10-20 rounds total, where the
+        # "warmup" would consume the entire run.
+        use_k_warmup                   = False,
+    )
+    base.update(overrides)
+    return Config(**base)
+
+
+def get_fedavg_pretrained_config(**overrides) -> Config:
+    """
+    Config for the "Full FedAvg" companion baseline (master plan §6) under the
+    SAME pretrained-backbone fine-tuning condition as
+    get_pretrained_finetune_config() — the iso-condition accuracy reference
+    that the DivRoute pretrained run must be compared against for
+    comm_vs_accuracy.png to be a valid claim.
+
+    fedavg_baseline_mode=True triggers main.py's override block (forces
+    use_divergence_weighting/use_server_momentum/use_error_feedback/
+    use_adaptive_tau/use_tier3_sync/use_adaptive_k off, k_ratio_tier1=
+    k_ratio_tier2=1.0, tau_low=tau_high=-1.0, gamma=1.0 — see main.py's
+    run(), the block gated on `if config.fedavg_baseline_mode`).
+
+    include_tier3_in_aggregation=True is NOT optional here — it is required
+    for this to be a working FedAvg baseline at all, not just a safety net.
+    With tau_low=tau_high=-1.0 and divergence scores that are always >= 0,
+    main.py's tier-assignment (`d <= tau_low -> Tier 1`, `d <= tau_high ->
+    Tier 2`, else Tier 3`) puts every single client in Tier 3 every round.
+    server.aggregate() drops Tier-3 clients from aggregation unless
+    include_tier3_in_aggregation=True (server.py: `if r["tier"] != 3 or
+    include_tier3_in_aggregation`) -- so without this flag, EVERY client
+    would be excluded and the global model would never update (verified
+    directly against server.py and compression.py; also matches the
+    corrected-FedAvg fix already validated in
+    run_diag20_fedavg_corrected.py / logs/diag20_fedavg_corrected_cifar100.json,
+    where client aggregation_weight is non-zero despite tier=3 specifically
+    because this flag is set). With k_ratio_tier2 forced to 1.0 by the
+    fedavg_baseline_mode override above, compression.py's tier-3-included
+    path (`k_ratio = k1 if tier==1 else k2`) still resolves to an
+    uncompressed (k=1.0) update -- i.e. genuine, undamaged FedAvg, not
+    FedAvg-shaped-but-secretly-compressed.
+
+    threshold_mode="fixed" is set for defense in depth, matching the same
+    precedent run: main.py's current tier-assignment block already skips tau
+    recomputation unconditionally whenever fedavg_baseline_mode=True (the
+    `if not config.fedavg_baseline_mode` guard), so this is redundant with
+    that guard today, but costs nothing and protects against that guard
+    being weakened later without this config being re-checked.
+
+    dataset_name / model_name / bn_mode / local_lr / local_lr_min mirror
+    get_pretrained_finetune_config() exactly, so the only difference between
+    the two runs is the routing/compression mechanism being tested, not the
+    backbone, data pipeline, or optimisation regime.
+
+    Caller MUST pass an identical seed, num_rounds, num_clients, alpha, and
+    clients_per_round to get_pretrained_finetune_config() and
+    get_uniform_top5_pretrained_config() (master plan §6) -- this function
+    does not enforce that; it is the caller's responsibility. Caller should
+    also set run_label (via overrides) to something unique so this run
+    writes to its own checkpoint directory.
+
+    Any keyword argument in `overrides` is forwarded to Config().
+    """
+    base = dict(
+        fedavg_baseline_mode          = True,
+        include_tier3_in_aggregation  = True,
+        threshold_mode                = "fixed",
+        dataset_name                  = "cifar100",
+        model_name                    = "efficientnet_b0_pretrained",
+        bn_mode                       = "default",
+        local_lr                      = 0.01,
+        local_lr_min                  = 0.001,
+        # Critical, not cosmetic: use_k_warmup defaults to True
+        # (k_warmup_rounds=30), and get_adaptive_k_ratios() checks it BEFORE
+        # k_ratio_tier1/tier2 -- so for a <=20-round run the whole thing
+        # falls inside the warmup window and every round silently used
+        # k=0.70/0.30 instead of the k_ratio_tier1=k_ratio_tier2=1.0 this
+        # override block sets above. Without this, "FedAvg" isn't dense at
+        # all -- it's secretly compressed at the same ratio a from-scratch
+        # warmup would use this early, which both understates its true
+        # (dense) byte cost and, more importantly, changes what actually
+        # gets aggregated into the global model. See
+        # get_pretrained_finetune_config()'s matching note for the full
+        # byte-math confirmation.
+        use_k_warmup                   = False,
+        # Methodology parity, not a correctness bug like the two above:
+        # get_pretrained_finetune_config() inherits ntd_beta=0.1 (Not-True
+        # Distillation, a local-training regularizer) from
+        # get_recommended_divroute_config()'s base; this factory previously
+        # left it at Config's default 0.0, giving DivRoute an unearned
+        # regularization advantage no baseline shared (flagged as an open
+        # question in DIVROUTE_ACCURACY_MASTER_PLAN.md §10, resolved here by
+        # giving every method the same regularizer rather than removing it
+        # from DivRoute -- either resolves the asymmetry, but this direction
+        # doesn't also reduce DivRoute's own accuracy).
+        ntd_beta                       = 0.1,
+    )
+    base.update(overrides)
+    return Config(**base)
+
+
+def get_uniform_top5_pretrained_config(**overrides) -> Config:
+    """
+    Config for the "Uniform Top-5%" companion baseline (master plan §6) under
+    the SAME pretrained-backbone fine-tuning condition as
+    get_pretrained_finetune_config() -- the communication-matched control
+    that isolates DivRoute's routing intelligence from compression itself,
+    at the same pretrained init as get_pretrained_finetune_config() and
+    get_fedavg_pretrained_config().
+
+    Starts from get_uniform_top5_config()'s validated base (uniform_top5_mode
+    =True; main.py short-circuits the whole divergence/tau/tier-assignment
+    block in this mode and hardcodes every client to tier=2, so -- unlike
+    get_fedavg_pretrained_config() -- there is no Tier-3-exclusion hazard
+    here and include_tier3_in_aggregation is left at its default) and
+    changes only the backbone/dataset and fine-tuning LR regime, mirroring
+    get_pretrained_finetune_config():
+        - dataset_name="cifar100", model_name="efficientnet_b0_pretrained"
+        - bn_mode="default" (preserve pretrained BatchNorm stats)
+        - local_lr / local_lr_min: same lowered fine-tuning regime -- 0.1
+          (get_uniform_top5_config's implicit from-scratch default) would
+          damage pretrained features just as it would for DivRoute.
+
+    Caller MUST pass an identical seed, num_rounds, num_clients, alpha, and
+    clients_per_round to get_pretrained_finetune_config() and
+    get_fedavg_pretrained_config() (master plan §6). Caller should also set
+    run_label (via overrides) to something unique.
+
+    Any keyword argument in `overrides` is forwarded to Config().
+    """
+    base = get_uniform_top5_config().__dict__.copy()
+    base.update(
+        dataset_name  = "cifar100",
+        model_name    = "efficientnet_b0_pretrained",
+        bn_mode       = "default",
+        local_lr      = 0.01,
+        local_lr_min  = 0.001,
+        # Critical, not cosmetic -- see get_pretrained_finetune_config()'s
+        # matching note. use_k_warmup defaults to True (k_warmup_rounds=30);
+        # for a <=20-round run every round falls inside that warmup window,
+        # so every client (always tier=2 in uniform_top5_mode) was silently
+        # compressed at k_warmup_tier2=0.30 instead of this config's real
+        # k_ratio_tier2=0.05 -- roughly 6x more retained per client than
+        # "Uniform Top-5%" is supposed to mean, for the entire run.
+        use_k_warmup  = False,
+        # Training-budget parity, not a correctness bug: get_uniform_top5_config()
+        # sets use_epoch_warmup=False, so every round trains at the full
+        # local_epochs=5 from round 1 -- while DivRoute/FedAvg ramp 2->4->5
+        # (75 "epoch-rounds" over a 20-round run vs. Uniform's 100, ~33% more
+        # total local SGD steps for Uniform). This was an unresolved confound
+        # in the fourth companion-run result (DIVROUTE_ACCURACY_MASTER_PLAN.md
+        # §13): Uniform's accuracy edge over DivRoute could partly or wholly be
+        # this extra training rather than compression-strategy quality.
+        # Matching DivRoute/FedAvg's schedule here removes that confound so a
+        # future comparison isolates the compression strategy itself.
+        ntd_beta      = 0.1,   # see get_fedavg_pretrained_config()'s matching note
+        use_epoch_warmup = True,
     )
     base.update(overrides)
     return Config(**base)

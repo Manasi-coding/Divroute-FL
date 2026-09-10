@@ -50,7 +50,7 @@ class FLServer:
     # ─────────────────────────────────────────────────────────────────────────
 
     def aggregate(self, client_results: List[dict], error_buffers: dict,
-                  round_num: int | None = None) -> None:
+                  round_num: int | None = None, error_buffer_tiers: dict = None) -> None:
         old_flat = self._flatten_params(self.global_model.state_dict())
 
         # NaN guard
@@ -184,13 +184,12 @@ class FLServer:
                     )
                     payload = {"values": sparse_delta, "indices": None, "bytes_transmitted": bytes_received}
                 else:
-                    layer_slices = None
-                    if getattr(self.config, "use_layerwise_topk", False):
-                        layer_slices = self._get_layer_slices()
+                    layer_slices = self._get_layer_slices()
                             
                     payload = apply_tiered_compression(
                         raw_delta, r["tier"], self.config, error_buffers, r["client_id"],
-                        layer_slices=layer_slices, layer_importances=self._layer_importance)
+                        layer_slices=layer_slices, layer_importances=self._layer_importance, round_num=round_num,
+                        error_buffer_tiers=error_buffer_tiers)
                     r["bytes_received"] = payload["bytes_transmitted"]
                     # upload = compressed top-k bytes actually sent by client
                     r["upload_bytes"] = payload["bytes_transmitted"]

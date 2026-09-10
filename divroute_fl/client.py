@@ -145,50 +145,12 @@ def _ntd_loss(student_logits: torch.Tensor, teacher_logits: torch.Tensor,
     ) * (tau ** 2)
 
 
-def _cosine_lr(base_lr: float, round_num: int, total_rounds: int) -> float:
-    """Compute the cosine-annealed learning rate for a given global round.
-
-    Decays from ``base_lr`` at round 0 to exactly ``base_lr * 0.01`` at the
-    final round (``total_rounds - 1``) following the standard cosine schedule:
-
-        lr(t) = lr_min + 0.5 * (lr_max - lr_min) * (1 + cos(π * t / (T - 1)))
-
-    The denominator is ``T - 1`` (not ``T``) because the loop in main.py runs
-    ``for rnd in range(total_rounds)``, so ``round_num`` ranges over the closed
-    integer set {0, 1, …, T-1}.  Using T-1 as denominator maps this domain
-    exactly onto the cosine interval [0, π]:
-
-        t = 0   → cos(0)   = +1  → lr = base_lr          (maximum)
-        t = T-1 → cos(π)   = -1  → lr = lr_min = base_lr * 0.01  (minimum)
-
-    Using T instead (the original formula) maps the domain onto [0, π(T-1)/T],
-    which reaches only ~π - π/T at the final round.  With T=100 this leaves
-    the LR ~2.5 % above lr_min on the last round — never reaching the target
-    minimum.
-
-    Parameters
-    ----------
-    base_lr      : the configured initial learning rate (``Config.local_lr``)
-    round_num    : 0-indexed current global communication round
-    total_rounds : total number of communication rounds (``Config.num_rounds``)
-
-    Design note
-    -----------
-    A pure function of the global round is the correct pattern for federated
-    learning.  PyTorch's ``CosineAnnealingLR`` requires a persistent
-    ``(optimizer, scheduler)`` pair that is stepped each call.  Because the
-    client optimizer is recreated fresh inside ``FLClient.train()`` on every
-    round, attaching a scheduler would restart the cosine curve every round.
-    Computing the LR analytically from ``round_num`` and setting it directly
-    avoids this restart and ensures a single, monotone decay across the full
-    training run.
-    """
-    lr_min = base_lr * 0.05
-    # Guard: T-1 == 0 when total_rounds == 1, which would cause ZeroDivisionError.
-    # With a single round there is nothing to anneal; return the full base_lr.
+def get_local_lr(base_lr: float, min_lr: float, round_num: int, total_rounds: int) -> float:
+    """Compute the cosine-annealed learning rate for a given global round."""
     if total_rounds <= 1:
         return base_lr
-    return lr_min + 0.5 * (base_lr - lr_min) * (1.0 + math.cos(math.pi * round_num / (total_rounds - 1)))
+    t = round_num + 1
+    return min_lr + 0.5 * (base_lr - min_lr) * (1.0 + math.cos(math.pi * t / total_rounds))
 
 
 class FLClient:
@@ -251,7 +213,7 @@ class FLClient:
     def train(self, global_state_dict: dict, local_epochs: int | None = None,
               fedsparse_lambda: float = 0.0,
               ntd_beta: float = 0.0, ntd_tau: float = 3.0,
-              round_num: int = 0, total_rounds: int = 1) -> dict:
+              round_num: int = 0, total_rounds: int = 1, min_local_lr: float = 0.001) -> dict:
         """
         Accepts a state_dict (serialisable) instead of the model object —
         required for multiprocessing (model objects can't cross process boundaries).
@@ -338,7 +300,7 @@ class FLClient:
         # intentional — there is no "restart" of the cosine curve.
         # All clients selected in a given round share the same round_num, so
         # they train with an identical LR, preserving experimental fairness.
-        effective_lr = _cosine_lr(self.local_lr, round_num, total_rounds)
+        effective_lr = get_local_lr(self.local_lr, min_local_lr, round_num, total_rounds)
         # Standard ResNet-18 / CIFAR-100 optimiser recipe (momentum=0.9, WD=5e-4,
         # Nesterov=True).  The optimiser is constructed fresh on every call to
         # train(), so its momentum buffers are scoped to this local_model instance
@@ -376,7 +338,7 @@ class FLClient:
         # ema_model is scoped to this train() call — it is not stored on
         # self, so there is no possibility of EMA state leaking across
         # clients or across communication rounds.
-        ema_model = get_model(self.model_name, self.num_classes).to(self.device)
+        ema_model = get_model(self.model_name, self.num_classes, self.bn_mode).to(self.device)
         ema_model.load_state_dict(local_model.state_dict())
         ema_model.eval()   # EMA model is never trained; eval() disables dropout etc.
         # ─────────────────────────────────────────────────────────────────
@@ -601,6 +563,7 @@ class FLClient:
             "local_train_acc": local_train_acc,
             "local_val_acc":   local_val_acc,
             "local_val_loss":  local_val_loss,
+            "local_lr":        effective_lr,
             "divergence_score": None,
             "tier": None,
             "bytes_received": None,

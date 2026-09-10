@@ -1,6 +1,27 @@
-data/
+# Only the essential project files/folders are tracked — everything else at
+# the repo root is ignored by default. The repo has accumulated a lot of
+# one-off diagnostic/analysis scripts, large audit CSVs, and generated
+# artifacts (checkpoints, logs, results, data, plots) over the course of
+# this project; none of that belongs in the tracked history going forward.
+/*
+
+# --- Core package + entry points ---
+!/divroute_fl/
+!/baselines/
+!/scripts/
+!/run_pretrained_companion_experiments.py
+
+# --- Documentation ---
+!/README.md
+!/DIVROUTE_ACCURACY_MASTER_PLAN.md
+!/DIVROUTE_ALGORITHMS_MASTER_DOC.md
+!/DIVROUTE_PROJECT_OVERVIEW.md
+!/DIVROUTE_REMAINING_WORK.md
+
+# --- Repo config ---
+!/.gitignore
+
+# --- Even inside allowed folders above, never track these ---
 __pycache__/
-records/
-plots/
-venv
-scratch/
+*.pyc
+/divroute_fl/main_diag4_polarityfixed.py

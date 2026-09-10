@@ -25,7 +25,16 @@ def build_phase5_config(num_rounds: int, seed: int,
                         dataset_name: str = "cifar100",
                         model_name: str = "resnet18",
                         alpha: float = 0.9,
-                        bn_mode: str = "default",
+                        # Switched from BatchNorm to GroupNorm: BatchNorm running-stats get
+                        # corrupted by non-IID cross-client averaging under this pipeline's
+                        # 100-client, alpha=0.9 Dirichlet partition (see model.py's bn_mode
+                        # design notes — "default" BatchNorm aggregates running_mean/running_var
+                        # via sample-weighted averaging across clients with very different local
+                        # distributions, a documented FL instability). GroupNorm computes
+                        # normalization stats per-example, no cross-client BN buffer aggregation
+                        # involved. Already implemented and available via bn_mode; not previously
+                        # tested at scale on this specific CIFAR-100 pipeline.
+                        bn_mode: str = "groupnorm",
                         threshold_mode: str = "percentile",
                         preset: str = "divroute",
                         server_momentum: float = None,
@@ -84,7 +93,10 @@ def build_phase5_config(num_rounds: int, seed: int,
         # â”€â”€ Aggregation / server (instruction #7) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         use_divergence_weighting=True,
         divergence_weight_mode="sqrt",
-        use_server_momentum=True,
+        # Disabled: 20-round diagnostic (2026-08-24) confirmed this regresses CIFAR-100
+        # accuracy from ~10.5% to ~1.1% at round 20, consistent with documented CIFAR-10
+        # findings (-15.9pp / -3.8pp).
+        use_server_momentum=False,
         server_momentum=0.9,
         server_lr=1.0,
         server_clip_updates=False,
@@ -95,8 +107,13 @@ def build_phase5_config(num_rounds: int, seed: int,
         use_adaptive_k=False,       # static ratios
         use_k_warmup=False,         # no warmup ramp on k either
 
-        # â”€â”€ Features to keep OFF (instruction #10) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # ── Compression Features ────────────────────────────────────────────────
+        # Disabled: 20-round diagnostic (2026-08-24) confirmed this regresses CIFAR-100
+        # accuracy from ~10.5% to ~1.1% at round 20, consistent with documented CIFAR-10
+        # findings (-15.9pp / -3.8pp).
         use_error_feedback=False,
+        error_feedback_momentum=0.9,
+        use_layerwise_topk=True,
         use_tier3_sync=False,
         fedsparse_lambda=0.0,
         fedzip_actual_mode=False,
@@ -163,7 +180,15 @@ def main() -> None:
     parser.add_argument("--preset",     type=str, default="divroute", 
                         choices=["fedavg", "fedavg_localbn", "uniform_topk", "divroute_nocomp", "divroute", "divroute_ef", "fedavg_gn", "divroute_gn", "fedavg_alpha03", "divroute_alpha03"])
     parser.add_argument("--alpha",      type=float, default=0.9)
-    parser.add_argument("--bn_mode",    type=str, default="default", choices=["default", "local_bn", "groupnorm"])
+    # Switched from BatchNorm to GroupNorm: BatchNorm running-stats get corrupted by
+    # non-IID cross-client averaging under this pipeline's 100-client, alpha=0.9
+    # Dirichlet partition (see model.py's bn_mode design notes — "default" BatchNorm
+    # aggregates running_mean/running_var via sample-weighted averaging across clients
+    # with very different local distributions, a documented FL instability). GroupNorm
+    # computes normalization stats per-example, no cross-client BN buffer aggregation
+    # involved. Already implemented and available via bn_mode; not previously tested
+    # at scale on this specific CIFAR-100 pipeline.
+    parser.add_argument("--bn_mode",    type=str, default="groupnorm", choices=["default", "local_bn", "groupnorm", "ws_groupnorm"])
     parser.add_argument("--threshold_mode", type=str, default="percentile", choices=["fixed", "adaptive_tau", "percentile"])
     parser.add_argument("--momentum",   type=float, default=None, choices=[0.0, 0.5, 0.9])
     parser.add_argument("--error_feedback", action="store_true", default=None)

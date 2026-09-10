@@ -101,15 +101,17 @@ def run(config: Config | None = None) -> None:
               f"for local validation (NEW experimental configuration)")
         client_datasets, val_datasets = get_client_datasets_with_val(
             config.dataset_name, config.num_clients, config.alpha, config.seed,
-            val_fraction=config.local_val_fraction)
+            val_fraction=config.local_val_fraction, model_name=config.model_name)
     else:
         # ── Standard mode: exact original execution path ───────────────────────
         # get_client_datasets() is called directly; nothing is reshuffled.
         client_datasets = get_client_datasets(
-            config.dataset_name, config.num_clients, config.alpha, config.seed)
+            config.dataset_name, config.num_clients, config.alpha, config.seed,
+            model_name=config.model_name)
         val_datasets = [None] * config.num_clients
     test_loader = DataLoader(
-        get_test_dataset(config.dataset_name), batch_size=256, shuffle=False, num_workers=0)
+        get_test_dataset(config.dataset_name, model_name=config.model_name),
+        batch_size=256, shuffle=False, num_workers=0)
 
     shard_sizes = [len(ds) for ds in client_datasets]  # training shard sizes only
     print(f"[init] shard sizes — min: {min(shard_sizes)}, max: {max(shard_sizes)}, "
@@ -141,6 +143,7 @@ def run(config: Config | None = None) -> None:
     ema_scores: dict = {}
     _pg_last_round: dict = {}
     error_buffers: dict = {}
+    error_buffer_tiers: dict = {}   # {client_id: last tier its EF residual was accumulated under}
 
     _baseline_bpr: dict | None = None   # FedAvg bytes-per-round (set once after round 0)
 
@@ -370,6 +373,7 @@ def run(config: Config | None = None) -> None:
         ema_scores = checkpoint["main_loop_state"]["ema_scores"]
         _pg_last_round = checkpoint["main_loop_state"].get("_pg_last_round", {})
         error_buffers = {k: v.to(device) for k, v in checkpoint["main_loop_state"]["error_buffers"].items()}
+        error_buffer_tiers = checkpoint["main_loop_state"].get("error_buffer_tiers", {})
         _baseline_bpr = checkpoint["main_loop_state"]["_baseline_bpr"]
         cumulative_divroute_download = checkpoint["main_loop_state"]["cumulative_divroute_download"]
         cumulative_baseline_download = checkpoint["main_loop_state"]["cumulative_baseline_download"]
@@ -412,7 +416,8 @@ def run(config: Config | None = None) -> None:
                                         ntd_beta=config.ntd_beta,
                                         ntd_tau=config.ntd_tau,
                                         round_num=rnd,
-                                        total_rounds=config.num_rounds)
+                                        total_rounds=config.num_rounds,
+                                        min_local_lr=getattr(config, "local_lr_min", 0.001))
             results.append(result)
 
         # -- divergence, adaptive tau, and tier assignment ---------------------
@@ -576,10 +581,11 @@ def run(config: Config | None = None) -> None:
                     _diag_raw_per_client[r["client_id"]] = d_raw
                     _diag_norm_per_client[r["client_id"]] = float(client_delta.norm(p=2).item())
 
-                d_ema = update_ema(ema_scores, r["client_id"], d_raw, config.ema_beta)
                 r["d_raw"] = d_raw
-                r["d_ema"] = d_ema
-                raw_d_scores.append(d_raw)
+                if not _use_directional:
+                    d_ema = update_ema(ema_scores, r["client_id"], d_raw, config.ema_beta)
+                    r["d_ema"] = d_ema
+                    raw_d_scores.append(d_raw)
 
                 # -- Memory Optimisation (Change 1) --
                 clients[r["client_id"]]._local_model = None
@@ -608,30 +614,38 @@ def run(config: Config | None = None) -> None:
                 else:
                     _imp_min = _imp_max = _imp_range = 0.0
 
-                _dw = getattr(config, "directional_div_weight",   0.70)
-                _lw = getattr(config, "loss_improvement_weight",  0.30)
-
                 _n_hybrid_fallback = 0
-                for r in results:
-                    _udir = r.get("_d_dir_raw_unnorm")
-                    if _udir is None:
-                        # NaN-guarded client — skip hybrid
-                        continue
-                    # Normalise directional component
-                    _dir_norm = (_udir - _dir_min) / _dir_range if _dir_range > 1e-12 else 0.5
-                    # Normalise loss-improvement component
+                valid_results = [r for r in results if r.get("_d_dir_raw_unnorm") is not None]
+                div_scores = [r.get("_d_dir_raw_unnorm") for r in valid_results]
+                
+                loss_scores = []
+                fallback = False
+                for r in valid_results:
                     _uimp = r.get("_loss_improv_raw")
-                    if _uimp is not None and _has_any_improv and _imp_range > 1e-12:
-                        _imp_norm = (_uimp - _imp_min) / _imp_range
-                        _hybrid = _dw * _dir_norm + _lw * _imp_norm
+                    if _uimp is not None and _has_any_improv:
+                        loss_scores.append(_uimp)
                     else:
-                        # Fallback: use directional only (full weight)
+                        fallback = True
+                        
+                from divroute_fl.mechanism import compute_dynamic_hybrid_scores
+                
+                if not fallback and len(div_scores) > 0 and len(loss_scores) == len(div_scores):
+                    hybrid_scores = compute_dynamic_hybrid_scores(
+                        div_scores, loss_scores, rnd, config.num_rounds
+                    )
+                    for r, _hybrid in zip(valid_results, hybrid_scores):
+                        r["routing_score_hybrid"] = _hybrid
+                        r["d_raw"] = _hybrid
+                        raw_d_scores.append(_hybrid)
+                else:
+                    for r in valid_results:
+                        _udir = r.get("_d_dir_raw_unnorm")
+                        _dir_norm = (_udir - _dir_min) / _dir_range if _dir_range > 1e-12 else 0.5
                         _hybrid = _dir_norm
                         _n_hybrid_fallback += 1
-                    r["routing_score_hybrid"] = _hybrid
-                    # Overwrite d_raw so tau/tier path uses hybrid score
-                    r["d_raw"] = _hybrid
-                    raw_d_scores.append(_hybrid)  # raw_d_scores already has d_dir; re-collect
+                        r["routing_score_hybrid"] = _hybrid
+                        r["d_raw"] = _hybrid
+                        raw_d_scores.append(_hybrid)
 
                 # raw_d_scores will have been double-appended for directional clients;
                 # rebuild cleanly from final d_raw values.
@@ -666,53 +680,63 @@ def run(config: Config | None = None) -> None:
                 active_ema_scores.append(d_for_tier)
                 
             # ── Rolling Thresholds & Convergence Protection ───────────────
-            _t_mode = getattr(config, "threshold_mode", "rolling_percentile")
-            
-            if _t_mode in ("percentile", "rolling_percentile"):
-                if _t_mode == "rolling_percentile":
-                    _rolling_ema_history.append(active_ema_scores)
-                    _history_flat = [s for round_scores in _rolling_ema_history for s in round_scores]
-                else:
-                    _history_flat = active_ema_scores
-                
-                # Convergence Protection
-                _spread = float(np.std(_history_flat)) if _history_flat else 0.0
-                _conv_floor = getattr(config, "convergence_floor", 1e-4)
-                
-                if _spread < _conv_floor and _last_tau_low is not None:
-                    config.tau_low = _last_tau_low
-                    config.tau_high = _last_tau_high
-                    _convergence_frozen = True
-                else:
-                    _p33, _p67 = _mech.compute_percentile_taus(_history_flat)
-                    config.tau_low = _p33
-                    config.tau_high = _p67
-                    _last_tau_low = config.tau_low
-                    _last_tau_high = config.tau_high
-                    _convergence_frozen = False
-                _mu, _sigma = 0.0, 0.0
-            else:
-                # Rolling window logic for adaptive_tau
-                _tau_win    = getattr(config, "tau_window",    1)
-                _tau_smooth = getattr(config, "tau_smoothing", 0.0)
-                if active_ema_scores:
-                    _tau_score_history.append(list(active_ema_scores))
-                    if len(_tau_score_history) > _tau_win:
-                        _tau_score_history = _tau_score_history[-_tau_win:]
-                _rolled_scores = [s for rnd_scores in _tau_score_history for s in rnd_scores]
-                if _t_mode == "adaptive_tau" and len(_rolled_scores) >= 3:
-                    _cand_low, _cand_high, _mu, _sigma = _mech.compute_adaptive_taus(
-                        _rolled_scores, config.tau_alpha, config.tau_beta)
-                    if _tau_smooth > 0.0:
-                        _new_low  = _tau_smooth * config.tau_low  + (1.0 - _tau_smooth) * _cand_low
-                        _new_high = _tau_smooth * config.tau_high + (1.0 - _tau_smooth) * _cand_high
-                        config.tau_low  = min(_new_low, _new_high)
-                        config.tau_high = max(_new_low, _new_high)
+            # fedavg_baseline_mode's tau=-1.0 override was being silently overwritten by
+            # percentile recomputation every round, undermining the baseline (confirmed
+            # via dry-run 2026-08-24) — this guard prevents that regardless of which
+            # threshold_mode is configured.
+            if not config.fedavg_baseline_mode:
+                _t_mode = getattr(config, "threshold_mode", "rolling_percentile")
+
+                if _t_mode in ("percentile", "rolling_percentile"):
+                    if _t_mode == "rolling_percentile":
+                        _rolling_ema_history.append(active_ema_scores)
+                        _history_flat = [s for round_scores in _rolling_ema_history for s in round_scores]
                     else:
-                        config.tau_low  = _cand_low
-                        config.tau_high = _cand_high
-                else:
+                        _history_flat = active_ema_scores
+
+                    # Convergence Protection
+                    _spread = float(np.std(_history_flat)) if _history_flat else 0.0
+                    _conv_floor = getattr(config, "convergence_floor", 1e-4)
+
+                    if _spread < _conv_floor and _last_tau_low is not None:
+                        config.tau_low = _last_tau_low
+                        config.tau_high = _last_tau_high
+                        _convergence_frozen = True
+                    else:
+                        _p33, _p67 = _mech.compute_percentile_taus(_history_flat)
+                        config.tau_low = _p33
+                        config.tau_high = _p67
+                        _last_tau_low = config.tau_low
+                        _last_tau_high = config.tau_high
+                        _convergence_frozen = False
                     _mu, _sigma = 0.0, 0.0
+                else:
+                    # Rolling window logic for adaptive_tau
+                    _tau_win    = getattr(config, "tau_window",    1)
+                    _tau_smooth = getattr(config, "tau_smoothing", 0.0)
+                    if active_ema_scores:
+                        _tau_score_history.append(list(active_ema_scores))
+                        if len(_tau_score_history) > _tau_win:
+                            _tau_score_history = _tau_score_history[-_tau_win:]
+                    _rolled_scores = [s for rnd_scores in _tau_score_history for s in rnd_scores]
+                    if _t_mode == "adaptive_tau" and len(_rolled_scores) >= 3:
+                        _cand_low, _cand_high, _mu, _sigma = _mech.compute_adaptive_taus(
+                            _rolled_scores, config.tau_alpha, config.tau_beta)
+                        if _tau_smooth > 0.0:
+                            _new_low  = _tau_smooth * config.tau_low  + (1.0 - _tau_smooth) * _cand_low
+                            _new_high = _tau_smooth * config.tau_high + (1.0 - _tau_smooth) * _cand_high
+                            config.tau_low  = min(_new_low, _new_high)
+                            config.tau_high = max(_new_low, _new_high)
+                        else:
+                            config.tau_low  = _cand_low
+                            config.tau_high = _cand_high
+                    else:
+                        _mu, _sigma = 0.0, 0.0
+                    _convergence_frozen = False
+            else:
+                # fedavg_baseline_mode: tau_low/tau_high stay exactly as set by the
+                # fedavg override block above (-1.0/-1.0) — no recomputation of any kind.
+                _mu, _sigma = 0.0, 0.0
                 _convergence_frozen = False
 
             # ── PART 6: adaptive tau diagnostics ────────────────────────────────────
@@ -726,20 +750,35 @@ def run(config: Config | None = None) -> None:
             # ──────────────────────────────────────────────────────────────────────
 
             # -- tier assignment ---------------------------------------------------
+            # invert_tier_polarity (default False): live tier1/tier3 mapping gives
+            # the MOST bandwidth (k_ratio_tier1, tier=1) to the LEAST-divergent
+            # clients and compresses the MOST-divergent clients hardest (tier=3,
+            # k_ratio_tier2) -- the opposite of the README's stated design intent
+            # ("drifted clients need a strong correction signal" -> more
+            # bandwidth). Master plan §3.1 already flagged this mismatch but only
+            # fixed the aggregation-exclusion symptom (include_tier3_in_aggregation),
+            # never the bandwidth-allocation direction itself. When True, this
+            # swaps which extreme gets tier=1 vs tier=3 (tier=2, the middle band,
+            # and the NaN/Inf safety fallback are unaffected either way) so the
+            # hypothesis can be tested directly. Downstream code (compression.py's
+            # k_ratio lookup, aggregation, Progress Guarantee) only reads the tier
+            # NUMBER, not an assumption about what it means, so no other change is
+            # required for this flag to take effect.
+            _invert_polarity = getattr(config, "invert_tier_polarity", False)
             _tier_flips = 0
             for r in results:
                 _cid = r["client_id"]
                 d_for_tier = r["divergence_score"]
-                
+
                 if np.isnan(d_for_tier) or np.isinf(d_for_tier):
                     tier = 1 # Bottom tier safely
                 elif d_for_tier <= config.tau_low:
-                    tier = 1
+                    tier = 3 if _invert_polarity else 1
                 elif d_for_tier <= config.tau_high:
                     tier = 2
                 else:
-                    tier = 3
-                    
+                    tier = 1 if _invert_polarity else 3
+
                 r["natural_tier"] = tier
                 r["tier"] = tier
                 
@@ -1041,7 +1080,7 @@ def run(config: Config | None = None) -> None:
             r["upload_bytes"]   = 0    # compressed upload — set by server.aggregate()
             r["download_bytes"] = 0    # full-model download — set by server.aggregate()
 
-        server.aggregate(results, error_buffers, round_num=rnd + 1)
+        server.aggregate(results, error_buffers, round_num=rnd + 1, error_buffer_tiers=error_buffer_tiers)
 
         # ── [Phase-5] Capture global delta for next-round directional divergence ─
         # Store a CPU copy of the aggregated update (before momentum) so that
@@ -1287,6 +1326,7 @@ def run(config: Config | None = None) -> None:
 
         d_vals = [r["divergence_score"] for r in results]
         sync_note = f" | t3-sync: {tier3_sync_count}" if tier3_sync_count > 0 else ""
+        current_lr = results[0]["local_lr"] if results else config.local_lr
         print(
             f"  round {rnd + 1:>3}/{config.num_rounds} | acc: {acc:.4f} | "
             f"tiers: {t1}/{t2}/{t3} | "
@@ -1295,7 +1335,8 @@ def run(config: Config | None = None) -> None:
             f"(bidir save {saving_pct:.1f}%, cum {cumulative_saving_pct:.1f}%) | "
             f"tau: [{config.tau_low:.8f}, {config.tau_high:.8f}] | "
             f"d: [{min(d_vals):.8f}, {max(d_vals):.8f}] | "
-            f"epochs: {local_epochs}"
+            f"epochs: {local_epochs} | "
+            f"local_lr={current_lr:.6f}"
             f"{sync_note}"
         )
         for r in sorted(results, key=lambda x: x["client_id"]):
@@ -1374,6 +1415,7 @@ def run(config: Config | None = None) -> None:
                     "ema_scores": ema_scores.copy(),
                     "_pg_last_round": _pg_last_round.copy(),
                     "error_buffers": {k: v.cpu() for k, v in error_buffers.items()},
+                    "error_buffer_tiers": error_buffer_tiers.copy(),
                     "_baseline_bpr": _baseline_bpr.copy() if _baseline_bpr is not None else None,
                     "cumulative_divroute_download": cumulative_divroute_download,
                     "cumulative_baseline_download": cumulative_baseline_download,

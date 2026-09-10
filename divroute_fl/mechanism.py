@@ -158,3 +158,47 @@ def update_selection_weights(weights: np.ndarray, results: list, gamma: float) -
             weights[cid] *= gamma
         else:
             weights[cid] = 1.0
+
+
+def compute_dynamic_hybrid_scores(
+    div_scores: list, 
+    loss_scores: list, 
+    current_round: int, 
+    total_rounds: int
+) -> list:
+    """
+    Dynamic Hybrid Scoring (Bottleneck 2).
+    
+    Computes:
+      tau_d = max(0.05, std(divergence))
+      tau_I = max(0.05, std(loss_improvement))
+      lambda_t = 0.4 + 0.4 * (current_round / max(1, total_rounds - 1))
+      score = lambda_t * softmax(div/tau_d) + (1-lambda_t) * softmax(loss/tau_I)
+    """
+    if len(div_scores) == 0:
+        return []
+        
+    arr_div = np.array(div_scores, dtype=np.float64)
+    arr_loss = np.array(loss_scores, dtype=np.float64)
+    
+    tau_d = max(0.05, float(np.std(arr_div)))
+    tau_I = max(0.05, float(np.std(arr_loss)))
+    
+    # Progress from 0.0 to 1.0
+    progress = current_round / max(1, total_rounds - 1)
+    lam_t = 0.4 + 0.4 * progress
+    
+    def safe_softmax(x, tau):
+        scaled = x / tau
+        scaled -= np.max(scaled)
+        exp_x = np.exp(scaled)
+        sum_exp = np.sum(exp_x)
+        if sum_exp == 0:
+            return np.ones_like(x) / len(x)
+        return exp_x / sum_exp
+        
+    div_soft = safe_softmax(arr_div, tau_d)
+    loss_soft = safe_softmax(arr_loss, tau_I)
+    
+    final_scores = lam_t * div_soft + (1.0 - lam_t) * loss_soft
+    return final_scores.tolist()
