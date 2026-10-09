@@ -2,7 +2,272 @@
 
 Checklist only. Full rationale: `DIVROUTE_ACCURACY_MASTER_PLAN.md`.
 
-## NEXT STEP (post-§17 literature review — two experiments queued, neither run yet)
+## RESOLVED: full 3-vs-3-vs-3 FEMNIST comparison, all seed-matched (Tier A)
+`fedavg_r150_s42` ran and converged (last two 10-round windows +0.09pp, plateau
+81.38%). The planned JSON re-verification command failed instead:
+`logs/femnist_divroute_r150_s42.json` was not found. Cause: this was a *different*
+Kaggle session than the one behind the section-32 results, and `/kaggle/working`
+does not persist across sessions unless a version's output was saved -- the other 8
+logs are not lost, just absent from this session. **Lesson for future runs:
+download `logs/` (or "Save Version") before a session ends.** Computed the full
+comparison by hand instead (console numbers, cross-checked against every printed
+`[summary]` line so far -- all consistent):
+
+| | Seed 42 | Seed 43 | Seed 44 | Mean | Across-seed std |
+|---|---|---|---|---|---|
+| FedAvg (dense) | 81.38% | 81.69% | 81.60% | **81.56%** | 0.16 |
+| Uniform-Top5% | 81.27% | 81.71% | 81.53% | 81.50% | 0.22 |
+| DivRoute | 80.55% | 81.07% | 80.28% | 80.63% | 0.40 |
+
+FedAvg vs. Uniform: **tie** (gap +0.05pp, spread 0.22pp). FedAvg vs. DivRoute and
+Uniform vs. DivRoute: both **larger than noise** (+0.92pp and +0.87pp vs. 0.40pp) --
+DivRoute loses to both other methods, confirmed, not just suggested. This is now
+fully seed-matched (Tier A in section 33's table, promoted from Tier B) and does not
+need the raw JSON to be trusted further: re-deriving it would cost ~5-6h for a check
+that has not caught a discrepancy anywhere in this project when both were available.
+Not worth blocking on unless the previous session's Kaggle output turns out to be
+free to recover (worth a quick check of Kaggle's Version/Output history).
+
+On FEMNIST, DivRoute is the only one of the three methods that costs real accuracy
+relative to doing nothing compressed at all -- Uniform ties dense FedAvg at 90% less
+upload; DivRoute trails both at 2.1x Uniform's upload. Full account:
+`DIVROUTE_ACCURACY_MASTER_PLAN.md` section 34 (section 32 for the original DivRoute
+vs. Uniform finding).
+
+## Evidence-strength tiers across both datasets (section 33)
+Full table in the master plan. Summary: the CIFAR-100 alpha=0.1 tie and the FEMNIST
+loss are both Tier A (seed-matched, gap vs. spread computed) and can be stated
+plainly. CIFAR-100 pathological (non-IID, 2 shards/client) is Tier C -- single seed,
+Uniform's plateau only deduced from partial late rounds, no dense FedAvg baseline at
+all -- and must keep that caveat attached if used in any table, not be cleaned up for
+prose. This is the one setting left where the evidence is meaningfully weaker than
+everywhere else in the project.
+
+## Superseded (kept for history): earlier FEMNIST tracking note
+Purpose: test the routing claim (C2) where DivRoute was designed to work (no shared
+pretrained init) on a real per-writer partition, and add a second dataset. Caveat
+first: FEMNIST's label skew is only mild (mean TV 0.249 vs 0.197 for an IID split);
+the heterogeneity is mostly handwriting style. Full facts, protocol, verification and
+the disclosure list: `DIVROUTE_ACCURACY_MASTER_PLAN.md` section 31.
+
+What to upload to Kaggle: the `divroute_fl/` folder (now includes `femnist_data.py`)
+and the `scripts/` folder (`run_femnist_experiments.py`, `summarize_runs.py`), with the
+same setup cell as before. Internet must be ON (the loader downloads ~200 MB from the
+Hugging Face Hub). I did not check whether `datasets` is preinstalled on Kaggle; if
+`import datasets` fails, run `pip install datasets` first.
+
+Run, from the project folder (defaults: seeds 42 43 44, 150 rounds):
+```
+python scripts/run_femnist_experiments.py
+```
+- Interrupted or session died: run the exact same command again. Finished runs are
+  skipped, an interrupted run resumes from its checkpoint.
+- Single run: `python scripts/run_femnist_experiments.py --only divroute --seeds 42`
+- Expect roughly 32-38 min per run at ~13-15 s/round (measured on my laptop for dense
+  FedAvg; Kaggle and the compressed methods not measured), so ~5-6 h for all nine.
+- Logs land in `logs/femnist_<method>_r150_s<seed>.json`. When it finishes it prints the
+  exact `summarize_runs.py` command (DivRoute first, so the tie/not-tie verdict compares
+  DivRoute vs Uniform).
+
+Before comparing anything: check each method's plateau. The last two 10-round window
+means should differ by well under 0.5pp (dense FedAvg: 81.35 -> 81.44%). If a compressed
+method is still climbing, re-run it with a larger `--num-rounds` (new label, no
+collision). Reference points: centralised ~82%; dense FedAvg plateau ~81.4% (seed 42).
+
+Not yet done / not verified: `run_femnist_experiments.py` was never executed (written
+and reviewed only); nothing has run on Kaggle; no compressed method has run past 6
+rounds; no dense FedAvg baseline other than seed 42.
+
+## RESULT: FedAvg at alpha=0.1 — the missing accuracy baseline, now filled
+Real dense FedAvg, alpha=0.1, 20 rounds, seed 42: **77.49%**, 4962.78MB
+upload. Converged (rounds 16-20 flatten 76.33%->77.49%). Both compressed
+methods' 3-seed means beat it: DivRoute 78.35% (+0.86pp, -59.9% upload),
+Uniform 78.47% (+0.98pp, -84.0% upload). Confirms "without sacrificing
+accuracy" holds at real heterogeneity too, not just alpha=0.9 — same
+pattern as §20. Full analysis: `DIVROUTE_ACCURACY_MASTER_PLAN.md` §25.
+Doesn't change §24's routing verdict (DivRoute/Uniform still tied with
+each other); closes the general (non-routing) claim's evidence gap.
+
+## RESULT of the fifteenth attempt — pathological non-IID (2 shards/client): promising, but not converged
+First real run under the new pathological partitioning. `[train]
+partition: pathological (2 shards/client)` and uniform shard sizes
+(2000/2000/2000) confirm it applied correctly.
+
+| | Final-round acc (32 rounds, single seed) | Upload |
+|---|---|---|
+| DivRoute | 44.84% | 2069.24MB |
+| Uniform-Top5% | 37.10% | **794.04MB** |
+
+Absolute accuracy collapsed vs. every Dirichlet run (37-45% here vs.
+77-83% before) — expected under 2-classes/client client drift, not a bug.
+**Neither method has converged**: checked rounds 15-32, DivRoute climbs
+32.27%->44.84% and Uniform climbs 30.49%->37.10% with no flattening.
+Promising signal worth flagging: DivRoute leads Uniform in every one of
+the last 9 rounds (avg +2.44pp), a more consistent pattern than alpha=0.1
+ever showed — but not yet evidence of anything, since an unconverged
+curve's ranking can still flip before it plateaus. Full analysis:
+`DIVROUTE_ACCURACY_MASTER_PLAN.md` §26.
+
+## RESULT of the sixteenth attempt — FedProx (mu=0.01): hypothesis not confirmed
+`fedprox: True (mu=0.01)` confirmed active in both logs. Compared directly
+against §26's non-FedProx curves at the identical (pathological, 32-round)
+setting.
+
+| | No FedProx (§26) | FedProx mu=0.01 | Delta |
+|---|---|---|---|
+| DivRoute | 44.84% | 40.57% | -4.27pp |
+| Uniform-Top5% | 37.10% | 36.71% | -0.39pp |
+
+**No stabilization** — rounds 15-32 still climb steadily with no
+flattening, same noise magnitude as without FedProx. Final accuracy got
+worse, not better, for both methods (DivRoute notably so). **Worse: the
+one interesting pattern in §26 disappeared** — DivRoute led Uniform in
+all 9 of the last 9 rounds without FedProx (avg +2.44pp); with FedProx
+that drops to 4 of 9, a coin-flip pattern (avg +0.77pp), much closer to
+the noisy alpha=0.1 Dirichlet results. Full analysis:
+`DIVROUTE_ACCURACY_MASTER_PLAN.md` §27.
+
+Caveat: `mu=0.01` is the weak end of the literature's 0.001-1.0 range, so
+this doesn't rule out FedProx at a higher mu. But given this
+investigation's track record — every "maybe a stronger version will work"
+follow-up has come up short so far — further mu-tuning is lower priority
+than the two paths already agreed on.
+
+## RESULT of the seventeenth attempt — DivRoute at 64 rounds: converged, ~41%, below §26's number
+DivRoute only (Uniform's 64-round run is not in the log yet). `fedprox:
+False` confirmed. Plateaus from about round 30: rounds 33-44 mean 41.16%,
+rounds 45-64 mean 41.06% (round-to-round std ~0.94pp); peak 43.52% (round
+43), final 39.97%. Upload 4203.00MB (73.5% saving); tier mix stayed
+healthy. So ~41% is DivRoute's converged level here, and §26's 44.84%
+(trailing-5 43.59%) overstated it by 2.5-3.8pp — same lesson as §22
+(single-run final numbers mislead). Rounds 26-27 are missing from the
+pasted console log only (LR on either side matches the cosine schedule
+exactly; most likely a Kaggle live-output gap). **No DivRoute-vs-Uniform
+conclusion is possible until Uniform's 64-round run exists.** Full
+analysis: `DIVROUTE_ACCURACY_MASTER_PLAN.md` §28.
+
+## DECISION (post-§29): the routing/heterogeneity track is closed — no more runs on it
+Deduced from the partial Uniform log, no rerun needed. Uniform's late rounds
+(56-59: 42.72/41.62/45.51/43.73; 29-31: 43.40/42.59/39.94) sit at or above
+DivRoute's converged 41.06%. For DivRoute to hold a real ~3pp ceiling edge,
+Uniform would have to plateau near 38% — four consecutive late rounds all
+>=41.6% make that essentially impossible (>5 sigma at ~1pp noise). So §26's
+32-round lead was schedule-specific (it also vanished under FedProx), and
+routing has now failed to beat uniform compression at all three heterogeneity
+levels (alpha=0.9 loses; alpha=0.1 ties, 3 seeds; pathological ties or trails,
+single seed), while costing 2.4-2.6x the upload. My odds of a real DivRoute
+advantage at pathological: <10% (was 20-25%). Also corrected: the LoRA pivot
+was NOT unclaimed territory — see item 4. **Next step: consolidate and write
+(claims-vs-evidence map, results tables), then pick 1-2 gap-closing runs.**
+Full reasoning: `DIVROUTE_ACCURACY_MASTER_PLAN.md` §30.
+
+**Tooling added:** `scripts/summarize_runs.py` reads the run JSON logs directly
+(plateau mean over the last N rounds, across-seed mean/spread, upload and
+bidirectional MB, and a gap-vs-spread tie/not-tie verdict between two method
+groups). Validated against the hand-computed §28 plateau (41.06% +/- 0.94) and
+the §24 3-vs-3 comparison. Use it instead of console pastes for every number in
+the write-up, e.g.:
+```
+python scripts/summarize_runs.py --last 20 \
+  --group DivRoute logs/d42.json logs/d43.json logs/d44.json \
+  --group Uniform  logs/u42.json logs/u43.json logs/u44.json
+```
+
+## (superseded, now optional) STATUS: Uniform 64-round run was in flight (paste ended at round 59)
+The Uniform 64-round run (checkpoint at round 55, resumed, log ends at round
+59, no `[done]`) has no final number yet. Provisional overlap with DivRoute's
+64-round run (same LR schedule): rounds 21-31 tie (38.82% vs 38.54%), rounds
+56-59 Uniform +1.3pp — nothing resembling a persistent DivRoute lead, but 13
+comparable rounds is not a verdict. Resume itself works; a torch-RNG restore
+bug (RNG tensors loaded onto the GPU, `set_rng_state` needs CPU) was found in
+the log, reproduced locally, and fixed in `main.py` (client selection was
+never affected; only torch's MixUp/batch-order stream restarted). Details:
+`DIVROUTE_ACCURACY_MASTER_PLAN.md` §29.
+
+1. **Let the run reach round 64** (if the notebook stopped at 59, re-run the
+   same command *without* `fresh=True` — it resumes from the latest
+   checkpoint). Then read the whole trajectory from the JSON (console rounds
+   32-55 are missing from the paste; the JSON has them; its `round` field is
+   0-indexed, so console round N = JSON round N-1):
+   ```bash
+   python -c "
+   import json, statistics as st
+   h = json.load(open('logs/pretrained_companion_uniform_pathological_ef_64r.json'))['history']
+   acc = {e['round']+1: e['test_accuracy'] for e in h}
+   print('rounds logged:', min(acc), '-', max(acc), '| count:', len(acc))
+   print(*[f'{r}:{acc[r]:.4f}' for r in sorted(acc)])
+   w = [acc[r] for r in range(45, 65) if r in acc]
+   print('mean rounds 45-64: %.4f (n=%d) std %.4f' % (st.mean(w), len(w), st.stdev(w)))
+   "
+   ```
+   Compare against DivRoute's rounds 45-64 mean of 41.06% (§28). Read both
+   by plateau means, not final rounds. Near 40-41%: tie, §26's lead was a
+   transient. Near or below ~38%: real ~3pp DivRoute advantage, seed
+   repeats become the priority.
+2. **Dense FedAvg at pathological heterogeneity** — no baseline exists
+   there, so "without sacrificing accuracy" is unchecked at this setting.
+   Needed before any pathological-setting numbers go in a write-up.
+3. **Once both plateaus are known: seed repeats**, same as §21-§24's
+   methodology, before trusting any DivRoute-vs-Uniform gap under
+   pathological non-IID.
+4. **(Novelty premise corrected — see §30.) LoRA/adapter update compression — not started, second half of the
+   pivot, independent of the above.** Apply EF+top-k+tiering to LoRA
+   updates instead of full-model deltas. Needs new `model.py`/`client.py`
+   work (LoRA injection, adapter-only local training) before any runs are
+   possible. Can proceed in parallel with or after the above, per the
+   user's "both in sequence" decision.
+
+## Earlier NEXT STEP (post-§24 — investigation concluded; write-up, not more runs; superseded by pivot above)
+§24 completed the full 3-vs-3 seed-matched comparison at alpha=0.1:
+DivRoute 78.35% (±1.07pp) vs. Uniform 78.47% (±0.55pp) final-round —
+**a clean statistical tie**, with DivRoute costing a consistent 2.4-2.6x
+Uniform's upload bytes (1989.84MB avg vs. exactly 794.04MB every seed) for
+it. Combined with alpha=0.9's decisive Uniform wins (§17, §20), there is
+no heterogeneity regime tested where DivRoute's routing earns its
+complexity. **The core mechanism-specific claim is not supported.** What
+does hold: error-feedback-corrected top-k compression reaches (and per
+§20, slightly exceeds) dense FedAvg's accuracy at large communication
+savings — a real result, just not one specific to DivRoute's routing.
+
+Nothing further is required to reach a defensible conclusion. If pursuing
+more anyway, in priority order:
+
+1. **Write up the negative/mixed result.** This is the actual next step —
+   not another experiment. The investigation earned this conclusion
+   through unusually thorough self-testing (three real infrastructure bugs
+   found and fixed; four distinct hypotheses for why routing should matter,
+   each tested rather than assumed; two heterogeneity regimes; seed-matched
+   comparisons at the harder one). That rigor is itself worth stating
+   plainly in a write-up, not just the final numbers.
+2. **Optional, diminishing-returns confirmation:** the routing-vs-compression-
+   level ablation flagged since §14 (`ablation_routing_no_compression` /
+   `ablation_uniform_compression`), run at alpha=0.1, would isolate routing
+   from compression level within a single run. Given how clean the 6-run
+   tie already is, this is expected to reconfirm, not overturn, §24 — worth
+   doing only if the write-up specifically needs that more direct
+   isolation.
+3. **Seed-variance check at alpha=0.9** — still technically unconfirmed
+   (§13-§20 are single-seed), but those gaps were large and smooth, unlike
+   alpha=0.1's noisy regime — low priority.
+2. **Routing-vs-compression-level ablation at alpha=0.1** — flagged
+   repeatedly since §14, never run at all: `ablation_routing_no_compression`
+   (keep routing, force dense) and `ablation_uniform_compression` (keep
+   DivRoute's compression schedule, disable routing) isolate routing from
+   compression level directly. Worth running once the seed-matched
+   comparison above is in.
+3. **Seed-variance check at alpha=0.9 too** — every §13-§20 result is also
+   single-seed; lower priority than #1 since those gaps were large and
+   smooth (not noisy the way alpha=0.1 is), but still technically
+   unconfirmed.
+
+## Earlier NEXT STEP (post-§19 — two ablations, now run, see RESULT below)
+§19 found DivRoute + tier-transition-aware error feedback hit 82.99%
+accuracy, beating FedAvg, dominating original DivRoute, and beating
+Uniform-Top5%. Two ablations were queued to check why — both have now run;
+see the RESULT section below for what they showed (tier-aware EF refuted,
+§17's verdict reinstated).
+
+## Earlier NEXT STEP (post-§17 literature review — both now run, see below)
 §17 settled that DivRoute doesn't beat Uniform-Top5% at matched conditions.
 A literature review turned up a specific, well-documented explanation and
 one already-built-but-unused alternative, both implemented/ready now:
@@ -36,8 +301,139 @@ one already-built-but-unused alternative, both implemented/ready now:
        run_label='divroute_tier_aware_ef', num_rounds=32, fresh=True)
    ```
 
-Neither has been run. Recommended order: hybrid signal first (cheaper, no
-implementation risk), tier-aware EF second (more targeted, more novel code).
+Both have now run — see RESULT sections below (§18 hybrid: refuted; §19
+tier-aware EF: the project's first positive result, see NEXT STEP above
+for the two follow-up ablations before calling it final).
+
+## RESULT of the fourteenth attempt — Uniform seed 44: full 3-vs-3 verdict, clean tie — investigation concluded
+Converged (rounds 28-32 plateau, no spike).
+
+| | Final-round acc (mean, n=3) | Trailing-5-round mean (n=3) | Upload |
+|---|---|---|---|
+| DivRoute | 78.35% (±1.07pp) | 77.91% (±0.59pp) | 1989.84MB |
+| **Uniform-Top5%** | 78.47% (±0.55pp) | 78.20% (±0.56pp) | **794.04MB** |
+
+First fully seed-matched (3 vs. 3) comparison in the investigation. Gap
+(0.12-0.29pp) is smaller than either method's own seed spread — **a clean
+statistical tie**, DivRoute still costing 2.4-2.6x Uniform's bytes for it.
+Combined with alpha=0.9's decisive Uniform wins, no heterogeneity regime
+tested supports the routing mechanism earning its complexity. Full
+analysis: `DIVROUTE_ACCURACY_MASTER_PLAN.md` §24.
+
+**This concludes the accuracy investigation.** See NEXT STEP above:
+write-up is the actual next step now, not more runs.
+
+## RESULT of the thirteenth attempt — Uniform seed 43 at alpha=0.1: gap shrinks to a statistical tie
+Converged (rounds 28-32 plateau, no spike).
+
+| Seed | Final-round acc | Trailing-5-round mean | Upload |
+|---|---|---|---|
+| 42 (§21) | 79.11% | 78.84% | 794.04MB |
+| 43 (this) | 78.14% | 77.96% | 794.04MB |
+| **Mean (n=2)** | **78.63%** | **78.40%** | 794.04MB |
+
+vs. DivRoute's 3-seed mean (§22): 78.35% final / 77.91% trailing-5.
+Uniform's own seed spread (0.97pp) is comparable to DivRoute's (1.07pp) —
+so the remaining gap between the two methods' means (0.28-0.49pp) is now
+inside the noise either method shows on its own. **Reads as a tie, not a
+win for either method.** DivRoute's byte cost (~2.4-2.6x Uniform's) is the
+one unambiguous finding: no accuracy edge to show for it so far. Full
+analysis: `DIVROUTE_ACCURACY_MASTER_PLAN.md` §23.
+
+**Next step: Uniform seed 44** — see NEXT STEP above. Last data point for
+a clean, fully seed-matched (3 vs. 3) verdict.
+
+## RESULT of the twelfth attempt — DivRoute seed repeats at alpha=0.1: seed 42 was a lucky draw
+Two more DivRoute seeds (43, 44), alpha=0.1, plain EF, same config as §21.
+Both converged (checked rounds 28-32, no spikes).
+
+| Seed | Final-round acc | Trailing-5-round mean | Upload |
+|---|---|---|---|
+| 42 (§21) | 79.58% | 78.56% | 2019.61MB |
+| 43 | 77.70% | 77.40% | 2069.24MB |
+| 44 | 77.77% | 77.77% | 1880.66MB |
+| **Mean (n=3)** | **78.35%** | **77.91%** | 1989.84MB |
+
+**Seed 42 was the high outlier.** DivRoute's 3-seed mean (78.35% final /
+77.91% trailing-5) is now *below* Uniform's single alpha=0.1 data point
+from §21 (79.11% / 78.84%) — the opposite of what §21's face-value reading
+suggested. Not yet final: Uniform hasn't been re-seeded, so this is 3
+DivRoute seeds vs. 1 Uniform seed. Full analysis:
+`DIVROUTE_ACCURACY_MASTER_PLAN.md` §22.
+
+**Next step: Uniform seed repeats (43, 44) at alpha=0.1** — see NEXT STEP
+above. This is the one piece left before the alpha=0.1 comparison has a
+real, seed-matched answer.
+
+## RESULT of the eleventh attempt — alpha=0.1 (real heterogeneity): ambiguous, seed repeats needed
+Both run fresh to 32 rounds, plain EF, everything else identical to §20's
+best config except `alpha=0.1` instead of `0.9`.
+
+| | Final-round acc | Trailing-5-round mean | Upload | Bidirectional |
+|---|---|---|---|---|
+| DivRoute (alpha=0.1, plain EF) | 79.58% | 78.56% | 2019.61MB | 9960.06MB |
+| Uniform-Top5% (alpha=0.1, plain EF) | 79.11% | **78.84%** | **794.04MB** | **8734.49MB** |
+
+Rounds 24-32 were noisy for both methods (~2.5pp round-to-round swings,
+~5x the noise seen at alpha=0.9) — final-round reading favors DivRoute,
+trailing-5-round mean favors Uniform. **The alpha hypothesis was
+directionally right (the DivRoute/Uniform gap genuinely closes at real
+heterogeneity, from a clear Uniform win at alpha=0.9 to a statistical tie
+here) but this single-seed result can't yet say which method actually
+wins.** DivRoute's best-case reading also costs 2.5x Uniform's upload
+bytes. Full analysis: `DIVROUTE_ACCURACY_MASTER_PLAN.md` §21.
+
+**Next step is seed repeats at alpha=0.1, not another hyperparameter
+variation** — see NEXT STEP above.
+
+## RESULT of the tenth attempt — the two §19 ablations: tier-aware EF refuted
+Both run fresh to 32 rounds. Both confirmed converged: DivRoute+plain-EF
+plateaus 82.7% -> 83.3% over rounds 24-32 (final 83.32%); Uniform+plain-EF
+plateaus 82.4% -> 83.3% over the same window (final 83.24%).
+
+| | Accuracy | Upload | Bidirectional |
+|---|---|---|---|
+| DivRoute + tier-aware EF (§19) | 82.99% | 1974.95MB | 9915.39MB |
+| **DivRoute + plain EF** | **83.32%** | 2103.98MB | 10044.43MB |
+| **Uniform-Top5% + plain EF** | **83.24%** | **794.04MB** | **8734.49MB** |
+
+**Ablation 1: tier-aware EF is refuted.** Plain EF (no tier-change reset)
+beats the tier-aware version for DivRoute (+0.33pp) while using *more*
+bytes, not fewer — the reset was discarding useful signal, not protecting
+against staleness. §19's win was real but its explanation was wrong.
+
+**Ablation 2: Uniform gains just as much, far more cheaply.** Uniform +
+plain EF (83.24%) ties DivRoute + plain EF (83.32%, 0.08pp — noise) using
+62% less upload and 13% less total bytes. Error feedback is a general fix
+for biased top-k compression, not something DivRoute's routing unlocks.
+
+**§17's negative verdict is reinstated.** Full account:
+`DIVROUTE_ACCURACY_MASTER_PLAN.md` §20.
+
+## RESULT of the ninth attempt — tier-transition-aware error feedback: superseded by §20, kept for history
+Run fresh to 32 rounds. Confirmed converged, not a spike: rounds 24-32 read
+82.20 -> 82.55 -> 82.49 -> 82.75 -> 82.71 -> 82.78 -> 83.00 -> 82.76 ->
+82.99, a tight plateau for the last 9 rounds.
+
+| | Accuracy | Upload | Bidirectional |
+|---|---|---|---|
+| DivRoute (original, no EF, 32 rounds) | 81.58% | 2044.43MB | 9984.87MB |
+| Uniform-Top5% (32 rounds) | 81.43% | 794.04MB | 8734.49MB |
+| FedAvg (dense, 20 rounds) | 82.08% | 4962.78MB | 9925.56MB |
+| **DivRoute + tier-aware error feedback (32 rounds)** | **82.99%** | **1974.95MB** | **9915.39MB** |
+
+**First result in the investigation with no undoing caveat.** Beats FedAvg
+on accuracy (+0.91pp) with 60% less upload and a tied bidirectional total
+(9915.39 vs 9925.56MB — noise). Strictly dominates original DivRoute
+(higher accuracy, fewer upload bytes, fewer bidirectional bytes — not a
+different tradeoff point, a better one). Beats Uniform-Top5% on accuracy
+(+1.56pp) at a real but modest +13.5% bidirectional cost. Full analysis:
+`DIVROUTE_ACCURACY_MASTER_PLAN.md` §19.
+
+**Not yet final** — see NEXT STEP above for the two ablations (plain EF
+without tier-aware reset; Uniform+EF) needed to confirm the gain is
+specifically about DivRoute's tiering interacting with EF, not just "error
+feedback helps top-k compression" in general.
 
 ## RESULT of the eighth attempt — hybrid loss+divergence signal: refuted
 Run to 32 rounds, converged (79.88% -> 80.41% smoothly flattening over the

@@ -1,3 +1,5 @@
+> **OUTDATED (see DIVROUTE_ACCURACY_MASTER_PLAN.md):** this document describes an earlier design in which Tier 1 = HIGH divergence (most bandwidth) and Tier 3 = skipped. The live rule is the reverse: d <= tau_low -> Tier 1 (k=0.20, least divergent), d <= tau_high -> Tier 2, else Tier 3 (k=0.05, most divergent, still aggregated, never skipped). Tier 3 gets selection-weight decay gamma=0.85. Treat the polarity and 'converged, skip' statements below as stale.
+
 # DivRoute-FL — Divergence-Aware Federated Learning Simulation
 
 > **A research prototype implementing adaptive, bandwidth-efficient Federated Averaging on CIFAR-10.**  

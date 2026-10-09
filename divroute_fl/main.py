@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 from .config import Config
-from .data import get_client_datasets, get_client_datasets_with_val, get_test_dataset
+from .data import get_client_datasets, get_client_datasets_with_val, get_test_dataset, _num_classes
 from .model import get_model
 from .client import FLClient
 from .server import FLServer
@@ -15,19 +15,8 @@ from .mechanism import update_ema, compute_adaptive_taus, compute_percentile_tau
 from . import mechanism as _mech
 from .compression import get_adaptive_k_ratios
 from . import diagnostics as _diag
+from .diagnostics import _pearson, _spearman
 
-
-def _spearman(x, y):
-    if len(x) < 2: return float('nan')
-    x_r = np.argsort(np.argsort(x))
-    y_r = np.argsort(np.argsort(y))
-    corr = np.corrcoef(x_r, y_r)[0, 1]
-    return float(corr) if not np.isnan(corr) else 0.0
-
-def _pearson(x, y):
-    if len(x) < 2: return float('nan')
-    corr = np.corrcoef(x, y)[0, 1]
-    return float(corr) if not np.isnan(corr) else 0.0
 
 def _seed_everything(seed: int) -> None:
     random.seed(seed)
@@ -101,13 +90,17 @@ def run(config: Config | None = None) -> None:
               f"for local validation (NEW experimental configuration)")
         client_datasets, val_datasets = get_client_datasets_with_val(
             config.dataset_name, config.num_clients, config.alpha, config.seed,
-            val_fraction=config.local_val_fraction, model_name=config.model_name)
+            val_fraction=config.local_val_fraction, model_name=config.model_name,
+            partition_mode=getattr(config, "partition_mode", "dirichlet"),
+            shards_per_client=getattr(config, "shards_per_client", 2))
     else:
         # ── Standard mode: exact original execution path ───────────────────────
         # get_client_datasets() is called directly; nothing is reshuffled.
         client_datasets = get_client_datasets(
             config.dataset_name, config.num_clients, config.alpha, config.seed,
-            model_name=config.model_name)
+            model_name=config.model_name,
+            partition_mode=getattr(config, "partition_mode", "dirichlet"),
+            shards_per_client=getattr(config, "shards_per_client", 2))
         val_datasets = [None] * config.num_clients
     test_loader = DataLoader(
         get_test_dataset(config.dataset_name, model_name=config.model_name),
@@ -117,7 +110,7 @@ def run(config: Config | None = None) -> None:
     print(f"[init] shard sizes — min: {min(shard_sizes)}, max: {max(shard_sizes)}, "
           f"mean: {np.mean(shard_sizes):.0f}")
 
-    num_classes  = 10 if config.dataset_name.lower() == "cifar10" else 100
+    num_classes  = _num_classes(config.dataset_name)
     global_model = get_model(config.model_name, num_classes, getattr(config, "bn_mode", "default"))
     server = FLServer(global_model, config, device)
 
@@ -130,6 +123,8 @@ def run(config: Config | None = None) -> None:
 
     logger_meta = {
         "alpha": config.alpha,
+        "partition_mode": getattr(config, "partition_mode", "dirichlet"),
+        "shards_per_client": getattr(config, "shards_per_client", 2),
         "dataset": config.dataset_name,
         "model": config.model_name,
         "seed": config.seed,
@@ -187,6 +182,14 @@ def run(config: Config | None = None) -> None:
 
     print(f"[train] {config.num_rounds} rounds, "
           f"{config.clients_per_round}/{config.num_clients} clients/round")
+    _partition_mode = getattr(config, "partition_mode", "dirichlet")
+    if _partition_mode == "pathological":
+        _partition_detail = str(getattr(config, "shards_per_client", 2)) + " shards/client"
+    elif _partition_mode == "natural":
+        _partition_detail = "one client per real writer"
+    else:
+        _partition_detail = "alpha=" + str(config.alpha)
+    print(f"[train] partition: {_partition_mode} ({_partition_detail})")
     print(f"[train] div-weighted: {config.use_divergence_weighting} "
           f"({config.divergence_weight_mode}) | "
           f"momentum: {config.use_server_momentum} | "
@@ -196,7 +199,9 @@ def run(config: Config | None = None) -> None:
           f"tier3-sync: {config.use_tier3_sync} "
           f"(every {config.tier3_sync_interval} rounds) | "
           f"epoch-warmup: {config.use_epoch_warmup} | "
-          f"fedavg-mode: {config.fedavg_baseline_mode}")
+          f"fedavg-mode: {config.fedavg_baseline_mode} | "
+          f"fedprox: {getattr(config, 'use_fedprox', False)} "
+          f"(mu={getattr(config, 'fedprox_mu', 0.0)})")
     print(f"[train] adaptive-k: {config.use_adaptive_k} | "
           f"k_ratio: tier1={config.k_ratio_tier1:.2f} tier2={config.k_ratio_tier2:.2f} | "
           f"include-tier3: {config.include_tier3_in_aggregation} | "
@@ -327,13 +332,16 @@ def run(config: Config | None = None) -> None:
         except Exception as e:
             print(f"[resume] Warning: could not restore NumPy RNG ({e})")
 
+        # torch.load(..., map_location=device) above moves these RNG-state tensors
+        # onto the GPU, but set_rng_state / set_rng_state_all only accept CPU
+        # uint8 tensors -- hence the explicit .cpu().
         try:
             cpu_state = checkpoint["rng_state"]["torch_cpu"]
 
-            if not isinstance(cpu_state, torch.ByteTensor):
+            if not isinstance(cpu_state, torch.Tensor):
                 cpu_state = torch.tensor(cpu_state, dtype=torch.uint8)
 
-            torch.set_rng_state(cpu_state)
+            torch.set_rng_state(cpu_state.cpu().to(torch.uint8))
         except Exception as e:
             print(f"[resume] Warning: could not restore CPU RNG ({e}), continuing...")
 
@@ -344,9 +352,9 @@ def run(config: Config | None = None) -> None:
                 if cuda_state:
                     fixed_states = []
                     for state in cuda_state:
-                        if not isinstance(state, torch.ByteTensor):
+                        if not isinstance(state, torch.Tensor):
                             state = torch.tensor(state, dtype=torch.uint8)
-                        fixed_states.append(state)
+                        fixed_states.append(state.cpu().to(torch.uint8))
 
                     torch.cuda.set_rng_state_all(fixed_states)
         except Exception as e:
@@ -415,6 +423,9 @@ def run(config: Config | None = None) -> None:
                                         fedsparse_lambda=config.fedsparse_lambda,
                                         ntd_beta=config.ntd_beta,
                                         ntd_tau=config.ntd_tau,
+                                        fedprox_mu=(config.fedprox_mu
+                                                    if getattr(config, "use_fedprox", False)
+                                                    else 0.0),
                                         round_num=rnd,
                                         total_rounds=config.num_rounds,
                                         min_local_lr=getattr(config, "local_lr_min", 0.001))
@@ -770,14 +781,7 @@ def run(config: Config | None = None) -> None:
                 _cid = r["client_id"]
                 d_for_tier = r["divergence_score"]
 
-                if np.isnan(d_for_tier) or np.isinf(d_for_tier):
-                    tier = 1 # Bottom tier safely
-                elif d_for_tier <= config.tau_low:
-                    tier = 3 if _invert_polarity else 1
-                elif d_for_tier <= config.tau_high:
-                    tier = 2
-                else:
-                    tier = 1 if _invert_polarity else 3
+                tier = _mech.assign_tier(d_for_tier, config.tau_low, config.tau_high, _invert_polarity)
 
                 r["natural_tier"] = tier
                 r["tier"] = tier
@@ -785,6 +789,15 @@ def run(config: Config | None = None) -> None:
                 if _cid in _previous_client_tiers and _previous_client_tiers[_cid] != tier:
                     _tier_flips += 1
                 _previous_client_tiers[_cid] = tier
+
+            # Random-tier control: shuffle tier labels among this round's clients
+            # (same tier counts and bytes), using a dedicated RNG so no other
+            # random stream is touched.
+            if getattr(config, "random_tier_assignment", False):
+                _perm = np.random.default_rng(config.seed * 100003 + rnd).permutation(len(results))
+                _orig = [r["tier"] for r in results]
+                for r, _i in zip(results, _perm):
+                    r["tier"] = r["natural_tier"] = _orig[_i]
 
             # -- Progress Guarantee ------------------------------------------------
             p_count = sum(1 for r in results if r["tier"] in (1, 2))

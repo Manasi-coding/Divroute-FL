@@ -86,13 +86,13 @@ def plot_tier_distribution(log_path: str = "logs/run.json"):
     tier3 = [sum(1 for c in r["clients"] if c["tier"] == 3) for r in log]
 
     fig, ax = plt.subplots(figsize=(14, 5))
-    ax.bar(rounds, tier1, label="Tier 1 - High Fidelity (most drifted)",
+    ax.bar(rounds, tier1, label="Tier 1 - High Fidelity (least divergent)",
            color="steelblue")
     ax.bar(rounds, tier2, bottom=tier1,
-           label="Tier 2 - Low Fidelity (moderately drifted)", color="orange")
+           label="Tier 2 - Low Fidelity (middle band)", color="orange")
     ax.bar(rounds, tier3,
            bottom=[t1 + t2 for t1, t2 in zip(tier1, tier2)],
-           label="Tier 3 - Skip (converged)", color="lightgrey")
+           label="Tier 3 - Low Fidelity (most divergent)", color="lightgrey")
 
     ax.set_xlabel("Training Round", fontsize=12)
     ax.set_ylabel("Number of Selected Clients", fontsize=12)
@@ -185,7 +185,7 @@ def plot_bytes_per_round(log_path: str = "logs/run.json"):
     ax.plot(rounds, divroute_down_mb, color="steelblue",
             linewidth=2, label="DivRoute-FL download")
     ax.plot(rounds, divroute_up_mb, color="seagreen",
-            linewidth=2, linestyle=":", label="DivRoute-FL upload (uncompressed)")
+            linewidth=2, linestyle=":", label="DivRoute-FL upload (compressed)")
     ax.axhline(y=fedavg_mb, color="tomato", linewidth=2,
                linestyle="--", label=f"Full FedAvg download ({fedavg_mb:.1f} MB/round)")
 

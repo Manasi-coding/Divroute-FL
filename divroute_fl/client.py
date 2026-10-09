@@ -178,8 +178,11 @@ class FLClient:
         # client has completed at least one FedSparse round (bootstrap: uniform).
         self._irw_norms: dict = {}
 
-        # persistent training loader — created once, reused every round
-        if self.num_classes == 100:
+        # persistent training loader — created once, reused every round.
+        # 100 = CIFAR-100, 62 = FEMNIST: both have small per-client shards, so
+        # keep every sample (drop_last=False) and cap the batch at the shard
+        # size. The drop_last=True branch is the original CIFAR-10 behaviour.
+        if self.num_classes in (62, 100):
             effective_batch_size = min(batch_size, len(dataset))
             self._loader = DataLoader(
                 dataset, batch_size=effective_batch_size, shuffle=True,
@@ -213,6 +216,7 @@ class FLClient:
     def train(self, global_state_dict: dict, local_epochs: int | None = None,
               fedsparse_lambda: float = 0.0,
               ntd_beta: float = 0.0, ntd_tau: float = 3.0,
+              fedprox_mu: float = 0.0,
               round_num: int = 0, total_rounds: int = 1, min_local_lr: float = 0.001) -> dict:
         """
         Accepts a state_dict (serialisable) instead of the model object —
@@ -226,6 +230,18 @@ class FLClient:
         fedsparse_lambda > 0 activates FedSparse (Phase 5 baseline): adds an
         L1 proximity term ||w_local - w_global||_1 to the cross-entropy loss,
         encouraging sparser gradient updates. Default 0.0 = standard training.
+
+        fedprox_mu > 0 activates FedProx (Li et al., 2020): adds an L2
+        proximal term (mu/2) * ||w_local - w_global||^2 to the loss, pulling
+        each local step back toward the global model it started from. Unlike
+        fedsparse_lambda (a post-hoc proximal/thresholding step, see below),
+        this term is part of the backward pass like ntd_beta. Zero extra
+        communication (no new state crosses the wire) -- the standard,
+        cheap fix for client drift under severe heterogeneity (see
+        DIVROUTE_ACCURACY_MASTER_PLAN.md §26: pathological non-IID,
+        2 shards/client, produced unstable, still-climbing-at-32-rounds
+        curves for both DivRoute and Uniform -- classic drift symptoms).
+        Default 0.0 = standard training, independent of fedsparse_lambda.
 
         round_num / total_rounds drive the global cosine LR schedule.  All
         clients selected in the same communication round receive the same
@@ -285,6 +301,16 @@ class FLClient:
                     for name, v in raw.items()
                 }
             # ─────────────────────────────────────────────────────────────────
+
+        # ── FedProx: snapshot global weights for the proximal loss term ───
+        # Independent of the FedSparse snapshot above (different mechanism,
+        # different flag) -- kept as its own dict rather than shared so each
+        # feature stays togglable on its own without coupling.
+        if fedprox_mu > 0.0:
+            fedprox_global_snapshot = {
+                name: param.detach().clone()
+                for name, param in local_model.named_parameters()
+            }
 
         # Label smoothing (ε=0.1): replaces hard one-hot targets with a soft
         # distribution (0.9 on the true class, 0.1/C spread over all C classes).
@@ -394,6 +420,16 @@ class FLClient:
                         student_logits, teacher_logits, y_a, y_b=y_b, tau=ntd_tau)
                 # ─────────────────────────────────────────────────────────
 
+                # ── FedProx: proximal term pulling this step back toward
+                # the global model this round started from ─────────────────
+                if fedprox_mu > 0.0:
+                    prox_term = sum(
+                        (param - fedprox_global_snapshot[name]).pow(2).sum()
+                        for name, param in local_model.named_parameters()
+                    )
+                    loss = loss + (fedprox_mu / 2.0) * prox_term
+                # ─────────────────────────────────────────────────────────
+
                 loss.backward()
                 # Gradient clipping: prevents NaN/Inf weight explosions on
                 # large models (ResNet-18) with SGD. Clip norm matches the
@@ -424,7 +460,8 @@ class FLClient:
                 # Updated AFTER opt.step() AND after the FedSparse proximal
                 # operator so that the EMA tracks the final post-prox parameter
                 # values at every step, not the intermediate pre-prox values.
-                _update_ema(ema_model, local_model, _EMA_DECAY)
+                if fedsparse_lambda > 0.0:   # EMA is consumed only by the FedSparse mask below
+                    _update_ema(ema_model, local_model, _EMA_DECAY)
                 # ─────────────────────────────────────────────────────────────
 
         # ── FedSparse Stage 3: refresh IRW norm buffer ───────────────────────

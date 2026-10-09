@@ -42,7 +42,7 @@ class FLLogger:
         totals `total_download_bytes` / `total_upload_bytes`.
 
         `total_bytes_transmitted` is kept for backward compatibility with
-        existing plotting code and is equal to `total_download_bytes`.
+        existing plotting code and is equal to `total_upload_bytes`.
         """
         # upload (C->S): compressed payload bytes each client transmitted
         total_upload   = sum(r.get("upload_bytes",   0) or 0 for r in client_results)

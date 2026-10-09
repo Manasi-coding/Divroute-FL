@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import torch
 import torch.nn as nn
@@ -30,20 +32,16 @@ def compute_decoupled_divergence(delta: torch.Tensor, reference_vector: torch.Te
     return max(0.0, min(1.0, 1.0 - cos_sim))
 
 
-def assign_tier(d: float, tau_low: float, tau_high: float) -> int:
-    """
-    Tier assignment from a divergence score and a pair of thresholds.
-
-    d > tau_high  -> Tier 1 (high divergence -> high-fidelity update)
-    d > tau_low   -> Tier 2 (moderate divergence -> lightweight update)
-    otherwise     -> Tier 3 (converged -> skip)
-    """
-    if d > tau_high:
+def assign_tier(d: float, tau_low: float, tau_high: float, invert: bool = False) -> int:
+    """Live tier rule (single source of truth): d <= tau_low -> Tier 1 (most bandwidth),
+    d <= tau_high -> Tier 2, else Tier 3; non-finite d -> Tier 1. invert=True swaps 1 and 3."""
+    if not math.isfinite(d):
         return 1
-    elif d > tau_low:
+    if d <= tau_low:
+        return 3 if invert else 1
+    if d <= tau_high:
         return 2
-    else:
-        return 3
+    return 1 if invert else 3
 
 
 def compute_divergence_weight(d: float, mode: str = "sqrt") -> float:

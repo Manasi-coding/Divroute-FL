@@ -105,6 +105,37 @@ def _replace_ws_gn(module: nn.Module) -> None:
             _replace_ws_gn(child)
 
 
+class FemnistCNN(nn.Module):
+    """
+    Small from-scratch CNN for 28x28 single-channel FEMNIST characters
+    (~1.69M parameters at num_classes=62).
+
+    Architecture:
+        conv(1->32, 5x5, pad 2) -> relu -> maxpool   28x28 -> 14x14
+        conv(32->64, 5x5, pad 2) -> relu -> maxpool  14x14 -> 7x7
+        fc(64*7*7 -> 512) -> relu
+        fc(512 -> num_classes)
+
+    No normalisation layers, so it has no BatchNorm statistics to handle
+    across clients; bn_mode is therefore ignored for this model.
+    """
+
+    def __init__(self, num_classes: int = 62):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=5, padding=2)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=5, padding=2)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.fc1 = nn.Linear(64 * 7 * 7, 512)
+        self.fc2 = nn.Linear(512, num_classes)
+
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(x.size(0), -1)
+        x = F.relu(self.fc1(x))
+        return self.fc2(x)
+
+
 def get_model(model_name: str, num_classes: int, bn_mode: str = "default") -> nn.Module:
     """
     Model factory.  Returns an initialised model.
@@ -123,7 +154,9 @@ def get_model(model_name: str, num_classes: int, bn_mode: str = "default") -> nn
 
     Parameters
     ----------
-    model_name  : one of {"simplecnn", "resnet18", "efficientnet_b0_pretrained"}
+    model_name  : one of {"simplecnn", "resnet18", "efficientnet_b0_pretrained",
+                  "femnist_cnn"}  ("femnist_cnn": small from-scratch CNN for
+                  28x28 grayscale FEMNIST, see FemnistCNN)
     num_classes : number of output classes (10 for CIFAR-10, 100 for CIFAR-100)
     bn_mode     : "default", "local_bn", "groupnorm", "ws_groupnorm"
                   For "efficientnet_b0_pretrained", leaving this at "default"
@@ -134,6 +167,8 @@ def get_model(model_name: str, num_classes: int, bn_mode: str = "default") -> nn
     name = model_name.lower().strip()
     if name == "simplecnn":
         return SimpleCNN(num_classes=num_classes)
+    elif name == "femnist_cnn":
+        return FemnistCNN(num_classes=num_classes)
     elif name == "efficientnet_b0_pretrained":
         from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
         model = efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1)
@@ -173,5 +208,6 @@ def get_model(model_name: str, num_classes: int, bn_mode: str = "default") -> nn
     else:
         raise ValueError(
             f"Unknown model_name '{model_name}'. "
-            f"Supported values: 'simplecnn', 'resnet18', 'efficientnet_b0_pretrained'."
+            f"Supported values: 'simplecnn', 'resnet18', 'efficientnet_b0_pretrained', "
+            f"'femnist_cnn'."
         )

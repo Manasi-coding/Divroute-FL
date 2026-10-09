@@ -23,7 +23,6 @@ class FLServer:
         self._rng = np.random.default_rng(config.seed)
         self._momentum_buf: torch.Tensor | None = None
         self._layer_slices = None
-        self._layer_importance = None
 
     def _get_layer_slices(self) -> list:
         if self._layer_slices is not None:
@@ -188,7 +187,7 @@ class FLServer:
                             
                     payload = apply_tiered_compression(
                         raw_delta, r["tier"], self.config, error_buffers, r["client_id"],
-                        layer_slices=layer_slices, layer_importances=self._layer_importance, round_num=round_num,
+                        layer_slices=layer_slices,
                         error_buffer_tiers=error_buffer_tiers)
                     r["bytes_received"] = payload["bytes_transmitted"]
                     # upload = compressed top-k bytes actually sent by client
@@ -288,28 +287,6 @@ class FLServer:
                 print(f"[DEBUG_BN] Changed: {_changed[:5]}{'...' if len(_changed)>5 else ''}")
         # ──────────────────────────────────────────────────────────────────────
         
-        # -- Layer-wise Top-k Importance EMA Update --
-        # Computed exactly ONCE per round from the globally aggregated delta.
-        # This guarantees all clients in the next round will share exactly
-        # the same budget, and removes the beta^N decay bug.
-        if getattr(self.config, "use_layerwise_topk", False):
-            layer_slices = self._get_layer_slices()
-            layer_rms = [
-                (self.global_delta[offset:offset+size].norm(p=2).item() / (size ** 0.5))
-                for _, offset, size in layer_slices
-            ]
-            if getattr(self.config, "enable_routing_diagnostics", False) and round_num == 1:
-                 print(f"  [DEBUG] Layer importance EMA updated ONCE. Slices: {len(layer_slices)}")
-                 
-            if self._layer_importance is None:
-                self._layer_importance = layer_rms
-            else:
-                beta = self.config.layerwise_ema_beta
-                self._layer_importance = [
-                    beta * old + (1.0 - beta) * new
-                    for old, new in zip(self._layer_importance, layer_rms)
-                ]
-
     def evaluate(self, test_loader: DataLoader) -> float:
         self.global_model.eval()
         correct, total = 0, 0
@@ -322,7 +299,8 @@ class FLServer:
         return correct / total if total > 0 else 0.0
 
     def assign_tier(self, d: float) -> int:
-        return assign_tier(d, self.config.tau_low, self.config.tau_high)
+        return assign_tier(d, self.config.tau_low, self.config.tau_high,
+                           getattr(self.config, "invert_tier_polarity", False))
 
     def update_selection_weights(self, results: list) -> None:
         update_selection_weights(self.selection_weights, results, self.config.gamma)
@@ -358,20 +336,8 @@ class FLServer:
             error_buffers=None, client_id=None)
         return payload
 
-    def _flatten(self, state_dict: OrderedDict) -> torch.Tensor:
-        return torch.cat([v.flatten().float().to(self.device) for v in state_dict.values()])
-
     def _flatten_params(self, state_dict: OrderedDict) -> torch.Tensor:
         param_names = {n for n, _ in self.global_model.named_parameters()}
         return torch.cat([v.flatten().float().to(self.device) 
                           for k, v in state_dict.items() if k in param_names])
 
-    def _load_flat(self, flat: torch.Tensor) -> None:
-        sd = self.global_model.state_dict()
-        offset = 0
-        new_sd = OrderedDict()
-        for k, v in sd.items():
-            numel = v.numel()
-            new_sd[k] = flat[offset:offset + numel].reshape(v.shape).to(v.dtype)
-            offset += numel
-        self.global_model.load_state_dict(new_sd)

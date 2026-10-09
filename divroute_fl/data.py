@@ -110,7 +110,30 @@ def _make_test_transform(dataset_name: str, model_name: str = None) -> transform
 
 
 def _num_classes(dataset_name: str) -> int:
-    return 10 if dataset_name.lower().strip() == "cifar10" else 100
+    name = dataset_name.lower().strip()
+    if name == "cifar10":
+        return 10
+    if name == "femnist":
+        return 62
+    return 100
+
+
+def _is_femnist(dataset_name: str) -> bool:
+    return dataset_name.lower().strip() == "femnist"
+
+
+def _check_partition_mode(dataset_name: str, partition_mode: str) -> None:
+    """FEMNIST only has a natural (per-writer) partition; the CIFAR datasets
+    only have simulated ones. Refuse mismatches instead of silently ignoring
+    the requested mode, so a run's label can never disagree with its data."""
+    if _is_femnist(dataset_name) and partition_mode != "natural":
+        raise ValueError(
+            f"dataset 'femnist' requires partition_mode='natural' (got '{partition_mode}'): "
+            f"its clients are real writers; alpha / shards_per_client do not apply.")
+    if not _is_femnist(dataset_name) and partition_mode == "natural":
+        raise ValueError(
+            f"partition_mode='natural' is only defined for dataset 'femnist' "
+            f"(got '{dataset_name}').")
 
 
 def _load_train(dataset_name: str, transform) -> Dataset:
@@ -129,35 +152,16 @@ def _load_test(dataset_name: str, transform) -> Dataset:
         return datasets.CIFAR100(root="./data", train=False, download=True, transform=transform)
 
 
-# ── Public API ────────────────────────────────────────────────────────────────
-
-def get_client_datasets(
-    dataset_name: str,
+def _dirichlet_partition_indices(
+    targets: np.ndarray,
     num_clients: int,
     alpha: float,
-    seed: int,
-    model_name: str = None,
-) -> List[Subset]:
-    """
-    Split a dataset's training set across clients using Dirichlet(alpha) partitioning.
-    Lower alpha = more heterogeneous (each client ends up with mostly one or two classes).
-
-    Supported dataset_name values: "cifar10", "cifar100"
-
-    The Dirichlet partitioning logic is identical for both datasets;
-    the only difference is num_classes (10 or 100) and the normalisation transform.
-
-    model_name : optional. When set to a pretrained-backbone model_name (see
-        model.py's get_model()), the training transform resizes images and
-        switches to ImageNet normalisation to match that backbone's pretrained
-        calibration. None (default) preserves exact CIFAR-native behaviour.
-    """
-    transform    = _make_train_transform(dataset_name, model_name)   # augmented training transform
-    full_train   = _load_train(dataset_name, transform)
-    targets      = np.array(full_train.targets)
-    num_classes  = _num_classes(dataset_name)
-
-    rng = np.random.default_rng(seed)
+    num_classes: int,
+    dataset_name: str,
+    rng: np.random.Generator,
+) -> List[List[int]]:
+    """Core Dirichlet(alpha) split, factored out so both get_client_datasets()
+    and get_client_datasets_with_val() call the exact same logic."""
     client_indices: List[List[int]] = [[] for _ in range(num_clients)]
 
     for cls in range(num_classes):
@@ -192,6 +196,97 @@ def get_client_datasets(
             client_indices[cid].extend(cls_idx[start:end].tolist())
             start = end
 
+    return client_indices
+
+
+def _shard_partition_indices(
+    targets: np.ndarray,
+    num_clients: int,
+    shards_per_client: int,
+    rng: np.random.Generator,
+) -> List[List[int]]:
+    """Pathological non-IID split (McMahan et al., 2017-style): sort every
+    training index by label, cut the sorted sequence into
+    num_clients * shards_per_client equal-size contiguous shards (each shard
+    drawn from a narrow label range), then deal shards_per_client shards to
+    each client at random without replacement.
+
+    This is deliberately harder heterogeneity than any Dirichlet(alpha) split
+    used elsewhere in this project -- most clients end up seeing only a
+    handful of distinct classes, rather than a skewed-but-broad mixture. Used
+    to test whether DivRoute's divergence-based routing needs more
+    heterogeneity than alpha=0.1 provided (DIVROUTE_ACCURACY_MASTER_PLAN.md
+    §21-§24: routing showed no measurable benefit over uniform compression at
+    alpha=0.1, seed-matched) before concluding the mechanism doesn't help
+    under any realistic heterogeneity level.
+    """
+    order = np.argsort(targets, kind="stable")  # every index, sorted by label
+    num_shards = num_clients * shards_per_client
+    shards = np.array_split(order, num_shards)  # each shard: a narrow label range
+
+    shard_ids = np.arange(num_shards)
+    rng.shuffle(shard_ids)
+
+    client_indices: List[List[int]] = [[] for _ in range(num_clients)]
+    for i, shard_id in enumerate(shard_ids):
+        cid = i // shards_per_client
+        client_indices[cid].extend(shards[shard_id].tolist())
+
+    return client_indices
+
+
+# ── Public API ────────────────────────────────────────────────────────────────
+
+def get_client_datasets(
+    dataset_name: str,
+    num_clients: int,
+    alpha: float,
+    seed: int,
+    model_name: str = None,
+    partition_mode: str = "dirichlet",
+    shards_per_client: int = 2,
+) -> List[Subset]:
+    """
+    Split a dataset's training set across clients.
+
+    Supported dataset_name values: "cifar10", "cifar100", "femnist".
+
+    For "femnist" the partition is the dataset's real per-writer one
+    (partition_mode must be "natural"; alpha and shards_per_client are
+    unused) -- see femnist_data.py for the protocol.
+
+    partition_mode : "dirichlet" (default) splits via Dirichlet(alpha) --
+        lower alpha = more heterogeneous, but every client still sees a
+        skewed mixture across most classes. "pathological" instead gives
+        each client shards_per_client contiguous label-sorted shards (see
+        _shard_partition_indices()) -- most clients end up seeing only a
+        handful of distinct classes, deliberately harder heterogeneity than
+        any Dirichlet(alpha) tested in this project. alpha is unused when
+        partition_mode="pathological".
+
+    model_name : optional. When set to a pretrained-backbone model_name (see
+        model.py's get_model()), the training transform resizes images and
+        switches to ImageNet normalisation to match that backbone's pretrained
+        calibration. None (default) preserves exact CIFAR-native behaviour.
+    """
+    _check_partition_mode(dataset_name, partition_mode)
+    if _is_femnist(dataset_name):
+        from .femnist_data import get_femnist_client_datasets
+        return get_femnist_client_datasets(num_clients, seed)
+
+    transform    = _make_train_transform(dataset_name, model_name)   # augmented training transform
+    full_train   = _load_train(dataset_name, transform)
+    targets      = np.array(full_train.targets)
+    num_classes  = _num_classes(dataset_name)
+
+    rng = np.random.default_rng(seed)
+
+    if partition_mode == "pathological":
+        client_indices = _shard_partition_indices(targets, num_clients, shards_per_client, rng)
+    else:
+        client_indices = _dirichlet_partition_indices(
+            targets, num_clients, alpha, num_classes, dataset_name, rng)
+
     return [Subset(full_train, idxs) for idxs in client_indices]
 
 
@@ -202,9 +297,12 @@ def get_client_datasets_with_val(
     seed: int,
     val_fraction: float = 0.1,
     model_name: str = None,
+    partition_mode: str = "dirichlet",
+    shards_per_client: int = 2,
 ) -> tuple:
-    """Split training data across clients (Dirichlet) then carve a held-out
-    local validation set per client.
+    """Split training data across clients (Dirichlet, or "pathological" —
+    see get_client_datasets()) then carve a held-out local validation set
+    per client.
 
     Returns
     -------
@@ -236,44 +334,27 @@ def get_client_datasets_with_val(
     under ``get_client_datasets()``.  Do NOT mix results from this function
     with checkpoints produced when ``val_fraction == 0``.
     """
+    _check_partition_mode(dataset_name, partition_mode)
+    if _is_femnist(dataset_name):
+        raise NotImplementedError(
+            "local_val_fraction > 0 is not implemented for 'femnist'.")
     _MIN_SHARD_FOR_VAL = 10   # shards smaller than this get no validation set
 
-    # ── Step 1: identical Dirichlet partitioning ──────────────────────────────
-    # Re-uses the same logic as get_client_datasets(); the full_train Dataset
-    # here uses the *training* (augmented) transform so train Subsets share it.
+    # ── Step 1: identical partitioning to get_client_datasets() ──────────────
+    # Re-uses the same logic; the full_train Dataset here uses the *training*
+    # (augmented) transform so train Subsets share it.
     train_transform = _make_train_transform(dataset_name, model_name)
     full_train      = _load_train(dataset_name, train_transform)
     targets         = np.array(full_train.targets)
     num_classes     = _num_classes(dataset_name)
 
     rng = np.random.default_rng(seed)
-    client_indices: List[List[int]] = [[] for _ in range(num_clients)]
 
-    for cls in range(num_classes):
-        cls_idx = np.where(targets == cls)[0]
-        rng.shuffle(cls_idx)
-
-        proportions = rng.dirichlet(np.repeat(alpha, num_clients))
-        proportions = proportions / proportions.sum()
-
-        if dataset_name.lower().strip() == "cifar100":
-            exact = proportions * len(cls_idx)
-            counts = np.floor(exact).astype(int)
-            remainders = exact - counts
-            leftover = len(cls_idx) - counts.sum()
-            top_leftover_clients = np.argsort(-remainders)[:leftover]
-            counts[top_leftover_clients] += 1
-        else:
-            counts = (proportions * len(cls_idx)).astype(int)
-            leftover = len(cls_idx) - counts.sum()
-            for i in range(leftover):
-                counts[i % num_clients] += 1
-
-        start = 0
-        for cid in range(num_clients):
-            end = start + counts[cid]
-            client_indices[cid].extend(cls_idx[start:end].tolist())
-            start = end
+    if partition_mode == "pathological":
+        client_indices = _shard_partition_indices(targets, num_clients, shards_per_client, rng)
+    else:
+        client_indices = _dirichlet_partition_indices(
+            targets, num_clients, alpha, num_classes, dataset_name, rng)
 
     # ── Step 2: load a second Dataset for val (test transform, no augmentation)
     test_transform = _make_test_transform(dataset_name, model_name)
@@ -315,7 +396,8 @@ def get_client_datasets_with_val(
 def get_test_dataset(dataset_name: str = "cifar10", model_name: str = None) -> Dataset:
     """Return the test split for the requested dataset.
 
-    Supported dataset_name values: "cifar10", "cifar100"
+    Supported dataset_name values: "cifar10", "cifar100", "femnist" (fixed
+    held-out-writers test set, see femnist_data.py).
     Default is "cifar10" for backward compatibility.
 
     model_name : optional, see get_client_datasets() — must match whatever was
@@ -323,5 +405,8 @@ def get_test_dataset(dataset_name: str = "cifar10", model_name: str = None) -> D
         normalisation (mismatched preprocessing between train/test would
         silently corrupt evaluation).
     """
+    if _is_femnist(dataset_name):
+        from .femnist_data import get_femnist_test_dataset
+        return get_femnist_test_dataset()
     transform = _make_test_transform(dataset_name, model_name)   # no augmentation on test data
     return _load_test(dataset_name, transform)

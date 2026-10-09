@@ -31,24 +31,14 @@ def test_random_models():
 
 
 def test_tier_boundaries():
-    """
-    assign_tier(d, tau_low, tau_high):
-        d > tau_high -> 1
-        d > tau_low  -> 2
-        otherwise    -> 3
-    """
-    tau_low, tau_high = 0.01, 0.02
-    cases = [
-        (0.05, 1),    # well above tau_high -> Tier 1
-        (0.015, 2),   # between tau_low and tau_high -> Tier 2
-        (0.001, 3),   # below tau_low -> Tier 3
-        (0.02, 2),    # exactly at tau_high -> NOT > tau_high -> Tier 2
-        (0.01, 3),    # exactly at tau_low -> NOT > tau_low -> Tier 3
-    ]
+    """assign_tier(d, tau_low, tau_high): d<=tau_low -> 1, d<=tau_high -> 2, else 3; non-finite -> 1."""
+    lo, hi = 0.01, 0.02
+    cases = [(0.005, 1), (0.01, 1), (0.015, 2), (0.02, 2), (0.05, 3), (float("nan"), 1), (float("inf"), 1)]
     for d, expected in cases:
-        got = assign_tier(d, tau_low, tau_high)
-        assert got == expected, f"assign_tier({d}, {tau_low}, {tau_high})={got}, expected {expected}"
-    print(f"[PASS] tier boundaries: {len(cases)}/{len(cases)} correct")
+        got = assign_tier(d, lo, hi)
+        assert got == expected, f"assign_tier({d})={got}, expected {expected}"
+    assert assign_tier(0.005, lo, hi, invert=True) == 3 and assign_tier(0.05, lo, hi, invert=True) == 1
+    print(f"[PASS] tier boundaries: {len(cases)}/{len(cases)} correct (+ invert)")
 
 
 def test_weight_decay():
@@ -76,24 +66,13 @@ def test_cumulative_decay():
 
 
 def test_adaptive_taus():
-    """
-    Phase 6.1: percentile-based tau thresholds should split a distribution
-    into roughly the requested proportions, and the min-separation guard
-    should kick in for degenerate (all-equal) distributions.
-    """
-    # 100 evenly spaced scores from 0.00 to 0.99
+    """compute_adaptive_taus(scores, tau_alpha, tau_beta) -> (tau_low, tau_high, mu, sigma)."""
     scores = [i / 100.0 for i in range(100)]
-    tau_low, tau_high = compute_adaptive_taus(scores, tau_low_pct=20.0, tau_high_pct=75.0)
-    assert 0.19 <= tau_low <= 0.20
-    assert 0.74 <= tau_high <= 0.75
-    assert tau_low < tau_high
-
-    # degenerate case: all scores identical -> guard must prevent tau_low == tau_high
-    flat_scores = [0.5] * 10
-    tau_low2, tau_high2 = compute_adaptive_taus(flat_scores, tau_low_pct=20.0, tau_high_pct=75.0)
-    assert tau_low2 < tau_high2, "min-separation guard failed on degenerate input"
-    print(f"[PASS] adaptive taus: normal=({tau_low:.4f},{tau_high:.4f}), "
-          f"degenerate=({tau_low2:.4f},{tau_high2:.4f})")
+    lo, hi, mu, sigma = compute_adaptive_taus(scores, 0.5, 1.0)
+    assert abs(lo - (mu - 0.5 * sigma)) < 1e-9 and abs(hi - (mu + 1.0 * sigma)) < 1e-9 and lo < hi
+    lo2, hi2, _, _ = compute_adaptive_taus([0.5] * 10, 0.5, 1.0)
+    assert lo2 < hi2, "min-separation guard failed on degenerate input"
+    print(f"[PASS] adaptive taus: normal=({lo:.4f},{hi:.4f}), degenerate=({lo2:.4f},{hi2:.4f})")
 
 
 def test_ema_smoothing():

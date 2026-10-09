@@ -16,6 +16,18 @@ class Config:
     # non-IID partitioning (Dirichlet alpha — lower = more heterogeneous)
     alpha: float = 0.9
 
+    # partition_mode="dirichlet" (default) uses `alpha` above. "pathological"
+    # instead gives each client `shards_per_client` label-sorted shards (see
+    # data.py's _shard_partition_indices()) -- most clients then see only a
+    # handful of distinct classes, deliberately harder heterogeneity than any
+    # Dirichlet(alpha) tested in this project (down to alpha=0.1, seed-matched
+    # across 3 seeds -- see DIVROUTE_ACCURACY_MASTER_PLAN.md §21-§24). `alpha`
+    # is ignored when partition_mode="pathological". "natural" is the real
+    # per-writer partition of the FEMNIST dataset (dataset_name="femnist"
+    # only; see femnist_data.py) -- alpha and shards_per_client do not apply.
+    partition_mode: str = "dirichlet"
+    shards_per_client: int = 2
+
     # divergence thresholds
     # if use_adaptive_tau=True, tau_low/tau_high are recomputed each round
     # using percentiles of the current round's divergence distribution
@@ -88,7 +100,6 @@ class Config:
     # partial participation. See compression.py's apply_tiered_compression()
     # docstring for the full rationale.
     error_feedback_tier_aware: bool = False
-    use_layerwise_topk: bool = False   # applies top-k independently per layer
 
     # Tier-3 staleness sync (Phase 1.2, Option A — periodic heartbeat)
     use_tier3_sync: bool = False       # validated: zero contribution at 20-round horizon
@@ -96,7 +107,7 @@ class Config:
 
     # aggregation
     use_divergence_weighting: bool = True
-    # weighting formula: "inverse" (1/d), "sqrt" (1/sqrt(d)), "exp" (exp(-d)), "softmax"
+    # weighting multiplier on sample share: "sqrt" = sqrt(d)+eps (higher divergence -> more weight), "inverse" = 1/(d+eps), "exp" = exp(-10d), "softmax" = softmax(-50d)
     divergence_weight_mode: str = "sqrt"   # sqrt is more stable than raw inverse
     use_server_momentum: bool = False  # validated: β=0.9 with η=1.0 → 10× effective step
     server_momentum: float = 0.9
@@ -109,6 +120,19 @@ class Config:
     # beta=0.0 disables NTD. Recommended: beta=1.0, tau=3.0 for CIFAR-100.
     ntd_beta: float = 0.0
     ntd_tau: float = 3.0
+
+    # FedProx (Li et al., 2020): adds (fedprox_mu/2)*||w_local-w_global||^2 to
+    # the local loss -- the standard, zero-extra-communication fix for client
+    # drift under heterogeneity. use_fedprox=False (default) is a pure no-op
+    # (client.py checks fedprox_mu > 0, which never holds when this flag is
+    # off and mu is left at its default). Literature range: 0.001-1.0
+    # depending on heterogeneity severity; 0.01 is a moderate starting point
+    # for CIFAR-scale non-IID. Motivated by DIVROUTE_ACCURACY_MASTER_PLAN.md
+    # §26: pathological non-IID (2 shards/client) produced unstable,
+    # still-climbing-at-32-rounds curves for both DivRoute and Uniform --
+    # classic client-drift symptoms this directly targets.
+    use_fedprox: bool = False
+    fedprox_mu: float = 0.01
 
     # selection weight decay
     gamma: float = 0.85
@@ -185,6 +209,12 @@ class Config:
     #   middle band) and the NaN/Inf safety fallback are unaffected.
     #   Default False preserves all existing/validated behaviour exactly.
     invert_tier_polarity: bool = False
+
+    # Control: shuffle tier labels among the round's clients (same tier counts
+    # and bytes). Isolates whether divergence carries routing signal.
+    random_tier_assignment: bool = False
+    # Console-only routing diagnostics block in main.py (was read via getattr but not a field).
+    enable_routing_diagnostics: bool = False
 
     # run_label — optional suffix that overrides the checkpoint sub-folder name.
     # When non-empty, main.py uses this label instead of the auto-derived method
@@ -643,6 +673,77 @@ def get_uniform_top5_pretrained_config(**overrides) -> Config:
         # future comparison isolates the compression strategy itself.
         ntd_beta      = 0.1,   # see get_fedavg_pretrained_config()'s matching note
         use_epoch_warmup = True,
+    )
+    base.update(overrides)
+    return Config(**base)
+
+# ── FEMNIST from-scratch factories ────────────────────────────────────────────
+# Three methods on identical data / model / optimisation, mirroring the
+# pretrained-CIFAR factories above so the only thing that differs between the
+# three runs is the routing/compression mechanism. Every lesson from the
+# pretrained study is baked in explicitly: use_k_warmup=False (it silently
+# overrode every method's real compression ratio), the same ntd_beta and
+# epoch-warmup schedule for all three (training-budget parity), and
+# rolling_percentile thresholds for DivRoute (scale-independent, so the
+# tau-threshold scale mismatch found in the pretrained runs cannot recur).
+
+def _femnist_common() -> dict:
+    return dict(
+        dataset_name       = "femnist",
+        model_name         = "femnist_cnn",
+        bn_mode            = "default",       # FemnistCNN has no BatchNorm; ignored
+        partition_mode     = "natural",       # one client = one real writer
+        num_clients        = 100,
+        clients_per_round  = 15,
+        # 150 rounds: dense FedAvg at lr 0.03 (seed 42) plateaus by then --
+        # 10-round window means 81.00 / 81.35 / 81.44% over rounds 121-150,
+        # last two windows 0.09pp apart. Verified for FedAvg only; the
+        # compressed methods must be checked for a plateau the same way.
+        num_rounds         = 150,
+        # lr chosen on dense FedAvg only (60 rounds, seed 42, plateau = last
+        # 10 rounds): 0.01 -> 77.77%, 0.03 -> 79.42%, 0.1 -> 79.10%. A coarse
+        # choice: 0.03's margin over 0.1 is about one round-to-round std.
+        local_lr           = 0.03,
+        local_lr_min       = 0.003,
+        use_k_warmup       = False,
+        use_epoch_warmup   = True,
+        ntd_beta           = 0.1,
+    )
+
+
+def get_femnist_fedavg_config(**overrides) -> Config:
+    """Dense FedAvg on FEMNIST (from scratch). Same data/model/optimisation as
+    the two compressed methods. Set run_label via overrides (num_rounds
+    defaults to 150, see _femnist_common())."""
+    base = _femnist_common()
+    base.update(
+        fedavg_baseline_mode         = True,
+        include_tier3_in_aggregation = True,   # required, see get_fedavg_pretrained_config()
+        threshold_mode               = "fixed",
+    )
+    base.update(overrides)
+    return Config(**base)
+
+
+def get_femnist_uniform_config(**overrides) -> Config:
+    """Uniform Top-5% + error feedback on FEMNIST (from scratch)."""
+    base = get_uniform_top5_config().__dict__.copy()
+    base.update(_femnist_common())
+    base.update(use_error_feedback = True)
+    base.update(overrides)
+    return Config(**base)
+
+
+def get_femnist_divroute_config(**overrides) -> Config:
+    """DivRoute (routing + tiered top-k) + plain error feedback on FEMNIST
+    (from scratch). Thresholds mirror get_pretrained_finetune_config()."""
+    base = get_recommended_divroute_config().__dict__.copy()
+    base.update(_femnist_common())
+    base.update(
+        use_error_feedback           = True,
+        include_tier3_in_aggregation = True,
+        threshold_mode               = "rolling_percentile",
+        convergence_floor            = 1e-6,
     )
     base.update(overrides)
     return Config(**base)
