@@ -18,7 +18,7 @@ offenders=""
 for file in $(git diff --cached --name-only --diff-filter=ACM); do
     # size of the staged blob, not the working-tree file -- this is what
     # would actually be committed
-    size=$(git cat-file -s ":$file" 2>/dev/null) || continue
+    size=$(git ca-file -s ":$file" 2>/dev/null) || continue
     if [ "$size" -gt "$MAX_SIZE_BYTES" ]; then
         size_mb=$(( (size + 1048575) / 1048576 ))
         offenders="$offenders  $file (${size_mb}MB)\n"

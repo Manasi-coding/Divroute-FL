@@ -2475,3 +2475,18 @@ Reading: routing direction matters (more bandwidth to the least-divergent client
 direction), but neither direction beats flat allocation at equal bytes: inverted ties matched, and the benefit over
 Uniform is explained by spending ~2x the bytes. Caveats: GPU type of seeds 45-47 not recorded; per-seed values are
 paired by seed index only; one dataset/model; the mechanism for the direction effect is untested.
+
+
+## 44. Third budget point: 1% scale (`--kscale 0.2`), seeds 42-44, FEMNIST, T4 GPU
+
+All 15 JSONs read this session; 150 rounds each; last-two-10-round-window drift 0.05-0.25pp (< 0.5pp bar).
+Plateau (last 20 rounds), per seed 42/43/44 and mean +/- sd: uniform 80.54/81.40/80.98 (80.98 +/-0.43);
+pure 80.74/81.45/81.08 (81.09 +/-0.35); purerandom 80.97/81.45/81.28 (81.23 +/-0.24);
+pureinvert 81.16/81.48/81.37 (81.34 +/-0.17); matched 81.15/81.53/81.40 (81.36 +/-0.20).
+Paired (n=3, so sign p cannot go below 0.25): pureinvert-pure +0.25pp (3/3, t p=0.16); pureinvert-purerandom
++0.10 (3/3, p=0.14); pureinvert-matched -0.02 (1/3, p=0.35); pure-purerandom -0.14 (1/3, p=0.19);
+pure-matched -0.27 (0/3, p=0.11); purerandom-matched -0.13 (0/3, p=0.041, uncorrected for 9 comparisons);
+matched-uniform +0.38 (3/3, p=0.11).
+Reading: same ordering as at 0.5% (matched ~ pureinvert > purerandom > pure > uniform) with every gap smaller, as
+expected when compression costs less. Nothing here is individually significant at n=3 except one uncorrected
+comparison; the value is consistency of ordering across budgets (0.5%: six seeds; 1%: three; 5%: all within 0.1pp).
