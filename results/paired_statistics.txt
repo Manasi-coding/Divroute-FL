@@ -1,0 +1,57 @@
+
+FEMNIST 0.5%, EF on (eight seeds)  (family of 6; Holm within family)
+  A - B                       n    diff            95% CI   A>B     t p  t Holm  perm p perm Holm  non-JSON values
+  pure - purerandom           8   -0.21 [ -0.27, -0.15]   0/8   0.000   0.000   0.008     0.047  3
+  pure - matched              8   -0.31 [ -0.39, -0.24]   0/8   0.000   0.000   0.008     0.047  4
+  purerandom - matched        8   -0.10 [ -0.17, -0.04]   0/8   0.007   0.013   0.008     0.047  5
+  pureinvert - pure           8   +0.34 [ +0.22, +0.46]   8/8   0.000   0.001   0.008     0.047  1
+  pureinvert - matched        8   +0.03 [ -0.09, +0.14]   4/8   0.602   0.602   0.586     0.586  3
+  matched - uniform           8   +0.46 [ +0.33, +0.58]   8/8   0.000   0.000   0.008     0.047  5
+
+FEMNIST 1%  (family of 6; Holm within family)
+  A - B                       n    diff            95% CI   A>B     t p  t Holm  perm p perm Holm  non-JSON values
+  pure - purerandom           3   -0.14 [ -0.45, +0.17]   0/3   0.185   0.547   0.500     1.000  0
+  pure - matched              3   -0.27 [ -0.69, +0.15]   0/3   0.111   0.547   0.250     1.000  0
+  purerandom - matched        3   -0.13 [ -0.25, -0.00]   0/3   0.049   0.293   0.250     1.000  0
+  pureinvert - pure           3   +0.25 [ -0.25, +0.74]   3/3   0.164   0.547   0.250     1.000  0
+  pureinvert - matched        3   -0.02 [ -0.10, +0.05]   1/3   0.317   0.547   0.500     1.000  0
+  matched - uniform           3   +0.39 [ -0.21, +0.99]   3/3   0.109   0.547   0.250     1.000  0
+
+FEMNIST 0.5%, EF off  (family of 4; Holm within family)
+  A - B                       n    diff            95% CI   A>B     t p  t Holm  perm p perm Holm  non-JSON values
+  pure - purerandom           3   -0.39 [ -0.78, -0.01]   0/3   0.048   0.144   0.250     1.000  0
+  pure - matched              3   -0.56 [ -1.20, +0.08]   0/3   0.064   0.144   0.250     1.000  0
+  purerandom - matched        3   -0.16 [ -0.42, +0.10]   0/3   0.113   0.144   0.250     1.000  0
+  matched - uniform           3   +0.69 [ +0.14, +1.24]   3/3   0.032   0.130   0.250     1.000  0
+
+FEMNIST 0.5%, size routing vs divergence routing (seeds 42-44)  (family of 4; Holm within family)
+  A - B                       n    diff            95% CI   A>B     t p  t Holm  perm p perm Holm  non-JSON values
+  pure_sizeinvert - pureinvert  3   -0.04 [ -0.37, +0.30]   1/3   0.686   1.000   0.750     1.000  0
+  pure_size - pure            3   -0.03 [ -0.21, +0.15]   2/3   0.589   1.000   1.000     1.000  1
+  pure_sizeinvert - pure_size  3   +0.24 [ -0.35, +0.82]   3/3   0.223   0.891   0.250     1.000  0
+  pure_sizeinvert - matched   3   -0.08 [ -0.44, +0.29]   1/3   0.458   1.000   0.750     1.000  3
+
+CIFAR-10 0.5%  (family of 6; Holm within family)
+  A - B                       n    diff            95% CI   A>B     t p  t Holm  perm p perm Holm  non-JSON values
+  pure - purerandom           3   +0.44 [ -1.81, +2.70]   2/3   0.487   1.000   0.750     1.000  0
+  pure - matched              3   +0.05 [ -1.98, +2.08]   1/3   0.925   1.000   1.000     1.000  0
+  purerandom - matched        3   -0.39 [ -1.16, +0.38]   0/3   0.159   0.796   0.250     1.000  0
+  pureinvert - pure           3   -0.15 [ -3.29, +3.00]   1/3   0.859   1.000   1.000     1.000  0
+  pureinvert - matched        3   -0.10 [ -2.11, +1.92]   1/3   0.855   1.000   0.750     1.000  0
+  matched - uniform           3   +0.80 [ -0.01, +1.61]   3/3   0.052   0.310   0.250     1.000  0
+
+FEMNIST 0.5%, DAGC-inspired allocation (seeds 42-44)  (family of 5; Holm within family)
+  A - B                       n    diff            95% CI   A>B     t p  t Holm  perm p perm Holm  non-JSON values
+  dagc - matched              3   +0.08 [ -0.09, +0.25]   3/3   0.185   0.434   0.250     1.000  3
+  dagc - dagcrandom           3   +0.13 [ -0.07, +0.32]   3/3   0.106   0.423   0.250     1.000  0
+  dagc - dagcrev              3   +0.13 [ +0.03, +0.22]   3/3   0.030   0.148   0.250     1.000  0
+  dagcrandom - matched        3   -0.05 [ -0.17, +0.07]   1/3   0.227   0.434   0.500     1.000  3
+  dagcrev - matched           3   -0.05 [ -0.13, +0.04]   0/3   0.145   0.434   0.250     1.000  3
+
+CIFAR10 0.5%, DAGC-inspired allocation (seeds 42-44)  (family of 5; Holm within family)
+  A - B                       n    diff            95% CI   A>B     t p  t Holm  perm p perm Holm  non-JSON values
+  dagc - matched              3   -0.47 [ -1.38, +0.45]   0/3   0.160   0.801   0.250     1.000  0
+  dagc - dagcrandom           3   +0.27 [ -2.13, +2.68]   2/3   0.671   0.801   0.750     1.000  1
+  dagc - dagcrev              3   -0.69 [ -2.19, +0.81]   0/3   0.188   0.801   0.250     1.000  1
+  dagcrandom - matched        3   -0.74 [ -3.00, +1.52]   1/3   0.295   0.801   0.500     1.000  1
+  dagcrev - matched           3   +0.22 [ -0.37, +0.82]   3/3   0.248   0.801   0.250     1.000  1

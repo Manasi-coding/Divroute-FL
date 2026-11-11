@@ -1,0 +1,119 @@
+dataset,setting,variant,seed,plateau_last20,rounds,last_window_drift,source,file,note
+femnist,0.5%,pure,42,80.37,150,0.15,JSON,femnist_pure_ks0.1_r150_s42.json,
+femnist,0.5%,pure,43,81.11,,,earlier-session (JSON not re-read),,
+femnist,0.5%,pure,44,80.67,150,0.07,JSON,femnist_pure_ks0.1_r150_s44.json,
+femnist,0.5%,pure,45,80.16,150,0.39,JSON,femnist_pure_ks0.1_r150_s45.json,
+femnist,0.5%,pure,46,80.63,150,0.26,JSON,femnist_pure_ks0.1_r150_s46.json,
+femnist,0.5%,pure,47,80.64,150,0.07,JSON,femnist_pure_ks0.1_r150_s47.json,
+femnist,0.5%,purerandom,42,80.54,,,earlier-session (JSON not re-read),,
+femnist,0.5%,purerandom,43,81.19,150,0.16,JSON,femnist_purerandom_ks0.1_r150_s43.json,
+femnist,0.5%,purerandom,44,80.92,,,earlier-session (JSON not re-read),,
+femnist,0.5%,purerandom,45,80.42,150,0.34,JSON,femnist_purerandom_ks0.1_r150_s45.json,
+femnist,0.5%,purerandom,46,80.87,150,0.28,JSON,femnist_purerandom_ks0.1_r150_s46.json,
+femnist,0.5%,purerandom,47,80.95,150,0.04,JSON,femnist_purerandom_ks0.1_r150_s47.json,
+femnist,0.5%,matched,42,80.6,,,earlier-session (JSON not re-read),,
+femnist,0.5%,matched,43,81.41,,,earlier-session (JSON not re-read),,
+femnist,0.5%,matched,44,81.0,,,earlier-session (JSON not re-read),,
+femnist,0.5%,matched,45,80.63,150,0.33,JSON,femnist_matched_ks0.1_r150_s45.json,
+femnist,0.5%,matched,46,80.98,150,0.26,JSON,femnist_matched_ks0.1_r150_s46.json,
+femnist,0.5%,matched,47,81.05,150,-0.07,JSON,femnist_matched_ks0.1_r150_s47.json,
+femnist,0.5%,pureinvert,42,80.72,150,0.16,JSON,femnist_pureinvert_ks0.1_r150_s42.json,
+femnist,0.5%,pureinvert,43,81.2,150,0.07,JSON,femnist_pureinvert_ks0.1_r150_s43.json,
+femnist,0.5%,pureinvert,44,80.97,150,0.13,JSON,femnist_pureinvert_ks0.1_r150_s44.json,
+femnist,0.5%,pureinvert,45,80.62,150,0.28,JSON,femnist_pureinvert_ks0.1_r150_s45.json,
+femnist,0.5%,pureinvert,46,80.88,150,0.23,JSON,femnist_pureinvert_ks0.1_r150_s46.json,
+femnist,0.5%,pureinvert,47,81.21,150,-0.06,JSON,femnist_pureinvert_ks0.1_r150_s47.json,
+femnist,0.5%,uniform,42,80.05,150,0.25,JSON,femnist_uniform_ks0.1_r150_s42.json,
+femnist,0.5%,uniform,43,80.85,,,earlier-session (JSON not re-read),,
+femnist,0.5%,uniform,44,80.47,,,earlier-session (JSON not re-read),,
+femnist,0.5%,uniform,45,80.32,150,0.47,JSON,femnist_uniform_ks0.1_r150_s45.json,
+femnist,0.5%,uniform,46,80.57,150,0.28,JSON,femnist_uniform_ks0.1_r150_s46.json,
+femnist,0.5%,uniform,47,80.43,150,0.01,JSON,femnist_uniform_ks0.1_r150_s47.json,
+femnist,0.5%,pure_l2,42,80.27,150,0.22,JSON,femnist_pure_l2_ks0.1_r150_s42.json,
+femnist,0.5%,pure_l2,43,81.08,150,0.22,JSON,femnist_pure_l2_ks0.1_r150_s43.json,
+femnist,0.5%,pure_l2,44,80.58,150,0.05,JSON,femnist_pure_l2_ks0.1_r150_s44.json,
+femnist,0.5%,pure_layercos,42,80.42,150,0.2,JSON,femnist_pure_layercos_ks0.1_r150_s42.json,
+femnist,0.5%,pure_layercos,43,81.14,150,0.15,JSON,femnist_pure_layercos_ks0.1_r150_s43.json,
+femnist,0.5%,pure_layercos,44,80.78,150,0.15,JSON,femnist_pure_layercos_ks0.1_r150_s44.json,
+femnist,0.5%,pure_size,42,80.38,150,0.28,JSON,femnist_pure_size_ks0.1_r150_s42.json,
+femnist,0.5%,pure_size,43,81.13,150,0.21,JSON,femnist_pure_size_ks0.1_r150_s43.json,
+femnist,0.5%,pure_size,44,80.56,150,0.22,JSON,femnist_pure_size_ks0.1_r150_s44.json,
+femnist,0.5%,pure_sizeinvert,42,80.54,150,0.27,JSON,femnist_pure_sizeinvert_ks0.1_r150_s42.json,
+femnist,0.5%,pure_sizeinvert,43,81.18,150,0.13,JSON,femnist_pure_sizeinvert_ks0.1_r150_s43.json,
+femnist,0.5%,pure_sizeinvert,44,81.06,150,0.15,JSON,femnist_pure_sizeinvert_ks0.1_r150_s44.json,
+femnist,0.5%-noEF,pure,42,79.68,150,0.09,JSON,femnist_pure_noef_ks0.1_r150_s42.json,
+femnist,0.5%-noEF,pure,43,80.3,150,0.13,JSON,femnist_pure_noef_ks0.1_r150_s43.json,
+femnist,0.5%-noEF,pure,44,79.83,150,0.08,JSON,femnist_pure_noef_ks0.1_r150_s44.json,
+femnist,0.5%-noEF,purerandom,42,79.92,150,0.19,JSON,femnist_purerandom_noef_ks0.1_r150_s42.json,
+femnist,0.5%-noEF,purerandom,43,80.69,150,0.27,JSON,femnist_purerandom_noef_ks0.1_r150_s43.json,
+femnist,0.5%-noEF,purerandom,44,80.38,150,0.13,JSON,femnist_purerandom_noef_ks0.1_r150_s44.json,
+femnist,0.5%-noEF,matched,42,80.0,150,0.16,JSON,femnist_matched_noef_ks0.1_r150_s42.json,
+femnist,0.5%-noEF,matched,43,80.82,150,0.24,JSON,femnist_matched_noef_ks0.1_r150_s43.json,
+femnist,0.5%-noEF,matched,44,80.66,150,0.18,JSON,femnist_matched_noef_ks0.1_r150_s44.json,
+femnist,0.5%-noEF,uniform,42,79.54,150,0.16,JSON,femnist_uniform_noef_ks0.1_r150_s42.json,
+femnist,0.5%-noEF,uniform,43,80.11,150,0.32,JSON,femnist_uniform_noef_ks0.1_r150_s43.json,
+femnist,0.5%-noEF,uniform,44,79.76,150,0.19,JSON,femnist_uniform_noef_ks0.1_r150_s44.json,
+femnist,1%,pure,42,80.74,150,0.23,JSON,femnist_pure_ks0.2_r150_s42.json,
+femnist,1%,pure,43,81.45,150,0.25,JSON,femnist_pure_ks0.2_r150_s43.json,
+femnist,1%,pure,44,81.08,150,0.08,JSON,femnist_pure_ks0.2_r150_s44.json,
+femnist,1%,pureinvert,42,81.16,150,0.17,JSON,femnist_pureinvert_ks0.2_r150_s42.json,
+femnist,1%,pureinvert,43,81.48,150,0.05,JSON,femnist_pureinvert_ks0.2_r150_s43.json,
+femnist,1%,pureinvert,44,81.37,150,0.12,JSON,femnist_pureinvert_ks0.2_r150_s44.json,
+femnist,1%,purerandom,42,80.97,150,0.18,JSON,femnist_purerandom_ks0.2_r150_s42.json,
+femnist,1%,purerandom,43,81.45,150,0.16,JSON,femnist_purerandom_ks0.2_r150_s43.json,
+femnist,1%,purerandom,44,81.28,150,0.2,JSON,femnist_purerandom_ks0.2_r150_s44.json,
+femnist,1%,matched,42,81.15,150,0.19,JSON,femnist_matched_ks0.2_r150_s42.json,
+femnist,1%,matched,43,81.53,150,0.18,JSON,femnist_matched_ks0.2_r150_s43.json,
+femnist,1%,matched,44,81.4,150,0.12,JSON,femnist_matched_ks0.2_r150_s44.json,
+femnist,1%,uniform,42,80.54,150,0.25,JSON,femnist_uniform_ks0.2_r150_s42 (1).json,
+femnist,1%,uniform,43,81.4,150,0.22,JSON,femnist_uniform_ks0.2_r150_s43.json,
+femnist,1%,uniform,44,80.98,150,0.18,JSON,femnist_uniform_ks0.2_r150_s44.json,
+cifar10,dense,fedavg,42,57.23,150,-0.29,JSON,cifar10_fedavg_lr0.03_r150_s42.json,
+cifar10,dense,fedavg,43,55.5,150,1.53,JSON,cifar10_fedavg_lr0.03_r150_s43.json,
+cifar10,dense,fedavg,44,56.12,150,-0.24,JSON,cifar10_fedavg_lr0.03_r150_s44.json,
+cifar10,0.5%,pure,42,57.08,150,-0.53,JSON,cifar10_pure_lr0.03_ks0.1_r150_s42.json,
+cifar10,0.5%,pure,43,54.47,150,1.68,JSON,cifar10_pure_lr0.03_ks0.1_r150_s43.json,
+cifar10,0.5%,pure,44,55.57,150,0.29,JSON,cifar10_pure_lr0.03_ks0.1_r150_s44.json,
+cifar10,0.5%,purerandom,42,55.69,150,0.5,JSON,cifar10_purerandom_lr0.03_ks0.1_r150_s42.json,
+cifar10,0.5%,purerandom,43,54.89,150,1.55,JSON,cifar10_purerandom_lr0.03_ks0.1_r150_s43.json,
+cifar10,0.5%,purerandom,44,55.21,150,0.34,JSON,cifar10_purerandom_lr0.03_ks0.1_r150_s44.json,
+cifar10,0.5%,matched,42,56.09,150,-0.26,JSON,cifar10_matched_lr0.03_ks0.1_r150_s42.json,
+cifar10,0.5%,matched,43,54.97,150,1.56,JSON,cifar10_matched_lr0.03_ks0.1_r150_s43.json,
+cifar10,0.5%,matched,44,55.91,150,0.09,JSON,cifar10_matched_lr0.03_ks0.1_r150_s44.json,
+cifar10,0.5%,pureinvert,42,55.89,150,-0.02,JSON,cifar10_pureinvert_lr0.03_ks0.1_r150_s42.json,
+cifar10,0.5%,pureinvert,43,55.73,150,1.51,JSON,cifar10_pureinvert_lr0.03_ks0.1_r150_s43.json,
+cifar10,0.5%,pureinvert,44,55.06,150,-0.18,JSON,cifar10_pureinvert_lr0.03_ks0.1_r150_s44.json,
+cifar10,0.5%,uniform,42,55.59,150,-0.54,JSON,cifar10_uniform_lr0.03_ks0.1_r150_s42.json,
+cifar10,0.5%,uniform,43,53.82,150,1.93,JSON,cifar10_uniform_lr0.03_ks0.1_r150_s43 (1).json,
+cifar10,0.5%,uniform,44,55.16,150,0.14,JSON,cifar10_uniform_lr0.03_ks0.1_r150_s44 (1).json,
+femnist,5%,pureinvert,42,81.35,150,,"console (results_11.txt, all 150 rounds present)",,
+femnist,5%,pureinvert,43,81.66,150,,"console (results_11.txt, all 150 rounds present)",,
+femnist,5%,pureinvert,44,81.49,150,,"console (results_11.txt, all 150 rounds present)",,
+cifar10,0.5%,dagc,42,55.779000,150,-0.248000,JSON,results/run_logs/cifar10_dagc_lr0.03_ep5_ks0.1_r150_s42.json,Validated original JSON; duplicate downloads excluded.
+cifar10,0.5%,dagc,43,54.771000,150,2.148000,JSON,results/run_logs/cifar10_dagc_lr0.03_ep5_ks0.1_r150_s43.json,Validated original JSON; duplicate downloads excluded.
+cifar10,0.5%,dagc,44,55.024500,150,0.401000,JSON,results/run_logs/cifar10_dagc_lr0.03_ep5_ks0.1_r150_s44.json,Validated original JSON; duplicate downloads excluded.
+cifar10,0.5%,dagcrandom,42,56.347000,150,-0.132000,JSON,results/run_logs/cifar10_dagcrandom_lr0.03_ep5_ks0.1_r150_s42.json,Validated original JSON; duplicate downloads excluded.
+cifar10,0.5%,dagcrandom,43,53.440000,150,3.896000,JSON,results/run_logs/cifar10_dagcrandom_lr0.03_ep5_ks0.1_r150_s43.json,Validated original JSON; duplicate downloads excluded.
+cifar10,0.5%,dagcrandom,44,54.963000,150,0.160000,console reconstruction,results/reconstructed_logs/cifar10_dagcrandom_lr0.03_ep5_ks0.1_r150_s44.json,Recovered accuracy from complete console; exact bytes unavailable.
+cifar10,0.5%,dagcrev,42,56.163000,150,-0.378000,JSON,results/run_logs/cifar10_dagcrev_lr0.03_ep5_ks0.1_r150_s42.json,Validated original JSON; duplicate downloads excluded.
+cifar10,0.5%,dagcrev,43,55.066500,150,1.449000,JSON,results/run_logs/cifar10_dagcrev_lr0.03_ep5_ks0.1_r150_s43.json,Validated original JSON; duplicate downloads excluded.
+cifar10,0.5%,dagcrev,44,56.409000,150,0.336000,console reconstruction,results/reconstructed_logs/cifar10_dagcrev_lr0.03_ep5_ks0.1_r150_s44.json,Recovered accuracy from complete console; exact bytes unavailable.
+femnist,0.5%,dagc,42,80.729000,150,0.196000,JSON,results/run_logs/femnist_dagc_ks0.1_r150_s42.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,dagc,43,81.410500,150,0.173000,JSON,results/run_logs/femnist_dagc_ks0.1_r150_s43.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,dagc,44,81.107500,150,0.153000,JSON,results/run_logs/femnist_dagc_ks0.1_r150_s44.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,dagcrandom,42,80.514500,150,0.297000,JSON,results/run_logs/femnist_dagcrandom_ks0.1_r150_s42.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,dagcrandom,43,81.345000,150,0.188000,JSON,results/run_logs/femnist_dagcrandom_ks0.1_r150_s43.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,dagcrandom,44,81.006500,150,0.137000,JSON,results/run_logs/femnist_dagcrandom_ks0.1_r150_s44.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,dagcrev,42,80.588000,150,0.222000,JSON,results/run_logs/femnist_dagcrev_ks0.1_r150_s42.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,dagcrev,43,81.328000,150,0.266000,JSON,results/run_logs/femnist_dagcrev_ks0.1_r150_s43.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,dagcrev,44,80.952500,150,0.125000,JSON,results/run_logs/femnist_dagcrev_ks0.1_r150_s44.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,matched,48,81.716500,150,-0.203000,JSON,results/run_logs/femnist_matched_ks0.1_r150_s48.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,matched,49,80.903500,150,0.105000,JSON,results/run_logs/femnist_matched_ks0.1_r150_s49.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,pure,48,81.510000,150,-0.190000,JSON,results/run_logs/femnist_pure_ks0.1_r150_s48.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,pure,49,80.680000,150,0.018000,JSON,results/run_logs/femnist_pure_ks0.1_r150_s49.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,pureinvert,48,81.861000,150,-0.084000,JSON,results/run_logs/femnist_pureinvert_ks0.1_r150_s48.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,pureinvert,49,81.038500,150,0.005000,JSON,results/run_logs/femnist_pureinvert_ks0.1_r150_s49.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,purerandom,48,81.715000,150,-0.176000,JSON,results/run_logs/femnist_purerandom_ks0.1_r150_s48.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,purerandom,49,80.857500,150,0.117000,JSON,results/run_logs/femnist_purerandom_ks0.1_r150_s49.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,uniform,48,81.538500,150,-0.175000,JSON,results/run_logs/femnist_uniform_ks0.1_r150_s48.json,Validated original JSON; duplicate downloads excluded.
+femnist,0.5%,uniform,49,80.387000,150,0.110000,JSON,results/run_logs/femnist_uniform_ks0.1_r150_s49.json,Validated original JSON; duplicate downloads excluded.

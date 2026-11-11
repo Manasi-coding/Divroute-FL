@@ -1,0 +1,801 @@
+[
+  {
+    "label": "FEMNIST 0.5%, EF on (eight seeds)",
+    "dataset": "femnist",
+    "setting": "0.5%",
+    "comparisons": [
+      {
+        "a": "pure",
+        "b": "purerandom",
+        "seeds": [
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49
+        ],
+        "difference_pp": -0.2115625000000012,
+        "ci95_pp": [
+          -0.27030680793690365,
+          -0.15281819206309874
+        ],
+        "positive_seeds": 0,
+        "t_p": 6.10258914376982e-05,
+        "permutation_p": 0.0078125,
+        "non_original_json_values": 3,
+        "t_holm": 0.0002670064779272373,
+        "permutation_holm": 0.046875
+      },
+      {
+        "a": "pure",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49
+        ],
+        "difference_pp": -0.31499999999999595,
+        "ci95_pp": [
+          -0.3937398699377556,
+          -0.23626013006223628
+        ],
+        "positive_seeds": 0,
+        "t_p": 3.081693451346844e-05,
+        "permutation_p": 0.0078125,
+        "non_original_json_values": 4,
+        "t_holm": 0.00018490160708081063,
+        "permutation_holm": 0.046875
+      },
+      {
+        "a": "purerandom",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49
+        ],
+        "difference_pp": -0.10343749999999474,
+        "ci95_pp": [
+          -0.1675162920173931,
+          -0.039358707982596386
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.006567546825091601,
+        "permutation_p": 0.0078125,
+        "non_original_json_values": 5,
+        "t_holm": 0.013135093650183201,
+        "permutation_holm": 0.046875
+      },
+      {
+        "a": "pureinvert",
+        "b": "pure",
+        "seeds": [
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49
+        ],
+        "difference_pp": 0.3411874999999984,
+        "ci95_pp": [
+          0.22293434542667245,
+          0.4594406545733244
+        ],
+        "positive_seeds": 8,
+        "t_p": 0.0002480919029240612,
+        "permutation_p": 0.0078125,
+        "non_original_json_values": 1,
+        "t_holm": 0.0007442757087721835,
+        "permutation_holm": 0.046875
+      },
+      {
+        "a": "pureinvert",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49
+        ],
+        "difference_pp": 0.026187500000002473,
+        "ci95_pp": [
+          -0.08718021721990361,
+          0.13955521721990855
+        ],
+        "positive_seeds": 4,
+        "t_p": 0.6018819075572321,
+        "permutation_p": 0.5859375,
+        "non_original_json_values": 3,
+        "t_holm": 0.6018819075572321,
+        "permutation_holm": 0.5859375
+      },
+      {
+        "a": "matched",
+        "b": "uniform",
+        "seeds": [
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49
+        ],
+        "difference_pp": 0.45931249999999935,
+        "ci95_pp": [
+          0.334383018640716,
+          0.5842419813592827
+        ],
+        "positive_seeds": 8,
+        "t_p": 5.340129558544746e-05,
+        "permutation_p": 0.0078125,
+        "non_original_json_values": 5,
+        "t_holm": 0.0002670064779272373,
+        "permutation_holm": 0.046875
+      }
+    ]
+  },
+  {
+    "label": "FEMNIST 1%",
+    "dataset": "femnist",
+    "setting": "1%",
+    "comparisons": [
+      {
+        "a": "pure",
+        "b": "purerandom",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.14333333333333562,
+        "ci95_pp": [
+          -0.4539333408548547,
+          0.16726667418818345
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.18548334094859426,
+        "permutation_p": 0.5,
+        "non_original_json_values": 0,
+        "t_holm": 0.5466229764055599,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "pure",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.2700000000000055,
+        "ci95_pp": [
+          -0.6937621490581445,
+          0.1537621490581335
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.11128417478654841,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.5466229764055599,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "purerandom",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.1266666666666699,
+        "ci95_pp": [
+          -0.2516988562541956,
+          -0.0016344770791442143
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.04881026878866323,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.29286161273197936,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "pureinvert",
+        "b": "pure",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.2466666666666697,
+        "ci95_pp": [
+          -0.24662912770091105,
+          0.7399624610342505
+        ],
+        "positive_seeds": 3,
+        "t_p": 0.16436176952488765,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.5466229764055599,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "pureinvert",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.023333333333335798,
+        "ci95_pp": [
+          -0.0992249940052559,
+          0.0525583273385843
+        ],
+        "positive_seeds": 1,
+        "t_p": 0.3168699489359158,
+        "permutation_p": 0.5,
+        "non_original_json_values": 0,
+        "t_holm": 0.5466229764055599,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "matched",
+        "b": "uniform",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.38666666666666555,
+        "ci95_pp": [
+          -0.21382363632632234,
+          0.9871569696596534
+        ],
+        "positive_seeds": 3,
+        "t_p": 0.10932459528111198,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.5466229764055599,
+        "permutation_holm": 1.0
+      }
+    ]
+  },
+  {
+    "label": "FEMNIST 0.5%, EF off",
+    "dataset": "femnist",
+    "setting": "0.5%-noEF",
+    "comparisons": [
+      {
+        "a": "pure",
+        "b": "purerandom",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.39333333333333087,
+        "ci95_pp": [
+          -0.7784414507604556,
+          -0.008225215906206174
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.04807749826802857,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.1442324948040857,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "pure",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.5566666666666625,
+        "ci95_pp": [
+          -1.1950143378363451,
+          0.08168100450301996
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.06426055915536168,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.1442324948040857,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "purerandom",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.16333333333333164,
+        "ci95_pp": [
+          -0.42189058396044987,
+          0.09522391729378663
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.11289510389717732,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.1442324948040857,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "matched",
+        "b": "uniform",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.689999999999993,
+        "ci95_pp": [
+          0.14179858963626257,
+          1.2382014103637233
+        ],
+        "positive_seeds": 3,
+        "t_p": 0.03244615088329516,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.12978460353318064,
+        "permutation_holm": 1.0
+      }
+    ]
+  },
+  {
+    "label": "FEMNIST 0.5%, size routing vs divergence routing (seeds 42-44)",
+    "dataset": "femnist",
+    "setting": "0.5%",
+    "comparisons": [
+      {
+        "a": "pure_sizeinvert",
+        "b": "pureinvert",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.03666666666666174,
+        "ci95_pp": [
+          -0.37393658401920826,
+          0.3006032506858848
+        ],
+        "positive_seeds": 1,
+        "t_p": 0.6859705317530786,
+        "permutation_p": 0.75,
+        "non_original_json_values": 0,
+        "t_holm": 1.0,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "pure_size",
+        "b": "pure",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.026666666666670835,
+        "ci95_pp": [
+          -0.2063736139296617,
+          0.15304028059632002
+        ],
+        "positive_seeds": 2,
+        "t_p": 0.5885244001010164,
+        "permutation_p": 1.0,
+        "non_original_json_values": 1,
+        "t_holm": 1.0,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "pure_sizeinvert",
+        "b": "pure_size",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.23666666666667405,
+        "ci95_pp": [
+          -0.34609178021109455,
+          0.8194251135444426
+        ],
+        "positive_seeds": 3,
+        "t_p": 0.22268468055926205,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.8907387222370482,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "pure_sizeinvert",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.07666666666665851,
+        "ci95_pp": [
+          -0.4386468175446078,
+          0.2853134842112908
+        ],
+        "positive_seeds": 1,
+        "t_p": 0.45833599983593865,
+        "permutation_p": 0.75,
+        "non_original_json_values": 3,
+        "t_holm": 1.0,
+        "permutation_holm": 1.0
+      }
+    ]
+  },
+  {
+    "label": "CIFAR-10 0.5%",
+    "dataset": "cifar10",
+    "setting": "0.5%",
+    "comparisons": [
+      {
+        "a": "pure",
+        "b": "purerandom",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.44333333333333275,
+        "ci95_pp": [
+          -1.8119481539525883,
+          2.698614820619254
+        ],
+        "positive_seeds": 2,
+        "t_p": 0.48672363102140764,
+        "permutation_p": 0.75,
+        "non_original_json_values": 0,
+        "t_holm": 1.0,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "pure",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.049999999999999524,
+        "ci95_pp": [
+          -1.98198820576696,
+          2.081988205766959
+        ],
+        "positive_seeds": 1,
+        "t_p": 0.9253454115792795,
+        "permutation_p": 1.0,
+        "non_original_json_values": 0,
+        "t_holm": 1.0,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "purerandom",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.39333333333333326,
+        "ci95_pp": [
+          -1.1635495681875743,
+          0.3768829015209078
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.159114054542274,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.79557027271137,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "pureinvert",
+        "b": "pure",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.14666666666666592,
+        "ci95_pp": [
+          -3.288519877025411,
+          2.995186543692079
+        ],
+        "positive_seeds": 1,
+        "t_p": 0.8593854439346568,
+        "permutation_p": 1.0,
+        "non_original_json_values": 0,
+        "t_holm": 1.0,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "pureinvert",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.09666666666666639,
+        "ci95_pp": [
+          -2.108715982698063,
+          1.9153826493647303
+        ],
+        "positive_seeds": 1,
+        "t_p": 0.8553665429344968,
+        "permutation_p": 0.75,
+        "non_original_json_values": 0,
+        "t_holm": 1.0,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "matched",
+        "b": "uniform",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.7999999999999995,
+        "ci95_pp": [
+          -0.014479016535150158,
+          1.614479016535149
+        ],
+        "positive_seeds": 3,
+        "t_p": 0.05168706436768033,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.31012238620608196,
+        "permutation_holm": 1.0
+      }
+    ]
+  },
+  {
+    "label": "FEMNIST 0.5%, DAGC-inspired allocation (seeds 42-44)",
+    "dataset": "femnist",
+    "setting": "0.5%",
+    "comparisons": [
+      {
+        "a": "dagc",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.079000000000003,
+        "ci95_pp": [
+          -0.0919774439064578,
+          0.24997744390646381
+        ],
+        "positive_seeds": 3,
+        "t_p": 0.1851410950226738,
+        "permutation_p": 0.25,
+        "non_original_json_values": 3,
+        "t_holm": 0.43422553230710437,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "dagc",
+        "b": "dagcrandom",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.12700000000000009,
+        "ci95_pp": [
+          -0.06633630634319035,
+          0.32033630634319055
+        ],
+        "positive_seeds": 3,
+        "t_p": 0.10570402266625055,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.4228160906650022,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "dagc",
+        "b": "dagcrev",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.1261666666666675,
+        "ci95_pp": [
+          0.030629580894510358,
+          0.22170375243882467
+        ],
+        "positive_seeds": 3,
+        "t_p": 0.029604404616207274,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.14802202308103637,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "dagcrandom",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.04799999999999708,
+        "ci95_pp": [
+          -0.16798025122393984,
+          0.07198025122394569
+        ],
+        "positive_seeds": 1,
+        "t_p": 0.22732925378549082,
+        "permutation_p": 0.5,
+        "non_original_json_values": 3,
+        "t_holm": 0.43422553230710437,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "dagcrev",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.047166666666664504,
+        "ci95_pp": [
+          -0.1341144438344247,
+          0.039781110501095694
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.14474184410236812,
+        "permutation_p": 0.25,
+        "non_original_json_values": 3,
+        "t_holm": 0.43422553230710437,
+        "permutation_holm": 1.0
+      }
+    ]
+  },
+  {
+    "label": "CIFAR10 0.5%, DAGC-inspired allocation (seeds 42-44)",
+    "dataset": "cifar10",
+    "setting": "0.5%",
+    "comparisons": [
+      {
+        "a": "dagc",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.4651666666666638,
+        "ci95_pp": [
+          -1.3800786103379388,
+          0.44974527700461114
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.16020497029716124,
+        "permutation_p": 0.25,
+        "non_original_json_values": 0,
+        "t_holm": 0.8010248514858063,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "dagc",
+        "b": "dagcrandom",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.27483333333333587,
+        "ci95_pp": [
+          -2.1280914286350687,
+          2.67775809530174
+        ],
+        "positive_seeds": 2,
+        "t_p": 0.671352237085882,
+        "permutation_p": 0.75,
+        "non_original_json_values": 1,
+        "t_holm": 0.8010248514858063,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "dagc",
+        "b": "dagcrev",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.6879999999999953,
+        "ci95_pp": [
+          -2.190425402388942,
+          0.8144254023889517
+        ],
+        "positive_seeds": 0,
+        "t_p": 0.18760613968040413,
+        "permutation_p": 0.25,
+        "non_original_json_values": 1,
+        "t_holm": 0.8010248514858063,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "dagcrandom",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": -0.7399999999999997,
+        "ci95_pp": [
+          -3.003810111785484,
+          1.5238101117854845
+        ],
+        "positive_seeds": 1,
+        "t_p": 0.294839084065214,
+        "permutation_p": 0.5,
+        "non_original_json_values": 1,
+        "t_holm": 0.8010248514858063,
+        "permutation_holm": 1.0
+      },
+      {
+        "a": "dagcrev",
+        "b": "matched",
+        "seeds": [
+          42,
+          43,
+          44
+        ],
+        "difference_pp": 0.22283333333333152,
+        "ci95_pp": [
+          -0.3720078662372458,
+          0.8176745329039089
+        ],
+        "positive_seeds": 3,
+        "t_p": 0.24831950767057542,
+        "permutation_p": 0.25,
+        "non_original_json_values": 1,
+        "t_holm": 0.8010248514858063,
+        "permutation_holm": 1.0
+      }
+    ]
+  }
+]

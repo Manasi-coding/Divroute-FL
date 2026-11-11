@@ -1,0 +1,226 @@
+[
+  {
+    "dataset": "cifar10",
+    "variant": "dagc",
+    "seed": 42,
+    "file": "results/run_logs/cifar10_dagc_lr0.03_ep5_ks0.1_r150_s42.json",
+    "source": "JSON",
+    "sha256": "fa75e62fd16edab5080c472ef138d4c7c0e58955f1481556e6647983d0ca9593"
+  },
+  {
+    "dataset": "cifar10",
+    "variant": "dagc",
+    "seed": 43,
+    "file": "results/run_logs/cifar10_dagc_lr0.03_ep5_ks0.1_r150_s43.json",
+    "source": "JSON",
+    "sha256": "8ce882abe30475b2d90f61ed2b46ab2d861a4eb62905284d1e810dc348afa24e"
+  },
+  {
+    "dataset": "cifar10",
+    "variant": "dagc",
+    "seed": 44,
+    "file": "results/run_logs/cifar10_dagc_lr0.03_ep5_ks0.1_r150_s44.json",
+    "source": "JSON",
+    "sha256": "bd8f97c8a00da92f1bff9390614ee7315c0a1e780ee61fe7d3e4b5a04251ccc2"
+  },
+  {
+    "dataset": "cifar10",
+    "variant": "dagcrandom",
+    "seed": 42,
+    "file": "results/run_logs/cifar10_dagcrandom_lr0.03_ep5_ks0.1_r150_s42.json",
+    "source": "JSON",
+    "sha256": "c615194bd8845064ad018e6d82ef16d6ca925470468ce6bc1217e26d30063d41"
+  },
+  {
+    "dataset": "cifar10",
+    "variant": "dagcrandom",
+    "seed": 43,
+    "file": "results/run_logs/cifar10_dagcrandom_lr0.03_ep5_ks0.1_r150_s43.json",
+    "source": "JSON",
+    "sha256": "55297c19e610cf4dfad2b1d3e53abb1bfc0c957a75c90b74529e51404fdcc185"
+  },
+  {
+    "dataset": "cifar10",
+    "variant": "dagcrandom",
+    "seed": 44,
+    "file": "results/reconstructed_logs/cifar10_dagcrandom_lr0.03_ep5_ks0.1_r150_s44.json",
+    "source": "console reconstruction",
+    "sha256": "58632d61d2eef86d3c8194db7a436b615a3e930a187327db87d38c84ab0fbd8d"
+  },
+  {
+    "dataset": "cifar10",
+    "variant": "dagcrev",
+    "seed": 42,
+    "file": "results/run_logs/cifar10_dagcrev_lr0.03_ep5_ks0.1_r150_s42.json",
+    "source": "JSON",
+    "sha256": "0c4faeb1d3836719163112c36fb017e02a9426ba452999e09d03b1fea22373a8"
+  },
+  {
+    "dataset": "cifar10",
+    "variant": "dagcrev",
+    "seed": 43,
+    "file": "results/run_logs/cifar10_dagcrev_lr0.03_ep5_ks0.1_r150_s43.json",
+    "source": "JSON",
+    "sha256": "29b7d58bebd22b1760df03157c48921f86329e23cccaa94fd1c9460233973706"
+  },
+  {
+    "dataset": "cifar10",
+    "variant": "dagcrev",
+    "seed": 44,
+    "file": "results/reconstructed_logs/cifar10_dagcrev_lr0.03_ep5_ks0.1_r150_s44.json",
+    "source": "console reconstruction",
+    "sha256": "980810d88531a286ceaf615fbe83dd323a84ef3eb60082cf06b77645c8661150"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "dagc",
+    "seed": 42,
+    "file": "results/run_logs/femnist_dagc_ks0.1_r150_s42.json",
+    "source": "JSON",
+    "sha256": "d4370508076a02f5799f14894b663f2c870abbea6dc77d31b56398cdc18feeb4"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "dagc",
+    "seed": 43,
+    "file": "results/run_logs/femnist_dagc_ks0.1_r150_s43.json",
+    "source": "JSON",
+    "sha256": "fabb3230d9c86db3fbb5aa596645d9377225a6e505806aeed9ea05753ea7aaca"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "dagc",
+    "seed": 44,
+    "file": "results/run_logs/femnist_dagc_ks0.1_r150_s44.json",
+    "source": "JSON",
+    "sha256": "ec5fc6f79d60ce110595cf901e44764cdc96491406288c276093b8fe0e94f588"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "dagcrandom",
+    "seed": 42,
+    "file": "results/run_logs/femnist_dagcrandom_ks0.1_r150_s42.json",
+    "source": "JSON",
+    "sha256": "501892ad5cbbbf401237d6515090180e846a7992771d5ef8439479a04b696638"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "dagcrandom",
+    "seed": 43,
+    "file": "results/run_logs/femnist_dagcrandom_ks0.1_r150_s43.json",
+    "source": "JSON",
+    "sha256": "841ca2d5b271426089604f51e900aaacd90dab0f645d1536634c856f9be22052"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "dagcrandom",
+    "seed": 44,
+    "file": "results/run_logs/femnist_dagcrandom_ks0.1_r150_s44.json",
+    "source": "JSON",
+    "sha256": "3b38afd793f58d1805699ff87d7026e07aeffa6152a4da3191430ca86f4e14c9"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "dagcrev",
+    "seed": 42,
+    "file": "results/run_logs/femnist_dagcrev_ks0.1_r150_s42.json",
+    "source": "JSON",
+    "sha256": "b1c4a58cb85d743bead3d8fcf0af302744503d7820626a69874c9e41e4996a6c"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "dagcrev",
+    "seed": 43,
+    "file": "results/run_logs/femnist_dagcrev_ks0.1_r150_s43.json",
+    "source": "JSON",
+    "sha256": "658983ae04a552cdbc41f3db8945b4042dcf448563b7ebd67fb35e63b03286a1"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "dagcrev",
+    "seed": 44,
+    "file": "results/run_logs/femnist_dagcrev_ks0.1_r150_s44.json",
+    "source": "JSON",
+    "sha256": "7b59bc8ba8af9ca54c86fee42e1e3d3a3a7aa8a0cbf0490cdedef902909ec8d6"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "matched",
+    "seed": 48,
+    "file": "results/run_logs/femnist_matched_ks0.1_r150_s48.json",
+    "source": "JSON",
+    "sha256": "07424b53e1210490440f7773e87409dd461638fc25ba027c6ccbcb2f673ddaeb"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "matched",
+    "seed": 49,
+    "file": "results/run_logs/femnist_matched_ks0.1_r150_s49.json",
+    "source": "JSON",
+    "sha256": "1531ac744778d35b7ed42e3066f0cad5c0375ae89f2c7edf82372b58e6477067"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "pure",
+    "seed": 48,
+    "file": "results/run_logs/femnist_pure_ks0.1_r150_s48.json",
+    "source": "JSON",
+    "sha256": "a8dc4393092e11303479f9ba4f62b8713c54a2954062873ca24aabf87fe527dd"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "pure",
+    "seed": 49,
+    "file": "results/run_logs/femnist_pure_ks0.1_r150_s49.json",
+    "source": "JSON",
+    "sha256": "17ab9c28ad3aa0428a5405cedb42d1405930d207664676697e9f60806125211c"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "pureinvert",
+    "seed": 48,
+    "file": "results/run_logs/femnist_pureinvert_ks0.1_r150_s48.json",
+    "source": "JSON",
+    "sha256": "3f5a2d7de50db8da3e7cfa3b48ee124a91664dd6a26447d9200fb1d7a8245f7d"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "pureinvert",
+    "seed": 49,
+    "file": "results/run_logs/femnist_pureinvert_ks0.1_r150_s49.json",
+    "source": "JSON",
+    "sha256": "4c6c2b8e6171d94c56edb38ed51877e1c7f7fa2181de706dc0aa394a6c5a0013"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "purerandom",
+    "seed": 48,
+    "file": "results/run_logs/femnist_purerandom_ks0.1_r150_s48.json",
+    "source": "JSON",
+    "sha256": "36281b0312e746f4ae32445d178e813273d534556ef47cce1604298cdc718873"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "purerandom",
+    "seed": 49,
+    "file": "results/run_logs/femnist_purerandom_ks0.1_r150_s49.json",
+    "source": "JSON",
+    "sha256": "a21b53c04955eb5fd4223ac75698638f3f56435a03a028f98ffd17fa4811183a"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "uniform",
+    "seed": 48,
+    "file": "results/run_logs/femnist_uniform_ks0.1_r150_s48.json",
+    "source": "JSON",
+    "sha256": "c692d2c5f80e238e42f2dac3d24adc0a1ebb34fdc878d700faec3a5947fdd6cf"
+  },
+  {
+    "dataset": "femnist",
+    "variant": "uniform",
+    "seed": 49,
+    "file": "results/run_logs/femnist_uniform_ks0.1_r150_s49.json",
+    "source": "JSON",
+    "sha256": "cd67a2709d3f5e4c48f47e6e47927acc91ad415f55150e4d47e7866eff66a8a5"
+  }
+]
