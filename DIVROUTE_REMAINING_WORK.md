@@ -2,6 +2,17 @@
 
 Checklist only. Full rationale: `DIVROUTE_ACCURACY_MASTER_PLAN.md`.
 
+## Current status - 2026-11-11
+
+The 28-run completion batch is finished and consolidated. The eight-seed FEMNIST comparison and both
+three-seed DAGC-inspired comparisons are now included in `results/plateaus.csv` and the paired-statistics
+script. Two CIFAR-10 runs are reconstructed from complete console output and explicitly marked as such.
+See `results/CONSOLIDATED_RESULTS.md` and master-plan section 54.
+
+Remaining: preserve/recover earlier raw baseline artifacts, address or explicitly report CIFAR-10 convergence
+limitations, and prepare the manuscript and reproducibility package. No additional run is pending in the
+completed 28-run batch. Earlier entries below are a historical work log and may describe already-resolved tasks.
+
 ## RESOLVED: full 3-vs-3-vs-3 FEMNIST comparison, all seed-matched (Tier A)
 `fedavg_r150_s42` ran and converged (last two 10-round windows +0.09pp, plateau
 81.38%). The planned JSON re-verification command failed instead:

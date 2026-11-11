@@ -35,6 +35,7 @@ Usage
         Full run over the entire CIFAR-100 train set with default
         hyperparameters (see --help for all options).
 """
+
 import argparse
 import json
 import os
@@ -74,34 +75,59 @@ def _make_full_train_dataset(dataset_name: str, model_name: str):
 
 def _parse_args():
     p = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     p.add_argument("--dataset", default="cifar100", choices=["cifar10", "cifar100"])
     p.add_argument("--model", default="efficientnet_b0_pretrained")
-    p.add_argument("--bn-mode", default="default",
-                   choices=["default", "local_bn", "groupnorm", "ws_groupnorm"],
-                   help="'default' preserves pretrained BatchNorm stats -- "
-                        "matches get_pretrained_finetune_config()'s recommended setting.")
-    p.add_argument("--epochs", type=int, default=15,
-                   help="literature-grounded default (TDS EfficientNet-B0/CIFAR-100 "
-                        "replication used 15 epochs)")
+    p.add_argument(
+        "--bn-mode",
+        default="default",
+        choices=["default", "local_bn", "groupnorm", "ws_groupnorm"],
+        help="'default' preserves pretrained BatchNorm stats -- "
+        "matches get_pretrained_finetune_config()'s recommended setting.",
+    )
+    p.add_argument(
+        "--epochs",
+        type=int,
+        default=15,
+        help="literature-grounded default (TDS EfficientNet-B0/CIFAR-100 "
+        "replication used 15 epochs)",
+    )
     p.add_argument("--batch-size", type=int, default=64)
-    p.add_argument("--lr", type=float, default=0.01,
-                   help="matches get_pretrained_finetune_config()'s local_lr")
-    p.add_argument("--lr-min", type=float, default=0.001,
-                   help="matches get_pretrained_finetune_config()'s local_lr_min "
-                        "(cosine floor, via client.py's get_local_lr)")
+    p.add_argument(
+        "--lr",
+        type=float,
+        default=0.01,
+        help="matches get_pretrained_finetune_config()'s local_lr",
+    )
+    p.add_argument(
+        "--lr-min",
+        type=float,
+        default=0.001,
+        help="matches get_pretrained_finetune_config()'s local_lr_min "
+        "(cosine floor, via client.py's get_local_lr)",
+    )
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--num-workers", type=int, default=0)
     p.add_argument("--no-amp", action="store_true", help="disable mixed precision")
-    p.add_argument("--log-path", default=None,
-                   help="default: logs/centralized_finetune_sanity_check_<dataset>.json")
-    p.add_argument("--checkpoint-path", default=None,
-                   help="optional path to save the best-test-accuracy model state_dict "
-                        "(off by default -- this script is a sanity check, not a training "
-                        "run whose weights are meant to be reused)")
-    p.add_argument("--smoke", action="store_true",
-                   help="fast pipeline check: forces 1 epoch over a small fixed subset, "
-                        "never writes a checkpoint")
+    p.add_argument(
+        "--log-path",
+        default=None,
+        help="default: logs/centralized_finetune_sanity_check_<dataset>.json",
+    )
+    p.add_argument(
+        "--checkpoint-path",
+        default=None,
+        help="optional path to save the best-test-accuracy model state_dict "
+        "(off by default -- this script is a sanity check, not a training "
+        "run whose weights are meant to be reused)",
+    )
+    p.add_argument(
+        "--smoke",
+        action="store_true",
+        help="fast pipeline check: forces 1 epoch over a small fixed subset, "
+        "never writes a checkpoint",
+    )
     return p.parse_args()
 
 
@@ -132,8 +158,10 @@ def main():
 
     num_classes = 10 if args.dataset == "cifar10" else 100
 
-    print(f"[init] loading full {args.dataset.upper()} train/test sets "
-          f"(model={args.model}, bn_mode={args.bn_mode})...")
+    print(
+        f"[init] loading full {args.dataset.upper()} train/test sets "
+        f"(model={args.model}, bn_mode={args.bn_mode})..."
+    )
     train_ds = _make_full_train_dataset(args.dataset, args.model)
     test_ds = get_test_dataset(args.dataset, model_name=args.model)
 
@@ -146,41 +174,51 @@ def main():
     print(f"[init] train samples: {len(train_ds)}, test samples: {len(test_ds)}")
 
     train_loader = DataLoader(
-        train_ds, batch_size=args.batch_size, shuffle=True, drop_last=False,
-        num_workers=args.num_workers, pin_memory=(device.type == "cuda"),
+        train_ds,
+        batch_size=args.batch_size,
+        shuffle=True,
+        drop_last=False,
+        num_workers=args.num_workers,
+        pin_memory=(device.type == "cuda"),
     )
     test_loader = DataLoader(
-        test_ds, batch_size=256, shuffle=False, drop_last=False,
-        num_workers=args.num_workers, pin_memory=(device.type == "cuda"),
+        test_ds,
+        batch_size=256,
+        shuffle=False,
+        drop_last=False,
+        num_workers=args.num_workers,
+        pin_memory=(device.type == "cuda"),
     )
 
     model = get_model(args.model, num_classes, args.bn_mode).to(device)
     n_params = sum(p.numel() for p in model.parameters())
     print(f"[init] model params: {n_params:,}")
 
-    # Same recipe as divroute_fl/client.py's local training (label smoothing,
-    # SGD+momentum+nesterov, grad clipping) so this ceiling reflects the same
-    # optimisation regime the federated runs will use -- only the federation
-    # machinery (partitioning, partial participation, compression, rounds)
-    # is absent here.
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
     optimizer = torch.optim.SGD(
-        model.parameters(), lr=args.lr, momentum=0.9,
-        weight_decay=5e-4, nesterov=True,
+        model.parameters(),
+        lr=args.lr,
+        momentum=0.9,
+        weight_decay=5e-4,
+        nesterov=True,
     )
 
     use_amp = (device.type == "cuda") and not args.no_amp
     scaler = torch.amp.GradScaler(device="cuda", enabled=use_amp)
 
-    log_path = args.log_path or f"logs/centralized_finetune_sanity_check_{args.dataset}.json"
+    log_path = (
+        args.log_path or f"logs/centralized_finetune_sanity_check_{args.dataset}.json"
+    )
     os.makedirs(os.path.dirname(log_path) or ".", exist_ok=True)
 
     history = []
     best_acc = 0.0
     t_start = time.time()
 
-    print(f"[train] {args.epochs} epoch(s), batch_size={args.batch_size}, "
-          f"lr={args.lr}->{args.lr_min} (cosine), amp={use_amp}")
+    print(
+        f"[train] {args.epochs} epoch(s), batch_size={args.batch_size}, "
+        f"lr={args.lr}->{args.lr_min} (cosine), amp={use_amp}"
+    )
 
     for epoch in range(args.epochs):
         model.train()
@@ -217,42 +255,58 @@ def main():
         is_best = test_acc > best_acc
         best_acc = max(best_acc, test_acc)
 
-        print(f"[epoch {epoch + 1:>3}/{args.epochs}] lr={epoch_lr:.5f} "
-              f"train_loss={train_loss:.4f} train_acc={train_acc:.4f} "
-              f"test_loss={test_loss:.4f} test_acc={test_acc:.4f} "
-              f"best={best_acc:.4f} ({epoch_time:.1f}s)"
-              + ("  *" if is_best else ""))
+        print(
+            f"[epoch {epoch + 1:>3}/{args.epochs}] lr={epoch_lr:.5f} "
+            f"train_loss={train_loss:.4f} train_acc={train_acc:.4f} "
+            f"test_loss={test_loss:.4f} test_acc={test_acc:.4f} "
+            f"best={best_acc:.4f} ({epoch_time:.1f}s)" + ("  *" if is_best else "")
+        )
 
-        history.append({
-            "epoch": epoch + 1,
-            "lr": epoch_lr,
-            "train_loss": train_loss,
-            "train_acc": train_acc,
-            "test_loss": test_loss,
-            "test_acc": test_acc,
-            "epoch_time_sec": epoch_time,
-        })
+        history.append(
+            {
+                "epoch": epoch + 1,
+                "lr": epoch_lr,
+                "train_loss": train_loss,
+                "train_acc": train_acc,
+                "test_loss": test_loss,
+                "test_acc": test_acc,
+                "epoch_time_sec": epoch_time,
+            }
+        )
 
         if is_best and args.checkpoint_path and not args.smoke:
             os.makedirs(os.path.dirname(args.checkpoint_path) or ".", exist_ok=True)
             torch.save(model.state_dict(), args.checkpoint_path)
 
         with open(log_path, "w", encoding="utf-8") as f:
-            json.dump({
-                "metadata": {
-                    "dataset": args.dataset, "model": args.model, "bn_mode": args.bn_mode,
-                    "epochs": args.epochs, "batch_size": args.batch_size,
-                    "lr": args.lr, "lr_min": args.lr_min, "seed": args.seed,
-                    "smoke": args.smoke, "num_train_samples": len(train_ds),
-                    "num_test_samples": len(test_ds), "num_params": n_params,
+            json.dump(
+                {
+                    "metadata": {
+                        "dataset": args.dataset,
+                        "model": args.model,
+                        "bn_mode": args.bn_mode,
+                        "epochs": args.epochs,
+                        "batch_size": args.batch_size,
+                        "lr": args.lr,
+                        "lr_min": args.lr_min,
+                        "seed": args.seed,
+                        "smoke": args.smoke,
+                        "num_train_samples": len(train_ds),
+                        "num_test_samples": len(test_ds),
+                        "num_params": n_params,
+                    },
+                    "history": history,
+                    "best_test_acc": best_acc,
                 },
-                "history": history,
-                "best_test_acc": best_acc,
-            }, f, indent=2)
+                f,
+                indent=2,
+            )
 
     total_time = time.time() - t_start
-    print(f"\n[done] best test accuracy: {best_acc:.4f}  "
-          f"total wall-clock: {total_time:.1f}s ({total_time / 60:.2f} min)")
+    print(
+        f"\n[done] best test accuracy: {best_acc:.4f}  "
+        f"total wall-clock: {total_time:.1f}s ({total_time / 60:.2f} min)"
+    )
     print(f"[done] results written to {log_path}")
 
 

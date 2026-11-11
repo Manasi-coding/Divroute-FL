@@ -3,7 +3,7 @@
 > Companion document to `DIVROUTE_ALGORITHMS_MASTER_DOC.md` (the algorithm reference).
 > This document is the **decision record and execution plan**: what's wrong, what's
 > changing, exactly which files/flags are touched, what's guaranteed vs. not, and why
-> each change is necessary. Written so a fresh reader — or a fresh LLM session — can
+> each change is necessary. Written so a new reader can
 > pick this up with no other context and know exactly what to do and why.
 
 **Status (concluded): §5's infrastructure changes are implemented and
@@ -2259,8 +2259,7 @@ for DCT/FFT gradient compression in federated learning surfaced none; adjacent: 
 sensing / random-projection compression. Federated PEFT with frozen CLIP/ViT backbones (PromptFL,
 FedCLIP, FedDAT, pFedMMA) is established; one FedPEFT submission reports 328MB -> 0.68MB per client
 for ViT-Base (as reported there, unverified by me). None of this changes the present evidence.
-Ollama is an LLM serving tool and has no role in this FL image-classification study. I have not
-profiled where wall-clock time goes; no claim about speed-ups from any transform is made.
+Wall-clock bottlenecks have not been profiled; no claim about speed-ups from any transform is made.
 
 
 ## 38. Literature verification pass (searches + abstract reads; correction to earlier claims)
@@ -2373,7 +2372,7 @@ calibration.
 
 ## 41. Cross-check of an external (Gemini Deep Research) audit against primary sources
 
-An LLM-generated literature audit was checked claim by claim against primary sources. Rule: nothing
+An external literature audit was checked claim by claim against primary sources. Rule: nothing
 from it enters the paper unless it appears below as VERIFIED with its source. Nothing in the code was changed.
 
 **HeteRo-Select Table II, re-extracted from the PDF (arXiv 2508.06692v3).** CIFAR-10, seed 42:
@@ -2490,3 +2489,256 @@ matched-uniform +0.38 (3/3, p=0.11).
 Reading: same ordering as at 0.5% (matched ~ pureinvert > purerandom > pure > uniform) with every gap smaller, as
 expected when compression costs less. Nothing here is individually significant at n=3 except one uncorrected
 comparison; the value is consistency of ordering across budgets (0.5%: six seeds; 1%: three; 5%: all within 0.1pp).
+
+
+## 45. FEMNIST 5% `pureinvert` and CIFAR-10 (SimpleCNN, Dirichlet 0.1) calibration
+
+**FEMNIST, 5% scale, `pureinvert`, seeds 42-44 (console logs, 150 rounds each, all rounds present):**
+plateau 81.35 / 81.66 / 81.49, mean 81.50. `pure` 81.50, `purerandom` 81.56, `matched` 81.56, Uniform 81.50,
+full DivRoute 80.63: direction makes no difference at 5%, as expected when compression is nearly free.
+Wall-clock 11.1-11.7 min per 150-round run (T4). The 0.5% / 1% / 5% budget table is now complete for `pureinvert`.
+
+**CIFAR-10 calibration (T4, seed 42, 60 rounds, 25 clients, 15/round, 5 local epochs, shard sizes 16-6144):**
+| run | final | plateau (last 20) | last-two-window drift | round-to-round std (last 20) | peak |
+|---|---|---|---|---|---|
+| FedAvg lr 0.01 (console) | 65.80 | 66.25 | +0.74 | 2.16 | 71.23 |
+| FedAvg lr 0.03 (JSON) | 66.37 | 66.89 | +1.33 | 2.33 | 72.39 |
+| FedAvg lr 0.1 (JSON) | 49.25 | 44.10 | +5.62 | 4.19 | 55.75 |
+| Uniform 0.5% lr 0.03 (console) | 61.12 | 62.17 | +1.13 | 2.41 | 67.32 |
+Reading: lr 0.03 is best at 60 rounds (lr 0.01 within noise, lr 0.1 unstable). Headroom exists (Uniform 0.5% is
+4.7pp below FedAvg). But: accuracy is NOT plateaued at round 60 (drift 0.7-1.3pp vs the 0.5pp bar) and round-to-round
+noise is 2.2-2.4pp, an order of magnitude larger than the 0.1-0.4pp effects under test, so this setup fails the
+noise and convergence criteria as configured. Wall-clock printed 130-137 min per 60-round run, but that includes
+the CIFAR-10 download (29-38 min per the progress bars), so roughly 100 min of training = ~100 s/round, ~22x slower
+per round than FEMNIST. Cause not profiled; DataLoader has num_workers=0 and a per-sample PIL->tensor transform
+(inferred bottleneck). `data.py` now caches the transformed tensors for non-resized CIFAR (`_TensorCache`, values
+verified identical on a synthetic dataset; speedup NOT yet measured).
+
+
+## 46. CIFAR-10 recalibration: cached data, 2 local epochs (T4, seed 42, 60 rounds, lr 0.03)
+
+FedAvg: final 56.31, plateau(last 20) 56.48, last-two-window drift +0.27pp, round-to-round std 1.66, peak 59.66;
+accuracy 53.8 / 54.3 / 53.9 at rounds 10 / 20 / 40 (flat from round ~10).
+Uniform 0.5%: final 56.97, plateau 57.14, drift +0.31, std 1.35, peak 59.32; 43.1 / 48.5 / 55.0 at rounds 10 / 20 / 40.
+Reading: converged (drift < 0.5pp) but (1) Uniform at 0.5% is 0.7pp ABOVE dense FedAvg, so there is no compression
+headroom for routing to recover, and (2) round-to-round noise is still 1.4-1.7pp, above the ~1pp bar. 2 local epochs
+also lowers the ceiling (56.5% vs 66.9% at 5 epochs). Wall-clock after caching not yet seen (JSON has no timing).
+Verdict for this configuration: fails the headroom criterion; CIFAR-10/SimpleCNN at 5 epochs had headroom (4.7pp at
+round 60) but was unconverged, noisy and ~100 s/round before caching.
+
+
+## 47. CIFAR-10 go/no-go at 5 local epochs, 150 rounds (T4, seed 42, lr 0.03, cached data)
+
+Dense FedAvg (JSON, 150 rounds): final 58.30, plateau(131-150) 57.23, peak 59.45 at round 90, last-two-window
+drift -0.29pp, round-to-round std (last 20) 1.60; 10-round window means rise from 40.3 to ~57 and are flat over the
+last ~5 windows (56.55, 55.92, 56.89, 56.42, 57.37, 57.08).
+Uniform 0.5% (console, 149/150 rounds, round 2 missing from the paste): plateau 55.59, final 56.41, rr-std 0.62,
+window means over the last six windows 55.11/54.89/56.04/55.30/55.86/55.32 (flat); wall-clock 56.6 min, no dataset
+download in that time (~23 s/round, about 4x faster than before caching; note FedAvg wall-clock not seen).
+Headroom: FedAvg - Uniform(0.5%) = 1.64pp (>= 1pp bar). Both runs converged by the 0.5pp-window bar.
+Caveats: seed 42 only (headroom uncertainty across seeds unknown); FedAvg noise (1.6pp round-to-round) is higher
+than Uniform's, so plateau means carry roughly +/-0.5pp window-to-window variation; the 60-round numbers earlier are
+not comparable (cosine schedule is tied to num_rounds). Decision: go for the main comparison at --kscale 0.1,
+5 epochs, 150 rounds, seeds 42-44.
+
+
+## 48. CIFAR-10 main comparison, Session A (T4, 5 local epochs, 150 rounds, `--kscale 0.1`, seeds 42-44, all JSONs read)
+
+Plateau (last 20 rounds), seeds 42/43/44; mean +/- sd:
+pure 57.08/54.47/55.57 (55.71 +/-1.31); pureinvert 55.89/55.73/55.06 (55.56 +/-0.44); matched 56.09/54.97/55.91
+(55.66 +/-0.60). Reference, seed 42 only: dense FedAvg 57.23, Uniform 0.5% 55.59 (console-derived, 149/150 rounds).
+Paired differences (n=3): pureinvert-pure -0.14pp (per seed -1.19/+1.26/-0.51; t p=0.86); pureinvert-matched -0.10pp
+(-0.20/+0.76/-0.84; p=0.86); pure-matched +0.05pp (+0.99/-0.50/-0.34; p=0.93). 95% CIs are about +/-2-3pp wide.
+Last-two-window drift: seed 43 is +1.5 to +1.7pp for all three variants (not converged by the 0.5pp bar; seeds 42/44
+within 0.6pp). Round-to-round std (last 20) 0.75-1.30.
+Reading: the three variants are indistinguishable on CIFAR-10 at this budget; sign of the differences changes with
+seed and between-seed spread (0.4-1.3pp) is larger than any gap. This is a null at the resolution of this
+experiment (it could hide effects up to ~1-2pp), not evidence of no effect. Uniform seeds 43/44, `purerandom` and
+dense FedAvg seeds 43/44 are not yet run.
+
+
+## 49. CIFAR-10 Session B: `purerandom` and Uniform added (same setup as section 48; all JSONs read except Uniform seed 42)
+
+Plateau (last 20 rounds), seeds 42/43/44; mean +/- sd: pure 57.08/54.47/55.57 (55.71 +/-1.31); matched 56.09/54.97/55.91
+(55.66 +/-0.60); pureinvert 55.89/55.73/55.06 (55.56 +/-0.44); purerandom 55.69/54.89/55.21 (55.26 +/-0.40);
+Uniform 55.59*/53.82/55.16 (54.86 +/-0.92). *Uniform seed 42 is console-derived (149/150 rounds); its JSON was not available.
+Paired (n=3, 95% CIs about +/-1-3pp, no difference significant): pure-purerandom +0.44pp (+1.39/-0.42/+0.36; t p=0.49);
+pureinvert-purerandom +0.30 (+0.21/+0.84/-0.15; p=0.41); purerandom-matched -0.39 (0/3, p=0.16);
+matched-Uniform +0.80 (+0.50*/+1.15/+0.74, 3/3 positive, only 2 seeds from JSON).
+Last-two-window drift: seed 43 is +1.5 to +1.7 for every tiered variant (unconverged by the 0.5pp bar), Uniform seed 42 +1.93.
+Reading: ordering of means is pure ~ matched ~ pureinvert > purerandom > Uniform, but all gaps among the first four are
+below the between-seed spread; the only consistent sign is that flat/tiered allocations spending ~2x Uniform's bytes
+sit above Uniform. No evidence that divergence routing (either direction) beats random tiers or flat allocation;
+the FEMNIST finding "live direction is worse than random" is NOT reproduced here (pure-purerandom +0.44, 2/3).
+Dense FedAvg is seed 42 only (57.23). Weakness 1 is now addressed to the extent of a second dataset / strong skew,
+at low power.
+
+
+## 50. Signal bake-off (FEMNIST 0.5%) and completed CIFAR-10 references (T4; all JSONs read)
+
+**Correction to section 49:** it said "Uniform seed 42 drift +1.93"; that figure belongs to Uniform seed 43. Uniform seed 42
+(now read from JSON) has plateau 55.59 (identical to the console-derived value) and last-two-window drift -0.54pp.
+
+**Signal bake-off, FEMNIST, `--kscale 0.1`, EF on, seeds 42-44, `pure` components (tiered k only), live polarity** (most
+bandwidth to the LEAST-scored third). Routing scores confirmed different from cosine in the logs (round-100 median
+score: cosine 0.0035, layerwise cosine 0.0029, update L2 norm 1.43). Plateau per seed 42/43/44: pure_l2 80.27/81.08/80.58
+(80.64 +/-0.40); pure_layercos 80.42/81.14/80.78 (80.78 +/-0.36); reference (same seeds): pure(cosine) 80.72, purerandom
+80.88, pureinvert 80.96, matched 81.00, Uniform 80.46. Last-two-window drift 0.05-0.22pp (converged).
+Paired: pure_l2 - pure -0.07pp (0/3, p=0.065); pure_l2 - purerandom -0.24 (0/3, p=0.068); pure_l2 - matched -0.36
+(0/3, p=0.007); pure_l2 - Uniform +0.19 (3/3, p=0.037); pure_layercos - pure +0.06 (3/3, p=0.13);
+pure_layercos - purerandom -0.10 (0/3, p=0.060); pure_layercos - matched -0.22 (0/3, p=0.013); pure_layercos - Uniform
++0.32 (3/3, p=0.005). Reading: switching the routing score (cosine -> layerwise cosine -> L2) does not rescue the live
+direction; all three tier below random tiers and below flat allocation, and all sit above Uniform only because they
+spend ~2x its bytes. Not tested: these signals in the inverted polarity. n=3, several uncorrected comparisons.
+
+**CIFAR-10 (5 epochs, 150 rounds, 0.5%, seeds 42/43/44):** dense FedAvg 57.23/55.50/56.12 (56.28 +/-0.88; drift
+-0.29/+1.53/-0.24); Uniform 55.59/53.82/55.16 (54.86 +/-0.92). FedAvg - Uniform 1.64/1.67/0.96 (mean 1.42): the headroom
+is present in all three seeds. Gap to FedAvg (mean): pure 0.57, matched 0.62, pureinvert 0.72, purerandom 1.02, Uniform
+1.42. matched - Uniform +0.80pp (3/3, t p=0.052, CI [-0.01,+1.61]). Seed 43 remains the least converged seed for FedAvg too.
+
+
+## 51. Weakness 6 (mechanism) and weakness 7 (literature) - verified facts, new control, pre-registered prediction
+
+### 51.1 What the divergence score tracks (analysis of existing logs, no new runs)
+In the `pure`-family runs (`use_divergence_weighting=False`) the logged `aggregation_weight` is the client's sample share
+(server.py:95-100: weight = [divergence factor] x num_samples/total; the divergence factor is off in these variants -
+read from the grep of those lines, not re-run). Per-round Spearman correlation between the routing score and sample share,
+rounds 11-150, FEMNIST 0.5% (T4): cosine (`pure`, seeds 42/44) +0.44/+0.44; update-L2 (`pure_l2`, seeds 42/43/44)
++0.41/+0.47/+0.42; layerwise cosine (`pure_layercos`) +0.40/+0.45/+0.39; the correlation is positive in 91-99% of
+rounds. Per-client (mean score vs mean relative size, `pure` seed 42, 100 clients): Spearman +0.51. Mean relative
+sample share by tier (`pure` seed 42): tier 1 (lowest score) 0.78x, tier 2 0.99x, tier 3 (highest score) 1.27x.
+Correlation with local training accuracy is negative (-0.09 to -0.28). Reading: all three routing scores are partly a
+proxy for client dataset size (consistent with larger clients taking more local steps and so moving further), but only
+moderately (rho ~ 0.4-0.5), so size does not fully explain them.
+**Hypothesis (not yet tested):** the inverted direction helps because it gives the large budget to larger clients, which carry
+more sample-share aggregation weight, so their compression error matters more. **Test:** new variants `pure_size` and
+`pure_sizeinvert` (tiers by dataset size, live / inverted polarity; code: `divergence_metric="num_samples"` in main.py,
+runner variants). **Pre-registered predictions (written before running):** if size is the mechanism, `pure_sizeinvert`
+~ `pureinvert` (80.96 at seeds 42-44, 6-seed mean 80.93) and clearly above `pure_size` ~ `pure` (80.72); if
+`pure_sizeinvert` is clearly ABOVE `pureinvert`, size explains the effect better than divergence does; if it is at or
+below `purerandom` (80.88), size is not the mechanism. Command: `python scripts/run_femnist_experiments.py --variant pure_size pure_sizeinvert --kscale 0.1`.
+Not yet run; compile-checked only.
+
+### 51.2 Wan et al. (ICLR 2026), read from the ICLR proceedings PDF (full text; OpenReview blocked automated access
+with a verification page, which was not bypassed)
+Datasets: CIFAR-10, CIFAR-100, Fashion-MNIST (NO Tiny-ImageNet: the string does not occur in the paper, FEMNIST also absent).
+Models: ViT-tiny / small / base, AlexNet, ResNet-18. Partition: Dirichlet alpha=0.2, N=100 clients, 10 sampled per round,
+200 rounds, E=2 local epochs. "three independent trials", results reported as mean +/- (e.g. CIFAR-10 ViT-tiny, ratio
+0.01: magnitude Top-k 21.03 vs discrepancy-aware 29.62). Classic error feedback; element-wise Top-k with global budget, ATOMO
+with layer budget; every client uses the same compression ratio. This resolves the earlier conflict: the external audit's
+Tiny-ImageNet claim for Wan et al. was wrong (Tiny-ImageNet belongs to FedCG's evaluation).
+
+### 51.3 FedCG (arXiv 2212.09483), read from ar5iv full text
+Baselines: FedAvg, OptRate, FlexCom, AdaSample. No equal-bytes or random-allocation control; Table I reports traffic/time to a target
+accuracy, not byte-matched runs. Seeds/runs not stated, no variance reported. Datasets: MNIST (LR), CIFAR-10 (AlexNet),
+CIFAR-100 (ResNet9), Tiny-ImageNet (ResNet18). The per-client compression ratio is driven by client capability (completion
+time: computation + upload speed, Eq. 4 and the LP of Eq. 17), not loss or divergence. Ablations: "independent decision",
+"naive combination".
+
+### 51.4 Search log for the "no byte-matched random-allocation control found" claim (this session; standard/extended web search)
+(1) adaptive per-client compression ratio + top-k + error feedback + random allocation baseline same total budget;
+(2) non-uniform vs uniform sparsity budget allocation across workers theory; (3) client importance score compression budget
+water-filling / bit allocation; (4) heterogeneous per-client sparsity ratio + random assignment + same average ratio;
+(5) importance-aware budget allocation + "no benefit"/"does not improve"/"negative result". None returned a paper with that
+control. Nearest hits: DAGC (arXiv 2311.07324, IEEE TMC; per-worker ratios by data volume, gains "up to 25.43%" over uniform
+compression when data volumes are highly imbalanced; abstract names only uniform compression as baseline; experiments not
+read); pFedGate (ICML 2023; random split of clients into two sparsity groups, in a personalised-FL setting, not compared at
+equal mean); a resource-aware sparsification paper (arXiv 2508.08552; fixed-total-budget allocation by resource group).
+**Defensible wording:** "In our searches (queries and venues listed) we found no prior work that compares per-client adaptive
+compression against a byte-matched random allocation under the same compressor and error feedback." This is a statement
+about our search, not a proof of absence. Remaining unread: DAGC experiments, pFedGate ablation, arXiv 2508.08552.
+
+
+## 52. Size-routing control result (tests the section 51.1 pre-registered predictions)
+
+FEMNIST, `--kscale 0.1`, EF on, seeds 42/43/44, `pure` components, T4; all six JSONs read; 150 rounds; last-two-window drift 0.13-0.28pp.
+Routing score = client dataset size (confirmed in the logs: mean relative size by tier is 0.73 / 0.84 / 1.45 for tiers 1 / 2 / 3
+under `pure_size`, and 1.45 / 0.84 / 0.73 under `pure_sizeinvert`; score range 106-416 samples).
+Plateau per seed: pure_size 80.38/81.13/80.56 (80.69 +/-0.39); pure_sizeinvert 80.54/81.18/81.06 (80.93 +/-0.34).
+Reference at the same seeds: pure 80.72, purerandom 80.88, pureinvert 80.96, matched 81.00, Uniform 80.46.
+Paired: pure_sizeinvert - pureinvert -0.04pp (-0.18/-0.02/+0.09; p=0.68); pure_size - pure -0.02 (+0.01/+0.02/-0.11; p=0.61);
+pure_sizeinvert - pure_size +0.23 (3/3, p=0.22, CI [-0.34,+0.80]); pure_sizeinvert - purerandom +0.04 (p=0.47);
+pure_sizeinvert - matched -0.08 (p=0.44); pure_sizeinvert - Uniform +0.47 (3/3, p=0.024); pure_size - purerandom -0.19 (0/3, p=0.16);
+pure_size - matched -0.31 (0/3, p=0.041, uncorrected).
+**Against the pre-registered predictions:** (1) `pure_sizeinvert` ~ `pureinvert` and `pure_size` ~ `pure`: CONFIRMED (differences
+-0.04 and -0.02pp). (2) `pure_sizeinvert` clearly above `pureinvert`: NOT observed. (3) `pure_sizeinvert` at or below `purerandom`:
+borderline (+0.04, within noise); note the divergence effect itself over random is only +0.08 (seeds 42-44) / +0.12 (six seeds).
+**Reading:** routing by dataset size reproduces, within +/-0.05pp, what routing by divergence does in each direction, so the
+direction effect is consistent with divergence acting (largely) as a proxy for client data size (rho ~ 0.4-0.5, section 51.1):
+giving the large budget to larger clients (higher aggregation weight) helps a little, giving it to smaller clients hurts a little.
+This supports but does not prove the mechanism: n=3, the size-based direction gap (+0.23, p=0.22) is not individually
+significant, and divergence not beating size says only that it adds nothing detectable on top of it. Effects are 0.1-0.3pp.
+Neither size direction beats flat `matched`.
+
+
+## 53. Closing weaknesses 2, 3, 5, 6, 7: DAGC read, competing rule implemented, statistics and provenance tooling
+
+### 53.1 DAGC (Lu et al., arXiv 2311.07324 v3, accepted to IEEE TMC per its arXiv comments), method and evaluation, from the arXiv HTML
+(first 100,000 of 137,124 characters read; the last 37,124 were not.) DAGC-R (Top-k) fixes the budget sum(delta_i) = n * delta_bar and
+minimises a convergence-bound term; the resulting ratios satisfy delta_i / delta_j ~ (p_i / p_j)^(2/3), p_i = the worker's training
+weight (sum p_i = 1; the text does not explicitly say p_i is the sample share): LARGER-data workers are compressed LESS. DAGC-A is the
+hard-threshold analogue. Evaluation: six tasks (Logistic@FMNIST, CNN@CIFAR-10, VGG11s@Flickr [real, 15 workers], VGG11@CIFAR-100,
+ResNet18@CIFAR-10, LSTM@SCs); 10 workers by default; data-volume skew ratio SR = 10 / 100 / 1000 (Flickr 4,997) plus Dirichlet(0.5) label
+skew; Top-k / hard-threshold inside error-feedback D-EF-SGD, upstream only; baselines = uniform compression at the same mean and ACCORDION;
+NO random-allocation control; seeds/runs NOT reported; byte matching is analytic (sum of ratios), not measured. Reported: "up to 25.43%"
+(DAGC-A) and "16.65%" (DAGC-R) fewer iterations to a target accuracy vs uniform; Table III (DAGC-R) gains are small and sometimes
+negative (e.g. CNN, SR=10, 10% ratio: 70.02 vs Top-k 70.14; largest shown about +1.9 points); a Section-III comparison includes a REVERSED
+scheme (small workers compressed less) next to the DAGC-direction scheme and uniform. Consequences for us: (a) a reversed-direction control
+has prior art, a random-allocation control does not (in what we read); (b) DAGC's gains are conditional on strong data-volume imbalance:
+FEMNIST writers here have mild size spread (100-583 samples), CIFAR-10 at Dirichlet(0.1) has shards of 16-6144 (SR ~384), i.e. DAGC's regime.
+Not read: DAGC's last 37k characters, pFedGate's ablation, arXiv 2508.08552 (judged out of scope from their abstracts/snippets).
+
+### 53.2 Weakness 3: published competing rule implemented (code written, compile-checked, per-ratio compression verified on a toy tensor; no training run yet)
+`mechanism.dagc_k_ratios` (delta_i proportional to p_i^(2/3) among the round's selected clients, water-filled at a cap of 1, sum = n * mean_k);
+config `dagc_mean_k`, `dagc_direction`, `dagc_shuffle`; `compression.apply_tiered_compression(..., k_ratio_override)`; `main.py` sets `r["k_override"]`.
+Variants: `dagc` (DAGC direction, mean k = 0.105 x kscale, i.e. matched bytes), `dagcrev` (reversed), `dagcrandom` (same ratios shuffled among
+clients: the byte-matched random control). Simplification: the proportional rule, not DAGC's full candidate search (Algorithm 2); p_i is the
+client's share of the round's participants (DAGC uses full participation). Sanity: FEMNIST-like sizes give k in [0.0056, 0.0145] (mean 0.0105), CIFAR-like
+sizes give [0.0004, 0.0206]. **Pre-registered predictions (before any run):** FEMNIST 0.5%: `dagc` ~ `matched` and ~ `pure_sizeinvert` (within +/-0.15pp);
+`dagcrev` <= `purerandom`; `dagcrandom` ~ `purerandom` (below `matched`). CIFAR-10 (DAGC's regime): our null predicts `dagc` ~ `matched`; DAGC's claim predicts
+`dagc` > `matched`. We will treat DAGC as beating flat in its regime only if `dagc` - `matched` >= +0.8pp in 3/3 seeds.
+
+### 53.3 Weakness 2 (low power, multiple comparisons): `scripts/paired_stats.py` over `results/plateaus.csv`
+Paired by seed; reports mean difference, 95% t-interval, sign counts, paired t p, exact two-sided sign-flip permutation p, and Holm adjustment within a
+family; all inference is exploratory (comparisons chosen after seeing data). FEMNIST 0.5% EF-on, six seeds, family of 6: t-test Holm-adjusted p = 0.001
+(pure-matched, matched-Uniform), 0.005 (pure-purerandom), 0.013 (purerandom-matched, pureinvert-pure); pureinvert-matched 0.84. Exact permutation p = 0.031 for every
+6/6 pairing, Holm-adjusted 0.188: with n=6 and 6 tests the permutation test cannot reach 0.05. For a 6-test family a 6/6 permutation result needs
+2/2^n <= 0.05/6, i.e. n >= 8 seeds. Hence seeds 48-49 are planned for pure / purerandom / matched / pureinvert / Uniform at 0.5%. 1% (n=3), EF-off (n=3), size
+routing (n=3) and CIFAR-10 (n=3) are underpowered: no comparison there is significant after Holm; they are reported as consistent-direction or null at low resolution, not as established effects.
+
+### 53.4 Weakness 5 (provenance): `results/plateaus.csv`
+87+ rows (dataset, setting, variant, seed, plateau, rounds, last-window drift, source, file). 79 plateau values were recomputed from JSON files this session; 8 FEMNIST
+0.5% EF-on values (matched seeds 42-44, pure 43, purerandom 42 and 44, Uniform 43 and 44) come from earlier sessions and their JSON files are not available to re-read; they are
+marked "earlier-session". The 5% `pureinvert` values come from a console paste with all 150 rounds present. The 5% table for the other variants and the 60-round CIFAR
+calibration runs are not in the CSV. A rerun of those 8 runs doubles as a reproducibility check (same T4 and seeds should reproduce the recorded plateaus).
+GPU: seeds 45-47, the 1% runs, size / signal runs and all CIFAR-10 runs were on a Kaggle T4; the GPU for seeds 42-44 (EF on) is unconfirmed.
+
+## 54. Completed 28-run batch and consolidated analysis (2026-11-11)
+
+All planned runs are complete. `results/completed_batch_manifest.json` records 26 original JSON logs and two
+console-derived JSON reconstructions. The latter are CIFAR-10 seed 44 `dagcrev` and `dagcrandom`, reconstructed
+from `11th_1.txt` and `11th_2.txt`: all 150 round accuracies and all 2,250 client summaries are present per run.
+Exact byte counts and unprinted diagnostics are null, not guessed. These are analysis records, not checkpoints.
+Duplicate downloads and partial runs were excluded. `results/plateaus.csv` now has 118 unique rows; the previous
+90-row table is retained in `results/archive/plateaus_before_2026-11-11.csv`.
+
+Main FEMNIST comparison, eight seeds: pure 80.7213%, purerandom 80.9328%, pureinvert 81.0624%, matched 81.0363%,
+uniform 80.5769%. Original routing loses to random tiers and matched flat allocation in all eight seeds.
+For the existing six-comparison family, the five unanimous differences have Holm-adjusted exact sign-flip
+permutation p=0.046875. Pureinvert-minus-matched is +0.0262 pp and is not significant. This does not establish
+equivalence. All inference remains exploratory; exact intervals are in the machine-readable statistics report.
+
+The three-seed DAGC-inspired comparisons are complete on both datasets. DAGC-minus-matched is +0.0790 pp on
+FEMNIST and -0.4652 pp on CIFAR-10. Neither establishes an advantage under either corrected test in its
+five-comparison family. CIFAR-10 reversed allocation is +0.2228 pp versus matched; randomized allocation is
+-0.7400 pp. These are adaptations of the published proportional rule, not a full DAGC reproduction.
+
+CIFAR-10 seed 43 still fails the 0.5 pp final-window convergence criterion, including +2.148 pp for DAGC,
++1.449 pp for reversed allocation, and +3.896 pp for randomized allocation. Report these as fixed-horizon
+results and retain that limitation. Some older baseline values remain earlier-session summaries rather than
+raw logs reverified in this consolidation.
+
+Reproducible reports: `results/CONSOLIDATED_RESULTS.md`, `results/paired_statistics.json`, and
+`results/paired_statistics.txt`. Run `python scripts/paired_stats.py` to regenerate the comparisons from the
+master table. No runs remain in this batch; provenance completion, convergence limitations, and manuscript
+preparation remain separate tasks.

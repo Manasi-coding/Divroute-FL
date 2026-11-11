@@ -9,6 +9,7 @@
 !/divroute_fl/
 !/baselines/
 !/scripts/
+!/tests/
 !/run_pretrained_companion_experiments.py
 
 # --- Documentation ---

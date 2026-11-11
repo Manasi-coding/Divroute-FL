@@ -5,16 +5,19 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
-from divroute_fl.mechanism import (compute_divergence, assign_tier,
-                                    update_selection_weights, compute_adaptive_taus,
-                                    update_ema)
+from divroute_fl.mechanism import (
+    compute_divergence,
+    assign_tier,
+    update_selection_weights,
+    compute_adaptive_taus,
+    update_ema,
+)
 from divroute_fl.model import SimpleCNN
 
 
 def test_identical_models():
     """
-    Phase 0.1 fix: identical models -> cosine_sim ~ 1.0 -> d = 1 - cos_sim ~ 0.0.
-    The original assertion `d > 0.999` was backwards.
+    Identical models have near-zero cosine divergence.
     """
     m = SimpleCNN()
     d = compute_divergence(m, copy.deepcopy(m))
@@ -26,18 +29,31 @@ def test_random_models():
     # two fresh random inits are nearly orthogonal in ~200k-dim parameter space,
     # so cos_sim ~ 0 and d = 1 - cos_sim ~ 1.0
     d = compute_divergence(SimpleCNN(), SimpleCNN())
-    assert 0.5 < d < 1.5, f"got {d:.6f}, expected d close to 1.0 (near-orthogonal random inits)"
+    assert 0.5 < d < 1.5, (
+        f"got {d:.6f}, expected d close to 1.0 (near-orthogonal random inits)"
+    )
     print(f"[PASS] random models: d={d:.6f}")
 
 
 def test_tier_boundaries():
     """assign_tier(d, tau_low, tau_high): d<=tau_low -> 1, d<=tau_high -> 2, else 3; non-finite -> 1."""
     lo, hi = 0.01, 0.02
-    cases = [(0.005, 1), (0.01, 1), (0.015, 2), (0.02, 2), (0.05, 3), (float("nan"), 1), (float("inf"), 1)]
+    cases = [
+        (0.005, 1),
+        (0.01, 1),
+        (0.015, 2),
+        (0.02, 2),
+        (0.05, 3),
+        (float("nan"), 1),
+        (float("inf"), 1),
+    ]
     for d, expected in cases:
         got = assign_tier(d, lo, hi)
         assert got == expected, f"assign_tier({d})={got}, expected {expected}"
-    assert assign_tier(0.005, lo, hi, invert=True) == 3 and assign_tier(0.05, lo, hi, invert=True) == 1
+    assert (
+        assign_tier(0.005, lo, hi, invert=True) == 3
+        and assign_tier(0.05, lo, hi, invert=True) == 1
+    )
     print(f"[PASS] tier boundaries: {len(cases)}/{len(cases)} correct (+ invert)")
 
 
@@ -52,7 +68,9 @@ def test_weight_decay():
     assert abs(weights[0] - 0.85) < 1e-6, f"got {weights[0]}"
     assert abs(weights[1] - 1.00) < 1e-6, f"got {weights[1]}"
     assert abs(weights[2] - 0.85) < 1e-6, f"got {weights[2]}"
-    print(f"[PASS] weight decay: skipped={weights[0]:.2f}, active={weights[1]:.2f}, skipped={weights[2]:.2f}")
+    print(
+        f"[PASS] weight decay: skipped={weights[0]:.2f}, active={weights[1]:.2f}, skipped={weights[2]:.2f}"
+    )
 
 
 def test_cumulative_decay():
@@ -60,8 +78,10 @@ def test_cumulative_decay():
     result = [{"client_id": 0, "tier": 3}]
     for _ in range(5):
         update_selection_weights(weights, result, gamma=0.85)
-    expected = 0.85 ** 5
-    assert abs(weights[0] - expected) < 1e-6, f"got {weights[0]:.6f}, expected {expected:.6f}"
+    expected = 0.85**5
+    assert abs(weights[0] - expected) < 1e-6, (
+        f"got {weights[0]:.6f}, expected {expected:.6f}"
+    )
     print(f"[PASS] cumulative decay (5 skips): {weights[0]:.6f}")
 
 
@@ -69,10 +89,16 @@ def test_adaptive_taus():
     """compute_adaptive_taus(scores, tau_alpha, tau_beta) -> (tau_low, tau_high, mu, sigma)."""
     scores = [i / 100.0 for i in range(100)]
     lo, hi, mu, sigma = compute_adaptive_taus(scores, 0.5, 1.0)
-    assert abs(lo - (mu - 0.5 * sigma)) < 1e-9 and abs(hi - (mu + 1.0 * sigma)) < 1e-9 and lo < hi
+    assert (
+        abs(lo - (mu - 0.5 * sigma)) < 1e-9
+        and abs(hi - (mu + 1.0 * sigma)) < 1e-9
+        and lo < hi
+    )
     lo2, hi2, _, _ = compute_adaptive_taus([0.5] * 10, 0.5, 1.0)
     assert lo2 < hi2, "min-separation guard failed on degenerate input"
-    print(f"[PASS] adaptive taus: normal=({lo:.4f},{hi:.4f}), degenerate=({lo2:.4f},{hi2:.4f})")
+    print(
+        f"[PASS] adaptive taus: normal=({lo:.4f},{hi:.4f}), degenerate=({lo2:.4f},{hi2:.4f})"
+    )
 
 
 def test_ema_smoothing():

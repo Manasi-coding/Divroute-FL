@@ -1,16 +1,4 @@
-"""
-baselines/fedzip_actual.py
-==========================
-True implementation of the FedZip baseline (Phase 5).
-
-This baseline implements a real compression path integrated directly into the
-server aggregation pipeline:
-  1. Top-z sparsification: Keeps the top-z fraction of largest-magnitude updates.
-  2. MiniBatchKMeans quantization: Clusters the selected values into k_clusters.
-  3. Reconstruction: Builds the sparse quantized update back to the model's parameter shape.
-  4. Server-side byte accounting: Instead of post-hoc log parsing, the true byte cost
-     is computed on the fly by calling the shared `fedzip_bytes_for_delta` function.
-"""
+"""Top-z sparsification, MiniBatchKMeans quantization, and simulated upload accounting."""
 
 import torch
 from sklearn.cluster import MiniBatchKMeans
@@ -46,7 +34,7 @@ def fedzip_compress_delta(
         n_clusters=n_clusters,
         random_state=random_state,
         batch_size=min(1024, len(values_np)),
-        n_init="auto"
+        n_init="auto",
     )
     kmeans.fit(values_np)
 
@@ -54,7 +42,9 @@ def fedzip_compress_delta(
     labels = kmeans.labels_
     quantized_values_np = centroids[labels]
 
-    quantized_values = torch.from_numpy(quantized_values_np).to(delta.device).to(delta.dtype)
+    quantized_values = (
+        torch.from_numpy(quantized_values_np).to(delta.device).to(delta.dtype)
+    )
 
     # Reconstruct sparse update
     reconstructed = torch.zeros_like(delta)
@@ -66,24 +56,26 @@ def fedzip_compress_delta(
     return reconstructed, bytes_cost
 
 
-def get_fedzip_actual_config(z_ratio: float = 0.01, k_clusters: int = 3, **overrides) -> Config:
+def get_fedzip_actual_config(
+    z_ratio: float = 0.01, k_clusters: int = 3, **overrides
+) -> Config:
     """
     Returns a Config for the actual FedZip baseline.
     """
     base = dict(
-        fedzip_actual_mode        = True,
-        fedzip_z_ratio            = z_ratio,
-        fedzip_k_clusters         = k_clusters,
+        fedzip_actual_mode=True,
+        fedzip_z_ratio=z_ratio,
+        fedzip_k_clusters=k_clusters,
         # FedZip baseline runs vanilla FedAvg downloads on the routing side
-        fedavg_baseline_mode      = True,
-        use_server_momentum       = False,
-        use_error_feedback        = False,
-        use_tier3_sync            = False,
-        use_adaptive_k            = False,
-        use_divergence_weighting  = False,
-        use_adaptive_tau          = False,
-        use_epoch_warmup          = False,
-        skip_plot_prompt          = True,
+        fedavg_baseline_mode=True,
+        use_server_momentum=False,
+        use_error_feedback=False,
+        use_tier3_sync=False,
+        use_adaptive_k=False,
+        use_divergence_weighting=False,
+        use_adaptive_tau=False,
+        use_epoch_warmup=False,
+        skip_plot_prompt=True,
     )
     base.update(overrides)
     return Config(**base)

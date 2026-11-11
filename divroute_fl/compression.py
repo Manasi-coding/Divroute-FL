@@ -1,12 +1,15 @@
 import torch
 
-def compress_layerwise_independent(delta_flat: torch.Tensor, layer_slices: list, k_ratio: float, use_fp16: bool = False) -> dict:
+
+def compress_layerwise_independent(
+    delta_flat: torch.Tensor, layer_slices: list, k_ratio: float, use_fp16: bool = False
+) -> dict:
     """
     Selects k = max(1, int(numel * k_ratio)) elements independently for every layer
     using magnitude-based Top-k.
     """
     numel = delta_flat.numel()
-    
+
     if k_ratio >= 1.0:
         values = delta_flat.clone()
         if use_fp16:
@@ -20,16 +23,20 @@ def compress_layerwise_independent(delta_flat: torch.Tensor, layer_slices: list,
 
     all_indices = []
     all_values = []
-    
+
     for name, offset, size in layer_slices:
         k = max(1, int(size * k_ratio))
-        k = min(k, size) # cap at layer size
+        k = min(k, size)  # cap at layer size
         if k == 0:
             continue
-            
+
         layer_chunk = delta_flat[offset : offset + size]
         if k >= size:
-            all_indices.append(torch.arange(offset, offset + size, dtype=torch.int32, device=delta_flat.device))
+            all_indices.append(
+                torch.arange(
+                    offset, offset + size, dtype=torch.int32, device=delta_flat.device
+                )
+            )
             all_values.append(layer_chunk)
         else:
             _, local_idx = torch.topk(layer_chunk.abs(), k)
@@ -40,14 +47,19 @@ def compress_layerwise_independent(delta_flat: torch.Tensor, layer_slices: list,
         values = delta_flat.clone()
         if use_fp16:
             values = values.half()
-        return {"indices": None, "values": values, "bytes_transmitted": numel * 2 if use_fp16 else numel * 4, "total_params": numel}
-        
+        return {
+            "indices": None,
+            "values": values,
+            "bytes_transmitted": numel * 2 if use_fp16 else numel * 4,
+            "total_params": numel,
+        }
+
     indices = torch.cat(all_indices)
     values = torch.cat(all_values)
-    
+
     if use_fp16:
         values = values.half()
-    
+
     return {
         "indices": indices,
         "values": values,
@@ -77,23 +89,27 @@ def compress_delta(delta: torch.Tensor, k_ratio: float, use_fp16: bool = False) 
         if use_fp16:
             values = values.half()
         return {
-            "indices":           None,           # signal: full-model (no sparse indices)
-            "values":            values,
-            "bytes_transmitted": numel * 2 if use_fp16 else numel * 4,      # float32 only, no indices
-            "total_params":      numel,
+            "indices": None,  # signal: full-model (no sparse indices)
+            "values": values,
+            "bytes_transmitted": numel * 2
+            if use_fp16
+            else numel * 4,  # float32 only, no indices
+            "total_params": numel,
         }
 
     _, indices = torch.topk(delta.abs(), k)
-    indices = indices.to(torch.int32)          # int32: 4 bytes each, covers up to 2B params
-    values = delta[indices.long()]             # int64 required for indexing
+    indices = indices.to(torch.int32)  # int32: 4 bytes each, covers up to 2B params
+    values = delta[indices.long()]  # int64 required for indexing
     if use_fp16:
         values = values.half()
-        
+
     return {
-        "indices":           indices,
-        "values":            values,
-        "bytes_transmitted": k * 6 if use_fp16 else k * 8,            # float32 values (4) + int32 indices (4)
-        "total_params":      numel,
+        "indices": indices,
+        "values": values,
+        "bytes_transmitted": k * 6
+        if use_fp16
+        else k * 8,  # float32 values (4) + int32 indices (4)
+        "total_params": numel,
     }
 
 
@@ -101,78 +117,85 @@ def reconstruct_delta(payload: dict) -> torch.Tensor:
     if payload["values"] is None:
         # Tier 3 null packet
         return torch.zeros(payload["total_params"])
-        
+
     values = payload["values"].float()
-    
+
     if payload["indices"] is None:
         # Full-model payload (k=1.0) — values IS the full delta, no scatter needed
         return values
-    device = values.device          # infer device from payload — no CPU/GPU mismatch
+    device = values.device  # infer device from payload — no CPU/GPU mismatch
     delta = torch.zeros(payload["total_params"], device=device)
-    delta[payload["indices"].long()] = values   # int32 -> int64 for indexing
+    delta[payload["indices"].long()] = values  # int32 -> int64 for indexing
     return delta
 
 
-def apply_tiered_compression(delta: torch.Tensor, tier: int, config,
-                             error_buffers: dict = None, client_id: int = None,
-                             layer_slices: list = None,
-                             error_buffer_tiers: dict = None) -> dict:
-    """
-    Tier 1/2 -> top-k sparsification with error feedback accumulation (Phase 1.1).
-    Tier 3    -> null packet (0 bytes); error buffer cleared to prevent stale residuals.
+def apply_tiered_compression(
+    delta: torch.Tensor,
+    tier: int,
+    config,
+    error_buffers: dict = None,
+    client_id: int = None,
+    layer_slices: list = None,
+    error_buffer_tiers: dict = None,
+    k_ratio_override: float = None,
+) -> dict:
+    """Compress an update using its tier or an explicit retention ratio.
 
-    Error feedback: compression residual is accumulated in error_buffers[client_id]
-    and added to the next round's delta before compression.
-
-        corrected_delta   = delta + error_buffers[client_id]
-        payload           = top_k(corrected_delta, k)
-        residual          = corrected_delta - reconstruct(payload)
-        error_buffers[client_id] = residual
-
-    error_buffer_tiers / config.error_feedback_tier_aware (default False,
-    preserves the exact EF behaviour above and its documented -3.8pp finding
-    at k_ratio_tier2=0.05 unchanged): when a client's tier -- and therefore
-    its k_ratio -- changes between rounds, a residual accumulated under the
-    OLD k_ratio is being blended into a delta about to be compressed at a
-    DIFFERENT retention rate. This is a known failure mode in the FL
-    literature: error feedback assumes a stable per-client compression
-    target, and under partial participation (only a subset of clients
-    selected per round) plus round-to-round tier reassignment (confirmed via
-    this project's own logs: clients routinely flip tiers several times per
-    round), that assumption is violated -- the residual is stale relative to
-    the new target, not corrective. When error_feedback_tier_aware=True and
-    a tier change is detected for this client, the residual is reset to zero
-    (a fresh start under the new target) instead of reused, mirroring the
-    existing tier==3 buffer-clear below rather than inventing new semantics.
+    Excluded Tier-3 clients clear their residual and send a null payload.
+    Included Tier-3 clients use the Tier-2 ratio. Error feedback carries the
+    momentum-scaled residual, optionally resetting it when the tier changes.
     """
     if tier == 3 and not getattr(config, "include_tier3_in_aggregation", False):
         # clear buffer — stale residuals from prior active rounds must not persist
         if error_buffers is not None and client_id is not None:
             error_buffers[client_id] = torch.zeros_like(delta)
-        return {"indices": None, "values": None, "bytes_transmitted": 0,
-                "total_params": delta.numel()}
+        return {
+            "indices": None,
+            "values": None,
+            "bytes_transmitted": 0,
+            "total_params": delta.numel(),
+        }
 
     k1 = getattr(config, "active_k_ratio_tier1", config.k_ratio_tier1)
     k2 = getattr(config, "active_k_ratio_tier2", config.k_ratio_tier2)
     k_ratio = k1 if tier == 1 else k2
+    if (
+        k_ratio_override is not None
+    ):  # per-client ratio (DAGC-style allocation) replaces the tier ratio
+        k_ratio = k_ratio_override
 
     use_fp16 = getattr(config, "use_fp16_upload", False)
 
     if getattr(config, "use_layerwise_topk", False) and layer_slices is not None:
-        compress_fn = lambda d, k: compress_layerwise_independent(d, layer_slices, k, use_fp16)
-    else:
-        compress_fn = lambda d, k: compress_delta(d, k, use_fp16)
 
-    if config.use_error_feedback and error_buffers is not None and client_id is not None:
+        def compress_fn(d, k):
+            return compress_layerwise_independent(d, layer_slices, k, use_fp16)
+    else:
+
+        def compress_fn(d, k):
+            return compress_delta(d, k, use_fp16)
+
+    if (
+        config.use_error_feedback
+        and error_buffers is not None
+        and client_id is not None
+    ):
         tier_aware = getattr(config, "error_feedback_tier_aware", False)
-        if (tier_aware and error_buffer_tiers is not None
-                and error_buffer_tiers.get(client_id) is not None
-                and error_buffer_tiers.get(client_id) != tier):
+        if (
+            tier_aware
+            and error_buffer_tiers is not None
+            and error_buffer_tiers.get(client_id) is not None
+            and error_buffer_tiers.get(client_id) != tier
+        ):
             # this client's compression target changed since its residual was
             # accumulated -- start fresh rather than blend in a stale target
             error_buffers[client_id] = torch.zeros_like(delta)
 
-        buf = error_buffers.get(client_id, torch.zeros_like(delta))
+        buf = (
+            error_buffers[client_id]
+            if client_id in error_buffers
+            else torch.zeros_like(delta)
+        )
         effective_delta = delta + getattr(config, "error_feedback_momentum", 0.9) * buf
         payload = compress_fn(effective_delta, k_ratio)
         # residual = what was dropped + quantization error; carry it to next round
@@ -189,7 +212,9 @@ def apply_tiered_compression(delta: torch.Tensor, tier: int, config,
 def get_adaptive_k_ratios(config, rnd: int) -> tuple:
     """Shrink k_ratios linearly over training, optionally applying an early warm-up."""
     # Determine base k_ratios for this round
-    if getattr(config, "use_k_warmup", False) and rnd < getattr(config, "k_warmup_rounds", 30):
+    if getattr(config, "use_k_warmup", False) and rnd < getattr(
+        config, "k_warmup_rounds", 30
+    ):
         base_k1 = config.k_warmup_tier1
         base_k2 = config.k_warmup_tier2
     else:
@@ -198,7 +223,7 @@ def get_adaptive_k_ratios(config, rnd: int) -> tuple:
 
     if not config.use_adaptive_k:
         return base_k1, base_k2
-        
+
     decay = 1.0 - 0.5 * (rnd / max(config.num_rounds - 1, 1))
     return (
         max(0.05, base_k1 * decay),

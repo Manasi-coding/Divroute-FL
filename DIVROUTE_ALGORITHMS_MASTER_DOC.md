@@ -4,7 +4,7 @@
 
 This document is a complete, self-contained technical description of every algorithm,
 formula, and mechanism implemented in this repository. It is written so that someone
-with no prior context on this project (e.g. a fresh LLM conversation) can understand
+with no prior context on this project  can understand
 the system's design, math, and rationale purely from this document.
 
 ## 0. High-level system description

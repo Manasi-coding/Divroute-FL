@@ -19,6 +19,7 @@ Usage
     python scripts/femnist_sanity_check.py --no-train       # stats only
     python scripts/femnist_sanity_check.py --lr 0.03 --epochs 20
 """
+
 import argparse
 import os
 import sys
@@ -37,7 +38,9 @@ from divroute_fl.model import get_model
 
 
 def mean_tv(label_lists, num_classes):
-    pooled = np.bincount(np.concatenate(label_lists), minlength=num_classes).astype(float)
+    pooled = np.bincount(np.concatenate(label_lists), minlength=num_classes).astype(
+        float
+    )
     pooled /= pooled.sum()
     tvs = []
     for lab in label_lists:
@@ -52,9 +55,22 @@ def simulated_cifar100_tv(num_clients=25, seed=42):
     targets = np.repeat(np.arange(100), 500)
     out = {}
     for name, fn in [
-        ("Dirichlet(0.9)", lambda r: _dirichlet_partition_indices(targets, num_clients, 0.9, 100, "cifar100", r)),
-        ("Dirichlet(0.1)", lambda r: _dirichlet_partition_indices(targets, num_clients, 0.1, 100, "cifar100", r)),
-        ("pathological (2 shards/client)", lambda r: _shard_partition_indices(targets, num_clients, 2, r)),
+        (
+            "Dirichlet(0.9)",
+            lambda r: _dirichlet_partition_indices(
+                targets, num_clients, 0.9, 100, "cifar100", r
+            ),
+        ),
+        (
+            "Dirichlet(0.1)",
+            lambda r: _dirichlet_partition_indices(
+                targets, num_clients, 0.1, 100, "cifar100", r
+            ),
+        ),
+        (
+            "pathological (2 shards/client)",
+            lambda r: _shard_partition_indices(targets, num_clients, 2, r),
+        ),
     ]:
         idx = fn(np.random.default_rng(seed))
         out[name] = mean_tv([targets[np.array(i)] for i in idx], 100)
@@ -73,7 +89,9 @@ def evaluate(model, loader, device):
 
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     p.add_argument("--clients", type=int, default=100)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--epochs", type=int, default=20)
@@ -87,11 +105,15 @@ def main():
 
     sizes = np.array([len(c) for c in clients])
     labels = [c.targets for c in clients]
-    distinct = np.array([len(np.unique(l)) for l in labels])
-    print(f"\nclients: {len(clients)} | samples/client min={sizes.min()} median={int(np.median(sizes))} "
-          f"mean={sizes.mean():.1f} max={sizes.max()} | total train={sizes.sum()} | test={len(test)}")
-    print(f"distinct classes per client (of {F.NUM_CLASSES}): min={distinct.min()} "
-          f"median={int(np.median(distinct))} mean={distinct.mean():.1f} max={distinct.max()}")
+    distinct = np.array([len(np.unique(client_labels)) for client_labels in labels])
+    print(
+        f"\nclients: {len(clients)} | samples/client min={sizes.min()} median={int(np.median(sizes))} "
+        f"mean={sizes.mean():.1f} max={sizes.max()} | total train={sizes.sum()} | test={len(test)}"
+    )
+    print(
+        f"distinct classes per client (of {F.NUM_CLASSES}): min={distinct.min()} "
+        f"median={int(np.median(distinct))} mean={distinct.mean():.1f} max={distinct.max()}"
+    )
 
     tv_real = mean_tv(labels, F.NUM_CLASSES)
     pooled = np.concatenate(labels)
@@ -99,11 +121,13 @@ def main():
     perm = rng.permutation(len(pooled))
     iid, start = [], 0
     for s in sizes:
-        iid.append(pooled[perm[start:start + s]])
+        iid.append(pooled[perm[start : start + s]])
         start += s
     tv_iid = mean_tv(iid, F.NUM_CLASSES)
-    print(f"\nmean TV(label dist. vs pooled): FEMNIST writers = {tv_real:.3f} | "
-          f"IID reference, same sizes = {tv_iid:.3f}")
+    print(
+        f"\nmean TV(label dist. vs pooled): FEMNIST writers = {tv_real:.3f} | "
+        f"IID reference, same sizes = {tv_iid:.3f}"
+    )
     print("yardsticks (synthetic CIFAR-100-shaped labels, 25 clients):")
     for k, v in simulated_cifar100_tv().items():
         print(f"   {k:<32s} {v:.3f}")
@@ -116,13 +140,21 @@ def main():
     model = get_model("femnist_cnn", F.NUM_CLASSES).to(device)
     xs = torch.cat([c.x for c in clients])
     ys = torch.cat([c.y for c in clients])
-    train_loader = DataLoader(torch.utils.data.TensorDataset(xs, ys), batch_size=args.batch_size,
-                              shuffle=True, drop_last=False)
+    train_loader = DataLoader(
+        torch.utils.data.TensorDataset(xs, ys),
+        batch_size=args.batch_size,
+        shuffle=True,
+        drop_last=False,
+    )
     test_loader = DataLoader(test, batch_size=1024, shuffle=False)
-    opt = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4, nesterov=True)
+    opt = torch.optim.SGD(
+        model.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4, nesterov=True
+    )
     crit = nn.CrossEntropyLoss(label_smoothing=0.1)
-    print(f"\ncentralised run on the pooled training writers: lr={args.lr}, batch={args.batch_size}, "
-          f"{args.epochs} epochs, device={device}")
+    print(
+        f"\ncentralised run on the pooled training writers: lr={args.lr}, batch={args.batch_size}, "
+        f"{args.epochs} epochs, device={device}"
+    )
     for ep in range(1, args.epochs + 1):
         model.train()
         t0 = time.time()
@@ -133,7 +165,9 @@ def main():
             nn.utils.clip_grad_norm_(model.parameters(), 10.0)
             opt.step()
         acc = evaluate(model, test_loader, device)
-        print(f"  epoch {ep:>2}/{args.epochs}  held-out-writer test acc = {acc:.4f}  ({time.time() - t0:.1f}s)")
+        print(
+            f"  epoch {ep:>2}/{args.epochs}  held-out-writer test acc = {acc:.4f}  ({time.time() - t0:.1f}s)"
+        )
 
 
 if __name__ == "__main__":

@@ -13,11 +13,15 @@ def compute_divergence(local_model: nn.Module, global_model: nn.Module) -> float
     """
     local_vec = torch.nn.utils.parameters_to_vector(local_model.parameters()).detach()
     global_vec = torch.nn.utils.parameters_to_vector(global_model.parameters()).detach()
-    cos_sim = F.cosine_similarity(local_vec.unsqueeze(0), global_vec.unsqueeze(0), eps=1e-8).item()
+    cos_sim = F.cosine_similarity(
+        local_vec.unsqueeze(0), global_vec.unsqueeze(0), eps=1e-8
+    ).item()
     return 1.0 - cos_sim
 
 
-def compute_decoupled_divergence(delta: torch.Tensor, reference_vector: torch.Tensor, eps: float = 1e-8) -> float:
+def compute_decoupled_divergence(
+    delta: torch.Tensor, reference_vector: torch.Tensor, eps: float = 1e-8
+) -> float:
     """
     Scale-independent angular divergence.
     delta_hat = delta / (||delta|| + eps)
@@ -28,7 +32,9 @@ def compute_decoupled_divergence(delta: torch.Tensor, reference_vector: torch.Te
     ref_norm = reference_vector.norm(p=2)
     delta_hat = delta / (delta_norm + eps)
     ref_hat = reference_vector / (ref_norm + eps)
-    cos_sim = F.cosine_similarity(delta_hat.unsqueeze(0), ref_hat.unsqueeze(0), eps=eps).item()
+    cos_sim = F.cosine_similarity(
+        delta_hat.unsqueeze(0), ref_hat.unsqueeze(0), eps=eps
+    ).item()
     return max(0.0, min(1.0, 1.0 - cos_sim))
 
 
@@ -59,12 +65,12 @@ def compute_divergence_weight(d: float, mode: str = "sqrt") -> float:
     if mode == "inverse":
         return 1.0 / (d + eps)
     elif mode == "sqrt":
-        return d ** 0.5 + eps
+        return d**0.5 + eps
     elif mode == "exp":
         return float(np.exp(-10.0 * d))
     else:
         # fallback — caller should use the softmax variant for the "softmax" mode
-        return d ** 0.5 + eps
+        return d**0.5 + eps
 
 
 def compute_softmax_weights(d_scores: list, temperature: float = 50.0) -> list:
@@ -74,12 +80,14 @@ def compute_softmax_weights(d_scores: list, temperature: float = 50.0) -> list:
     """
     arr = np.array(d_scores, dtype=np.float64)
     neg = -arr * temperature
-    neg -= neg.max()   # numerical stability
+    neg -= neg.max()  # numerical stability
     exp = np.exp(neg)
     return (exp / exp.sum()).tolist()
 
 
-def update_ema(ema_scores: dict, client_id: int, d_current: float, beta: float) -> float:
+def update_ema(
+    ema_scores: dict, client_id: int, d_current: float, beta: float
+) -> float:
     """Exponential moving average of a client's divergence score across rounds."""
     if client_id not in ema_scores:
         ema_scores[client_id] = d_current
@@ -105,20 +113,20 @@ def compute_adaptive_taus(all_d_scores: list, tau_alpha: float, tau_beta: float)
     arr = np.array(all_d_scores, dtype=np.float64)
     mu = float(np.mean(arr))
     sigma = float(np.std(arr))
-    
+
     # Safeguard 1: Prevent microscopic Tier-2 bands when variance collapses
     sigma = max(sigma, 1e-5)
-    
+
     tau_low = mu - tau_alpha * sigma
     tau_high = mu + tau_beta * sigma
-    
+
     # Safeguard 2: Divergence is bounded [0, 2], so tau_low should not be negative
     tau_low = max(0.0, tau_low)
-    
+
     # Safeguard 3: Fallback for anomalous configurations
     if tau_low >= tau_high:
         tau_high = tau_low * 1.5 + 1e-6
-        
+
     return tau_low, tau_high, mu, sigma
 
 
@@ -133,14 +141,14 @@ def compute_percentile_taus(all_d_scores: list):
     if len(arr) < 3:
         # Fallback if too few clients
         return -np.inf, np.inf
-    
+
     p33 = float(np.percentile(arr, 33.3333))
     p67 = float(np.percentile(arr, 66.6667))
-    
+
     # Handle ties where p33 == p67 by slightly separating them
     if p33 == p67:
         p67 += 1e-6
-        
+
     return p33, p67
 
 
@@ -159,14 +167,11 @@ def update_selection_weights(weights: np.ndarray, results: list, gamma: float) -
 
 
 def compute_dynamic_hybrid_scores(
-    div_scores: list, 
-    loss_scores: list, 
-    current_round: int, 
-    total_rounds: int
+    div_scores: list, loss_scores: list, current_round: int, total_rounds: int
 ) -> list:
     """
     Dynamic Hybrid Scoring (Bottleneck 2).
-    
+
     Computes:
       tau_d = max(0.05, std(divergence))
       tau_I = max(0.05, std(loss_improvement))
@@ -175,17 +180,17 @@ def compute_dynamic_hybrid_scores(
     """
     if len(div_scores) == 0:
         return []
-        
+
     arr_div = np.array(div_scores, dtype=np.float64)
     arr_loss = np.array(loss_scores, dtype=np.float64)
-    
+
     tau_d = max(0.05, float(np.std(arr_div)))
     tau_I = max(0.05, float(np.std(arr_loss)))
-    
+
     # Progress from 0.0 to 1.0
     progress = current_round / max(1, total_rounds - 1)
     lam_t = 0.4 + 0.4 * progress
-    
+
     def safe_softmax(x, tau):
         scaled = x / tau
         scaled -= np.max(scaled)
@@ -194,9 +199,49 @@ def compute_dynamic_hybrid_scores(
         if sum_exp == 0:
             return np.ones_like(x) / len(x)
         return exp_x / sum_exp
-        
+
     div_soft = safe_softmax(arr_div, tau_d)
     loss_soft = safe_softmax(arr_loss, tau_I)
-    
+
     final_scores = lam_t * div_soft + (1.0 - lam_t) * loss_soft
     return final_scores.tolist()
+
+
+def dagc_k_ratios(
+    num_samples,
+    mean_k: float,
+    exponent: float = 2.0 / 3.0,
+    direction: int = 1,
+    k_floor: float = 1e-4,
+) -> list:
+    """Data-volume-aware per-client k ratios, DAGC-R style (Lu et al., arXiv 2311.07324):
+    delta_i proportional to p_i**(2/3) with sum(delta_i) = n * mean_k, where p_i is the
+    client's share of this round's samples. direction=+1 gives larger clients LESS
+    compression (the paper's rule); direction=-1 reverses it (their 'Scheme II' control).
+    Ratios are capped at 1 and the freed budget is redistributed (water-filling), so the
+    total stays n * mean_k unless every client is capped. Simplified: uses the paper's
+    proportional ratio, not its full candidate search (Algorithm 2)."""
+    n = len(num_samples)
+    total = float(sum(num_samples))
+    p = [max(ns / total, 1e-12) for ns in num_samples]
+    raw = [pi ** (direction * exponent) for pi in p]
+    budget = n * mean_k
+    free = list(range(n))
+    out = [0.0] * n
+    while free:
+        w = sum(raw[i] for i in free)
+        cand = {i: budget * raw[i] / w for i in free}
+        capped = [i for i in free if cand[i] > 1.0]
+        if not capped:
+            for i in free:
+                out[i] = max(cand[i], k_floor)
+            break
+        for i in capped:
+            out[i] = 1.0
+            budget -= 1.0
+            free.remove(i)
+        if budget <= 0:
+            for i in free:
+                out[i] = k_floor
+            break
+    return out

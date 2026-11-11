@@ -19,6 +19,8 @@ remove those one at a time):
   pure        DivRoute with all three removed: tiered k only
   purerandom  `pure` with tier labels shuffled (random_tier_assignment)
   invert      DivRoute with inverted tier polarity
+  dagc / dagcrev / dagcrandom  DAGC-R-style continuous k by data volume (larger clients less compressed) / reversed / ratios shuffled
+  pure_size / pure_sizeinvert  tiers by client dataset size instead of divergence (live / inverted polarity)
   pureinvert  `pure` with inverted tier polarity (most bandwidth to most-divergent clients)
   diag        DivRoute logging gradient/routing diagnostics (divergence vs update norm etc.)
 
@@ -28,6 +30,7 @@ byte-matched to each other (pure*s vs matched*s). Not applicable to fedavg.
 Finished runs are skipped; interrupted runs auto-resume; a finished run's checkpoint
 folder is deleted unless --keep-checkpoints.
 """
+
 import argparse
 import itertools
 import json
@@ -39,17 +42,37 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from divroute_fl.config import (
-    get_femnist_fedavg_config, get_femnist_uniform_config, get_femnist_divroute_config,
+    get_femnist_fedavg_config,
+    get_femnist_uniform_config,
+    get_femnist_divroute_config,
+    get_cifar10s_fedavg_config,
+    get_cifar10s_uniform_config,
+    get_cifar10s_divroute_config,
 )
 from divroute_fl.main import run
 
-_F = {"fedavg": get_femnist_fedavg_config, "uniform": get_femnist_uniform_config,
-      "divroute": get_femnist_divroute_config}
-_BASE_K = {"uniform": (0.05, 0.05), "divroute": (0.20, 0.05)}   # factory default tier ratios
+_FACTORIES = {  # dataset -> {factory name -> config factory}
+    "femnist": {
+        "fedavg": get_femnist_fedavg_config,
+        "uniform": get_femnist_uniform_config,
+        "divroute": get_femnist_divroute_config,
+    },
+    "cifar10": {
+        "fedavg": get_cifar10s_fedavg_config,
+        "uniform": get_cifar10s_uniform_config,
+        "divroute": get_cifar10s_divroute_config,
+    },
+}
+_BASE_K = {
+    "uniform": (0.05, 0.05),
+    "divroute": (0.20, 0.05),
+}  # factory default tier ratios
 _PURE = dict(use_layerwise_topk=False, use_divergence_weighting=False, gamma=1.0)
 
-VARIANTS = {   # name -> (factory, overrides)
-    "fedavg": ("fedavg", {}), "uniform": ("uniform", {}), "divroute": ("divroute", {}),
+VARIANTS = {  # name -> (factory, overrides)
+    "fedavg": ("fedavg", {}),
+    "uniform": ("uniform", {}),
+    "divroute": ("divroute", {}),
     "matched": ("uniform", dict(k_ratio_tier1=0.105, k_ratio_tier2=0.105)),
     "nolayer": ("divroute", dict(use_layerwise_topk=False)),
     "noweight": ("divroute", dict(use_divergence_weighting=False)),
@@ -57,10 +80,39 @@ VARIANTS = {   # name -> (factory, overrides)
     "pure": ("divroute", dict(_PURE)),
     "purerandom": ("divroute", dict(_PURE, random_tier_assignment=True)),
     "invert": ("divroute", dict(invert_tier_polarity=True)),
-    "pureinvert": ("divroute", dict(_PURE, invert_tier_polarity=True)),   # `pure` with tier polarity swapped
-    "pure_l2": ("divroute", dict(_PURE, divergence_metric="l2")),                # routing score = update L2 norm
+    "pureinvert": (
+        "divroute",
+        dict(_PURE, invert_tier_polarity=True),
+    ),  # `pure` with tier polarity swapped
+    "pure_l2": (
+        "divroute",
+        dict(_PURE, divergence_metric="l2"),
+    ),  # routing score = update L2 norm
+    "pure_size": (
+        "divroute",
+        dict(_PURE, divergence_metric="num_samples"),
+    ),  # score = dataset size, live polarity
+    "pure_sizeinvert": (
+        "divroute",
+        dict(_PURE, divergence_metric="num_samples", invert_tier_polarity=True),
+    ),
+    "dagc": (
+        "divroute",
+        dict(_PURE, dagc_mean_k=0.105),
+    ),  # DAGC-R-style k by data volume, matched bytes
+    "dagcrev": (
+        "divroute",
+        dict(_PURE, dagc_mean_k=0.105, dagc_direction=-1),
+    ),  # reversed (smaller clients get more)
+    "dagcrandom": (
+        "divroute",
+        dict(_PURE, dagc_mean_k=0.105, dagc_shuffle=True),
+    ),  # same ratios, shuffled among clients
     "pure_layercos": ("divroute", dict(_PURE, divergence_metric="layerwise_cosine")),
-    "diag": ("divroute", dict(enable_gradient_diagnostics=True, enable_routing_quality_analysis=True)),
+    "diag": (
+        "divroute",
+        dict(enable_gradient_diagnostics=True, enable_routing_quality_analysis=True),
+    ),
 }
 
 
@@ -74,24 +126,66 @@ def _rounds_logged(path):
 
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("--variant", nargs="+", choices=list(VARIANTS), default=["fedavg", "uniform", "divroute"])
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    p.add_argument(
+        "--variant",
+        nargs="+",
+        choices=list(VARIANTS),
+        default=["fedavg", "uniform", "divroute"],
+    )
     p.add_argument("--seeds", type=int, nargs="+", default=[42, 43, 44])
-    p.add_argument("--num-rounds", type=int, default=None, help="default: factories' value (150)")
-    p.add_argument("--lr", type=float, default=None, help="local_lr (local_lr_min = lr/10); label gets _lr<lr>")
-    p.add_argument("--kscale", type=float, nargs="+", default=None, help="scale compression ratios (see above)")
-    p.add_argument("--no-ef", action="store_true", help="disable error feedback (control); label gets _noef")
+    p.add_argument(
+        "--num-rounds", type=int, default=None, help="default: factories' value (150)"
+    )
+    p.add_argument(
+        "--lr",
+        type=float,
+        default=None,
+        help="local_lr (local_lr_min = lr/10); label gets _lr<lr>",
+    )
+    p.add_argument(
+        "--kscale",
+        type=float,
+        nargs="+",
+        default=None,
+        help="scale compression ratios (see above)",
+    )
+    p.add_argument(
+        "--dataset",
+        choices=list(_FACTORIES),
+        default="femnist",
+        help="femnist (default) or cifar10 (from scratch, Dirichlet alpha=0.1, plan section 45)",
+    )
+    p.add_argument(
+        "--local-epochs",
+        type=int,
+        default=None,
+        help="override local epochs; label gets _ep<n>",
+    )
+    p.add_argument(
+        "--no-ef",
+        action="store_true",
+        help="disable error feedback (control); label gets _noef",
+    )
     p.add_argument("--keep-checkpoints", action="store_true")
     args = p.parse_args()
-    rounds = args.num_rounds or get_femnist_fedavg_config().num_rounds
+    _F = _FACTORIES[args.dataset]
+    rounds = args.num_rounds or _F["fedavg"]().num_rounds
 
-    done = {}   # label-without-seed -> [log paths]
-    for seed, v, ks in itertools.product(args.seeds, args.variant, args.kscale or [None]):
+    done = {}  # label-without-seed -> [log paths]
+    for seed, v, ks in itertools.product(
+        args.seeds, args.variant, args.kscale or [None]
+    ):
         factory, ov = VARIANTS[v]
         ov, tag = dict(ov), ""
         if args.lr is not None:
             ov.update(local_lr=args.lr, local_lr_min=args.lr / 10)
             tag += f"_lr{args.lr:g}"
+        if args.local_epochs is not None:
+            ov.update(local_epochs=args.local_epochs)
+            tag += f"_ep{args.local_epochs}"
         if args.no_ef:
             if factory == "fedavg":
                 print(f"[skip] {v}: no error feedback in dense FedAvg")
@@ -103,28 +197,44 @@ def main():
                 print(f"[skip] {v}: --kscale does not apply to dense FedAvg")
                 continue
             k1, k2 = _BASE_K[factory]
-            ov.update(k_ratio_tier1=ov.get("k_ratio_tier1", k1) * ks, k_ratio_tier2=ov.get("k_ratio_tier2", k2) * ks)
+            ov.update(
+                k_ratio_tier1=ov.get("k_ratio_tier1", k1) * ks,
+                k_ratio_tier2=ov.get("k_ratio_tier2", k2) * ks,
+            )
+            if "dagc_mean_k" in ov:
+                ov["dagc_mean_k"] = ov["dagc_mean_k"] * ks
             tag += f"_ks{ks:g}"
-        label = f"femnist_{v}{tag}_r{rounds}_s{seed}"
+        label = f"{args.dataset}_{v}{tag}_r{rounds}_s{seed}"
         path = f"logs/{label}.json"
         done.setdefault(v + tag, []).append(path)
         if _rounds_logged(path) >= rounds:
             print(f"[skip] {label}: already holds {rounds} rounds")
             continue
-        cfg = _F[factory](run_label=label, seed=seed, num_rounds=rounds, log_path=path,
-                          skip_plot_prompt=True, **ov)
+        cfg = _F[factory](
+            run_label=label,
+            seed=seed,
+            num_rounds=rounds,
+            log_path=path,
+            skip_plot_prompt=True,
+            **ov,
+        )
         print(f"\n{'=' * 70}\nRUNNING: {label}\n{'=' * 70}", flush=True)
         t0 = time.time()
         run(cfg)
         print(f"[{label}] wall-clock: {(time.time() - t0) / 60:.1f} min", flush=True)
         if not args.keep_checkpoints:
-            shutil.rmtree(os.path.join("checkpoints", f"{label}_femnist_seed{seed}"), ignore_errors=True)
+            shutil.rmtree(
+                os.path.join("checkpoints", f"{label}_{args.dataset}_seed{seed}"),
+                ignore_errors=True,
+            )
 
     cmd = "python scripts/summarize_runs.py --last 20"
     for name, paths in done.items():
         cmd += f" \\\n    --group {name} " + " ".join(paths)
     print("\nSummarize (plateau = mean of the last 20 rounds):\n  " + cmd)
-    print("Check each run's last two 10-round windows differ by well under 0.5pp before comparing.")
+    print(
+        "Check each run's last two 10-round windows differ by well under 0.5pp before comparing."
+    )
 
 
 if __name__ == "__main__":

@@ -26,6 +26,7 @@ Protocol (this project's own choice, documented rather than borrowed):
 Consequence: absolute accuracies here are NOT comparable to numbers reported
 under other FEMNIST protocols (e.g. per-user sample splits).
 """
+
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -73,14 +74,15 @@ def _load():
             ) from e
         disable_progress_bars()
         ds = load_dataset(HF_NAME, split="train")
-        # Read the two small columns straight from the Arrow table: the
-        # list-based ds["writer_id"] route takes ~45 s per column for 814k
-        # rows, this takes ~0.1 s and returns identical values (checked).
-        # Valid because ds is the freshly loaded, un-indexed full split.
-        assert ds.data.num_rows == len(ds), "dataset has an index mapping; column read would misalign"
+
+        assert ds.data.num_rows == len(ds), (
+            "dataset has an index mapping; column read would misalign"
+        )
         _STATE["ds"] = ds
         _STATE["writer"] = ds.data.column("writer_id").to_numpy(zero_copy_only=False)
-        _STATE["label"] = ds.data.column("character").to_numpy(zero_copy_only=False).astype(np.int64)
+        _STATE["label"] = (
+            ds.data.column("character").to_numpy(zero_copy_only=False).astype(np.int64)
+        )
     return _STATE["ds"], _STATE["writer"], _STATE["label"]
 
 
@@ -90,12 +92,14 @@ def _writer_pools():
     that varies between calls."""
     if "pools" not in _STATE:
         _, writer, _ = _load()
-        uniq, counts = np.unique(writer, return_counts=True)   # sorted -> deterministic
+        uniq, counts = np.unique(writer, return_counts=True)  # sorted -> deterministic
         eligible = uniq[counts >= MIN_SAMPLES_PER_WRITER]
         rng = np.random.default_rng(TEST_WRITER_SEED)
         perm = rng.permutation(len(eligible))
-        _STATE["pools"] = (np.sort(eligible[perm[:NUM_TEST_WRITERS]]),
-                           np.sort(eligible[perm[NUM_TEST_WRITERS:]]))
+        _STATE["pools"] = (
+            np.sort(eligible[perm[:NUM_TEST_WRITERS]]),
+            np.sort(eligible[perm[NUM_TEST_WRITERS:]]),
+        )
     return _STATE["pools"]
 
 
@@ -115,7 +119,8 @@ def get_femnist_client_datasets(num_clients: int, seed: int):
         raise ValueError(
             f"num_clients={num_clients} exceeds the {len(train_pool)} eligible "
             f"training writers (>= {MIN_SAMPLES_PER_WRITER} samples, "
-            f"{NUM_TEST_WRITERS} held out for testing).")
+            f"{NUM_TEST_WRITERS} held out for testing)."
+        )
     rng = np.random.default_rng(seed)
     chosen = np.sort(rng.choice(train_pool, size=num_clients, replace=False))
 
@@ -124,10 +129,12 @@ def get_femnist_client_datasets(num_clients: int, seed: int):
         rows = np.flatnonzero(writer == w)
         clients.append(FemnistDataset(*_gather(rows)))
     sizes = [len(c) for c in clients]
-    print(f"[init] FEMNIST: {num_clients} training writers (natural partition, seed {seed}); "
-          f"{len(test_writers)} fixed held-out test writers; "
-          f"writers need >= {MIN_SAMPLES_PER_WRITER} samples; "
-          f"train samples total {sum(sizes)}")
+    print(
+        f"[init] FEMNIST: {num_clients} training writers (natural partition, seed {seed}); "
+        f"{len(test_writers)} fixed held-out test writers; "
+        f"writers need >= {MIN_SAMPLES_PER_WRITER} samples; "
+        f"train samples total {sum(sizes)}"
+    )
     return clients
 
 
@@ -138,6 +145,8 @@ def get_femnist_test_dataset():
         test_writers, _ = _writer_pools()
         rows = np.flatnonzero(np.isin(writer, test_writers))
         _STATE["test"] = FemnistDataset(*_gather(rows))
-        print(f"[init] FEMNIST test set: {len(_STATE['test'])} samples from "
-              f"{len(test_writers)} held-out writers")
+        print(
+            f"[init] FEMNIST test set: {len(_STATE['test'])} samples from "
+            f"{len(test_writers)} held-out writers"
+        )
     return _STATE["test"]

@@ -24,6 +24,7 @@ Usage
         existing checkpoint -- for measuring real wall-clock time before
         committing to the full budget.
 """
+
 import argparse
 import os
 import sys
@@ -32,7 +33,8 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from divroute_fl.config import (
-    get_pretrained_finetune_config, get_fedavg_pretrained_config,
+    get_pretrained_finetune_config,
+    get_fedavg_pretrained_config,
     get_uniform_top5_pretrained_config,
 )
 from divroute_fl.main import run
@@ -41,27 +43,39 @@ SEED = 42
 LOG_PREFIX = "logs/pretrained_companion"
 
 CONFIG_FACTORIES = {
-    "divroute": (get_pretrained_finetune_config,     "divroute_pretrained_cifar100"),
-    "fedavg":   (get_fedavg_pretrained_config,       "fedavg_pretrained_cifar100"),
-    "uniform":  (get_uniform_top5_pretrained_config, "uniform_pretrained_cifar100"),
+    "divroute": (get_pretrained_finetune_config, "divroute_pretrained_cifar100"),
+    "fedavg": (get_fedavg_pretrained_config, "fedavg_pretrained_cifar100"),
+    "uniform": (get_uniform_top5_pretrained_config, "uniform_pretrained_cifar100"),
 }
 
 
 def _parse_args():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--num-rounds", type=int, default=20)
-    p.add_argument("--only", choices=list(CONFIG_FACTORIES), default=None,
-                   help="run a single config only (for calibration)")
-    p.add_argument("--fresh", action="store_true",
-                   help="ignore any existing checkpoint and start this run over")
-    p.add_argument("--invert-polarity", action="store_true",
-                   help="DivRoute only: run with invert_tier_polarity=True as a "
-                        "separately labeled experiment (requires --only divroute) -- "
-                        "see DIVROUTE_ACCURACY_MASTER_PLAN.md §14")
+    p.add_argument(
+        "--only",
+        choices=list(CONFIG_FACTORIES),
+        default=None,
+        help="run a single config only (for calibration)",
+    )
+    p.add_argument(
+        "--fresh",
+        action="store_true",
+        help="ignore any existing checkpoint and start this run over",
+    )
+    p.add_argument(
+        "--invert-polarity",
+        action="store_true",
+        help="DivRoute only: run with invert_tier_polarity=True as a "
+        "separately labeled experiment (requires --only divroute) -- "
+        "see DIVROUTE_ACCURACY_MASTER_PLAN.md §14",
+    )
     args = p.parse_args()
     if args.invert_polarity and args.only != "divroute":
-        p.error("--invert-polarity requires --only divroute "
-                 "(the flag is a no-op for fedavg/uniform)")
+        p.error(
+            "--invert-polarity requires --only divroute "
+            "(the flag is a no-op for fedavg/uniform)"
+        )
     return args
 
 
@@ -89,7 +103,9 @@ def main():
         if args.fresh:
             cfg.fresh = True
 
-        print(f"\n{'=' * 70}\nRUNNING: {name}  (num_rounds={args.num_rounds})\n{'=' * 70}")
+        print(
+            f"\n{'=' * 70}\nRUNNING: {name}  (num_rounds={args.num_rounds})\n{'=' * 70}"
+        )
         t0 = time.time()
         run(cfg)
         elapsed = time.time() - t0

@@ -5,6 +5,7 @@ Reads logs/run.json and produces presentation plots.
 Standalone — only imports json, os, numpy, matplotlib.
 No dependency on model or training code.
 """
+
 import json
 import os
 
@@ -23,9 +24,8 @@ def _load_log(log_path: str) -> list:
     return data
 
 
-# -------------------------------------------------------------------------
 # Plot 1 — Divergence Heatmap
-# -------------------------------------------------------------------------
+
 
 def plot_divergence_heatmap(log_path: str = "logs/run.json"):
     """
@@ -69,9 +69,8 @@ def plot_divergence_heatmap(log_path: str = "logs/run.json"):
     print(f"  Saved: {path}")
 
 
-# -------------------------------------------------------------------------
 # Plot 2 — Tier Distribution Over Time
-# -------------------------------------------------------------------------
+
 
 def plot_tier_distribution(log_path: str = "logs/run.json"):
     """
@@ -86,13 +85,26 @@ def plot_tier_distribution(log_path: str = "logs/run.json"):
     tier3 = [sum(1 for c in r["clients"] if c["tier"] == 3) for r in log]
 
     fig, ax = plt.subplots(figsize=(14, 5))
-    ax.bar(rounds, tier1, label="Tier 1 - High Fidelity (least divergent)",
-           color="steelblue")
-    ax.bar(rounds, tier2, bottom=tier1,
-           label="Tier 2 - Low Fidelity (middle band)", color="orange")
-    ax.bar(rounds, tier3,
-           bottom=[t1 + t2 for t1, t2 in zip(tier1, tier2)],
-           label="Tier 3 - Low Fidelity (most divergent)", color="lightgrey")
+    ax.bar(
+        rounds,
+        tier1,
+        label="Tier 1 - High Fidelity (least divergent)",
+        color="steelblue",
+    )
+    ax.bar(
+        rounds,
+        tier2,
+        bottom=tier1,
+        label="Tier 2 - Low Fidelity (middle band)",
+        color="orange",
+    )
+    ax.bar(
+        rounds,
+        tier3,
+        bottom=[t1 + t2 for t1, t2 in zip(tier1, tier2)],
+        label="Tier 3 - Low Fidelity (most divergent)",
+        color="lightgrey",
+    )
 
     ax.set_xlabel("Training Round", fontsize=12)
     ax.set_ylabel("Number of Selected Clients", fontsize=12)
@@ -106,9 +118,8 @@ def plot_tier_distribution(log_path: str = "logs/run.json"):
     print(f"  Saved: {path}")
 
 
-# -------------------------------------------------------------------------
 # Plot 3 — Communication vs Accuracy (headline result)
-# -------------------------------------------------------------------------
+
 
 def plot_comm_vs_accuracy(log_path: str = "logs/run.json"):
     """
@@ -125,7 +136,9 @@ def plot_comm_vs_accuracy(log_path: str = "logs/run.json"):
     clients_per_round = len(log[0]["clients"])
 
     # DivRoute-FL: actual download bytes from log
-    divroute_bytes = [r.get("total_download_bytes", r["total_bytes_transmitted"]) for r in log]
+    divroute_bytes = [
+        r.get("total_download_bytes", r["total_bytes_transmitted"]) for r in log
+    ]
     divroute_cumul = np.cumsum(divroute_bytes) / 1e6  # MB
 
     # Full FedAvg baseline: every client gets full delta every round
@@ -138,17 +151,32 @@ def plot_comm_vs_accuracy(log_path: str = "logs/run.json"):
     uniform_cumul = np.cumsum([uniform_per_round] * len(log)) / 1e6
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(fedavg_cumul, accuracies, color="tomato",
-            linewidth=2, label="Full FedAvg (no compression)")
-    ax.plot(uniform_cumul, accuracies, color="goldenrod",
-            linewidth=2, linestyle="--", label="Uniform Top-5% (prior work)")
-    ax.plot(divroute_cumul, accuracies, color="steelblue",
-            linewidth=2.5, label="DivRoute-FL (ours)")
+    ax.plot(
+        fedavg_cumul,
+        accuracies,
+        color="tomato",
+        linewidth=2,
+        label="Full FedAvg (no compression)",
+    )
+    ax.plot(
+        uniform_cumul,
+        accuracies,
+        color="goldenrod",
+        linewidth=2,
+        linestyle="--",
+        label="Uniform Top-5% (prior work)",
+    )
+    ax.plot(
+        divroute_cumul,
+        accuracies,
+        color="steelblue",
+        linewidth=2.5,
+        label="DivRoute-FL (ours)",
+    )
 
     ax.set_xlabel("Cumulative Download Transmitted (MB)", fontsize=12)
     ax.set_ylabel("Test Accuracy", fontsize=12)
-    ax.set_title("Communication Efficiency — DivRoute-FL vs Baselines",
-                 fontsize=13)
+    ax.set_title("Communication Efficiency — DivRoute-FL vs Baselines", fontsize=13)
     ax.legend(fontsize=11)
     ax.grid(True, alpha=0.3)
 
@@ -159,21 +187,22 @@ def plot_comm_vs_accuracy(log_path: str = "logs/run.json"):
     print(f"  Saved: {path}")
 
 
-# -------------------------------------------------------------------------
 # Plot 4 — Per-Round Bytes (Download + Upload)
-# -------------------------------------------------------------------------
+
 
 def plot_bytes_per_round(log_path: str = "logs/run.json"):
     """
     Per-round bandwidth: DivRoute-FL download vs Full FedAvg download,
-    plus DivRoute-FL upload (Phase 1.3 — bidirectional accounting).
+    plus DivRoute-FL upload with bidirectional accounting.
     Shows download bandwidth dropping over time as clients converge into
     lower tiers, while upload remains constant (uncompressed, current
     implementation).
     """
     log = _load_log(log_path)
     rounds = [r["round"] for r in log]
-    divroute_down_mb = [r.get("total_download_bytes", r["total_bytes_transmitted"]) / 1e6 for r in log]
+    divroute_down_mb = [
+        r.get("total_download_bytes", r["total_bytes_transmitted"]) / 1e6 for r in log
+    ]
     divroute_up_mb = [r.get("total_upload_bytes", 0) / 1e6 for r in log]
 
     # Baseline: full FedAvg download
@@ -182,20 +211,41 @@ def plot_bytes_per_round(log_path: str = "logs/run.json"):
     fedavg_mb = (clients_per_round * delta_numel * 4) / 1e6
 
     fig, ax = plt.subplots(figsize=(12, 5))
-    ax.plot(rounds, divroute_down_mb, color="steelblue",
-            linewidth=2, label="DivRoute-FL download")
-    ax.plot(rounds, divroute_up_mb, color="seagreen",
-            linewidth=2, linestyle=":", label="DivRoute-FL upload (compressed)")
-    ax.axhline(y=fedavg_mb, color="tomato", linewidth=2,
-               linestyle="--", label=f"Full FedAvg download ({fedavg_mb:.1f} MB/round)")
+    ax.plot(
+        rounds,
+        divroute_down_mb,
+        color="steelblue",
+        linewidth=2,
+        label="DivRoute-FL download",
+    )
+    ax.plot(
+        rounds,
+        divroute_up_mb,
+        color="seagreen",
+        linewidth=2,
+        linestyle=":",
+        label="DivRoute-FL upload (compressed)",
+    )
+    ax.axhline(
+        y=fedavg_mb,
+        color="tomato",
+        linewidth=2,
+        linestyle="--",
+        label=f"Full FedAvg download ({fedavg_mb:.1f} MB/round)",
+    )
 
-    ax.fill_between(rounds, divroute_down_mb, fedavg_mb,
-                     alpha=0.15, color="steelblue", label="Download bandwidth saved")
+    ax.fill_between(
+        rounds,
+        divroute_down_mb,
+        fedavg_mb,
+        alpha=0.15,
+        color="steelblue",
+        label="Download bandwidth saved",
+    )
 
     ax.set_xlabel("Training Round", fontsize=12)
     ax.set_ylabel("Bytes Transmitted (MB)", fontsize=12)
-    ax.set_title("Per-Round Bandwidth: DivRoute-FL vs Full FedAvg",
-                 fontsize=13)
+    ax.set_title("Per-Round Bandwidth: DivRoute-FL vs Full FedAvg", fontsize=13)
     ax.legend(fontsize=11)
     ax.grid(True, alpha=0.3)
 
@@ -206,9 +256,8 @@ def plot_bytes_per_round(log_path: str = "logs/run.json"):
     print(f"  Saved: {path}")
 
 
-# -------------------------------------------------------------------------
 # Entry point
-# -------------------------------------------------------------------------
+
 
 def generate_all_plots(log_path: str = "logs/run.json"):
     """Generate all presentation plots from the experiment log."""
